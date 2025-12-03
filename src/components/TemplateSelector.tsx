@@ -11,7 +11,7 @@ export default function TemplateSelector({
 }: TemplateSelectorProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-3">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
         Invoice Template
       </label>
       <div className="grid grid-cols-3 gap-4">
@@ -22,8 +22,8 @@ export default function TemplateSelector({
             onClick={() => onChange(template.id)}
             className={`relative p-4 border-2 rounded-lg transition-all ${
               selected === template.id
-                ? "border-slate-900 bg-slate-50"
-                : "border-slate-200 hover:border-slate-300 bg-white"
+                ? "border-slate-900 dark:border-slate-600 bg-slate-50 dark:bg-slate-700"
+                : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800"
             }`}
           >
             {/* Template Preview Thumbnail */}
@@ -65,17 +65,17 @@ export default function TemplateSelector({
 
             {/* Template Info */}
             <div className="text-left">
-              <div className="font-semibold text-slate-900 text-sm mb-1">
+              <div className="font-semibold text-slate-900 dark:text-white text-sm mb-1">
                 {template.name}
               </div>
-              <div className="text-xs text-slate-600">
+              <div className="text-xs text-slate-600 dark:text-slate-400">
                 {template.description}
               </div>
             </div>
 
             {/* Selected Indicator */}
             {selected === template.id && (
-              <div className="absolute top-2 right-2 w-5 h-5 bg-slate-900 rounded-full flex items-center justify-center">
+              <div className="absolute top-2 right-2 w-5 h-5 bg-slate-900 dark:bg-slate-600 rounded-full flex items-center justify-center">
                 <svg
                   className="w-3 h-3 text-white"
                   fill="none"

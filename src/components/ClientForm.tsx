@@ -125,14 +125,14 @@ export default function ClientForm({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {client ? "Edit Client" : "New Client"}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition"
+            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition"
           >
             <X className="w-6 h-6" />
           </button>
@@ -141,14 +141,14 @@ export default function ClientForm({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 mb-3">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
               Basic Information
             </h3>
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Name *
                 </label>
@@ -160,7 +160,7 @@ export default function ClientForm({
                     setFormData({ ...formData, name: e.target.value })
                   }
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   placeholder="Client or company name"
                 />
               </div>
@@ -169,7 +169,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Email
                   </label>
@@ -180,7 +180,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="client@example.com"
                   />
                 </div>
@@ -188,7 +188,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="phone"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Phone
                   </label>
@@ -199,7 +199,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="+47 123 45 678"
                   />
                 </div>
@@ -208,8 +208,8 @@ export default function ClientForm({
           </div>
 
           {/* Company Information */}
-          <div className="pt-4 border-t border-slate-200">
-            <h3 className="text-sm font-semibold text-slate-900 mb-3">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
               Company Information
             </h3>
             <div className="space-y-4">
@@ -217,7 +217,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="organization_number"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Organization Number
                   </label>
@@ -231,7 +231,7 @@ export default function ClientForm({
                         organization_number: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="123456789"
                   />
                 </div>
@@ -239,7 +239,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="tax_number"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Tax/VAT/MVA Number
                   </label>
@@ -250,7 +250,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, tax_number: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="NO123456789MVA"
                   />
                 </div>
@@ -259,7 +259,7 @@ export default function ClientForm({
               <div>
                 <label
                   htmlFor="kid_number"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   KID Number (Optional)
                 </label>
@@ -270,10 +270,10 @@ export default function ClientForm({
                   onChange={(e) =>
                     setFormData({ ...formData, kid_number: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   placeholder="Leave empty to use client ID"
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Customer identification number for Norwegian banking
                 </p>
               </div>
@@ -281,15 +281,15 @@ export default function ClientForm({
           </div>
 
           {/* Address Information */}
-          <div className="pt-4 border-t border-slate-200">
-            <h3 className="text-sm font-semibold text-slate-900 mb-3">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
               Address Information
             </h3>
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="street_address"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Street Address
                 </label>
@@ -300,7 +300,7 @@ export default function ClientForm({
                   onChange={(e) =>
                     setFormData({ ...formData, street_address: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   placeholder="Storgata 1"
                 />
               </div>
@@ -309,7 +309,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="postal_code"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Postal Code
                   </label>
@@ -320,7 +320,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, postal_code: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="0001"
                   />
                 </div>
@@ -328,7 +328,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="city"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     City
                   </label>
@@ -339,7 +339,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="Oslo"
                   />
                 </div>
@@ -349,7 +349,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="state"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     State/Region
                   </label>
@@ -360,7 +360,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, state: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="Optional"
                   />
                 </div>
@@ -368,7 +368,7 @@ export default function ClientForm({
                 <div>
                   <label
                     htmlFor="country"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Country
                   </label>
@@ -379,7 +379,7 @@ export default function ClientForm({
                     onChange={(e) =>
                       setFormData({ ...formData, country: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="Norway"
                   />
                 </div>
@@ -388,7 +388,7 @@ export default function ClientForm({
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -411,7 +411,7 @@ export default function ClientForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium"
+              className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium"
             >
               Cancel
             </button>
@@ -433,11 +433,11 @@ export default function ClientForm({
 
         {showDeleteConfirm && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 rounded-xl">
-            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-sm w-full p-6">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
                 Delete Client?
               </h3>
-              <p className="text-slate-600 mb-6">
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
                 This will permanently delete this client and all associated
                 invoices. This action cannot be undone.
               </p>
@@ -446,7 +446,7 @@ export default function ClientForm({
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={loading}
-                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
                 >
                   Cancel
                 </button>

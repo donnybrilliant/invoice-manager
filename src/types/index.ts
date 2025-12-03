@@ -33,6 +33,9 @@ export interface Invoice {
   currency: string;
   notes: string | null;
   template: string;
+  show_account_number?: boolean;
+  show_iban?: boolean;
+  show_swift_bic?: boolean;
   created_at: string;
   updated_at: string;
   client?: Client;

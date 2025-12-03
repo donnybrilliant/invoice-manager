@@ -217,13 +217,13 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <nav className="bg-white shadow-sm border-b border-slate-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <nav className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
+              className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back to Dashboard</span>
@@ -233,12 +233,12 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
       </nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 md:p-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
               Company Profile
             </h2>
-            <p className="text-slate-600 mt-1">
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
               Manage your company information and branding
             </p>
           </div>
@@ -246,12 +246,12 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Logo Upload */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Company Logo
               </label>
               <div className="flex items-center gap-4">
                 {logoPreview && (
-                  <div className="w-24 h-24 border-2 border-slate-200 rounded-lg overflow-hidden flex items-center justify-center bg-slate-50">
+                  <div className="w-24 h-24 border-2 border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-slate-700">
                     <img
                       src={logoPreview}
                       alt="Company logo"
@@ -260,7 +260,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                   </div>
                 )}
                 <div className="flex-1">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition">
                     <Upload className="w-4 h-4" />
                     <span>Upload Logo</span>
                     <input
@@ -270,7 +270,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                       className="hidden"
                     />
                   </label>
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                     PNG, JPG or GIF (max 5MB)
                   </p>
                 </div>
@@ -279,14 +279,14 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
 
             {/* Basic Information */}
             <div>
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
                 Basic Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label
                     htmlFor="company_name"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Company Name
                   </label>
@@ -297,7 +297,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, company_name: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="Your Company Name"
                   />
                 </div>
@@ -305,7 +305,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div>
                   <label
                     htmlFor="phone"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Phone
                   </label>
@@ -316,7 +316,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="+47 123 45 678"
                   />
                 </div>
@@ -324,7 +324,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Email
                   </label>
@@ -335,7 +335,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="contact@company.com"
                   />
                 </div>
@@ -343,7 +343,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div className="md:col-span-2">
                   <label
                     htmlFor="website"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Website
                   </label>
@@ -354,7 +354,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, website: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="https://www.company.com"
                   />
                 </div>
@@ -362,15 +362,15 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
             </div>
 
             {/* Company Registration */}
-            <div className="border-t border-slate-200 pt-6">
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
                 Company Registration
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="organization_number"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Organization Number
                   </label>
@@ -384,7 +384,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                         organization_number: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="123456789"
                   />
                 </div>
@@ -392,7 +392,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div>
                   <label
                     htmlFor="tax_number"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Tax/VAT/MVA Number
                   </label>
@@ -403,7 +403,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, tax_number: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="NO123456789MVA"
                   />
                 </div>
@@ -411,15 +411,15 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
             </div>
 
             {/* Address */}
-            <div className="border-t border-slate-200 pt-6">
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
                 Address
               </h3>
               <div className="space-y-4">
                 <div>
                   <label
                     htmlFor="street_address"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Street Address
                   </label>
@@ -433,7 +433,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                         street_address: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="Storgata 1"
                   />
                 </div>
@@ -442,7 +442,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                   <div>
                     <label
                       htmlFor="postal_code"
-                      className="block text-sm font-medium text-slate-700 mb-2"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                     >
                       Postal Code
                     </label>
@@ -456,7 +456,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                           postal_code: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                       placeholder="0001"
                     />
                   </div>
@@ -464,7 +464,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                   <div>
                     <label
                       htmlFor="city"
-                      className="block text-sm font-medium text-slate-700 mb-2"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                     >
                       City
                     </label>
@@ -475,7 +475,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                       onChange={(e) =>
                         setFormData({ ...formData, city: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                       placeholder="Oslo"
                     />
                   </div>
@@ -485,7 +485,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                   <div>
                     <label
                       htmlFor="state"
-                      className="block text-sm font-medium text-slate-700 mb-2"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                     >
                       State/Region
                     </label>
@@ -496,7 +496,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                       onChange={(e) =>
                         setFormData({ ...formData, state: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                       placeholder="Optional"
                     />
                   </div>
@@ -504,7 +504,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                   <div>
                     <label
                       htmlFor="country"
-                      className="block text-sm font-medium text-slate-700 mb-2"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                     >
                       Country
                     </label>
@@ -515,7 +515,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                       onChange={(e) =>
                         setFormData({ ...formData, country: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                       placeholder="Norway"
                     />
                   </div>
@@ -524,15 +524,15 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
             </div>
 
             {/* Banking Information */}
-            <div className="border-t border-slate-200 pt-6">
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
                 Banking Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="account_number"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Account Number
                   </label>
@@ -546,7 +546,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                         account_number: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="1234 56 78901"
                   />
                 </div>
@@ -554,7 +554,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div>
                   <label
                     htmlFor="currency"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Default Currency
                   </label>
@@ -564,7 +564,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, currency: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   >
                     <option value="EUR">EUR (€)</option>
                     <option value="NOK">NOK (kr)</option>
@@ -578,7 +578,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div className="md:col-span-2">
                   <label
                     htmlFor="iban"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     IBAN
                   </label>
@@ -589,10 +589,10 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, iban: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="NO93 8601 1117 947"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     International Bank Account Number
                   </p>
                 </div>
@@ -600,7 +600,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div className="md:col-span-2">
                   <label
                     htmlFor="swift_bic"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     SWIFT/BIC
                   </label>
@@ -611,10 +611,10 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, swift_bic: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                     placeholder="DNBANOKK"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     Bank Identifier Code for international transfers
                   </p>
                 </div>
@@ -622,7 +622,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 <div className="md:col-span-2">
                   <label
                     htmlFor="payment_instructions"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Payment Instructions
                   </label>
@@ -636,7 +636,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                       })
                     }
                     rows={3}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent resize-none"
                     placeholder="Please make payment within 30 days..."
                   />
                 </div>
@@ -644,13 +644,13 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             {successMessage && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
                 {successMessage}
               </div>
             )}
@@ -659,14 +659,14 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
               <button
                 type="button"
                 onClick={onBack}
-                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium"
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || uploading}
-                className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {(loading || uploading) && (
                   <Loader2 className="w-4 h-4 animate-spin" />

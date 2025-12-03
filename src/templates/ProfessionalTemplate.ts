@@ -1,9 +1,11 @@
 import { InvoiceTemplate, InvoiceTemplateData } from "./types";
 import {
-  formatCurrency,
+  formatCurrencyWithCode,
   formatDate,
   getCompanyInfo,
   formatClientAddress,
+  formatCompanyAddress,
+  getBankingDetails,
 } from "./utils";
 
 export const ProfessionalTemplate: InvoiceTemplate = {
@@ -23,11 +25,13 @@ export const ProfessionalTemplate: InvoiceTemplate = {
           <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #374151;">${
             item.quantity
           }</td>
-          <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #374151;">${formatCurrency(
-            item.unit_price
+          <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #374151;">${formatCurrencyWithCode(
+            item.unit_price,
+            invoice.currency
           )}</td>
-          <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #111827; font-weight: 600;">${formatCurrency(
-            item.amount
+          <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #111827; font-weight: 600;">${formatCurrencyWithCode(
+            item.amount,
+            invoice.currency
           )}</td>
         </tr>
       `
@@ -48,13 +52,18 @@ export const ProfessionalTemplate: InvoiceTemplate = {
               ${getCompanyInfo(profile, "company_name")}
             </div>
             <div style="color: #6b7280; font-size: 13px; line-height: 1.7;">
-              ${getCompanyInfo(profile, "address")}<br />
+              ${formatCompanyAddress(profile).replace(/\n/g, "<br />")}<br />
               ${getCompanyInfo(profile, "phone")} | ${getCompanyInfo(
       profile,
       "email"
     )}
               ${profile?.website ? `<br />${profile.website}` : ""}
-              ${profile?.tax_id ? `<br />Tax ID: ${profile.tax_id}` : ""}
+              ${
+                profile?.organization_number
+                  ? `<br />Org: ${profile.organization_number}`
+                  : ""
+              }
+              ${profile?.tax_number ? `<br />Tax: ${profile.tax_number}` : ""}
             </div>
           </div>
           <div style="text-align: right;">
@@ -149,22 +158,25 @@ export const ProfessionalTemplate: InvoiceTemplate = {
             <table style="width: 100%; border-spacing: 0;">
               <tr>
                 <td style="padding: 10px 16px 10px 0; color: #6b7280; font-weight: 600; font-size: 14px;">Subtotal</td>
-                <td style="padding: 10px 0; text-align: right; color: #111827; font-size: 15px;">${formatCurrency(
-                  invoice.subtotal
+                <td style="padding: 10px 0; text-align: right; color: #111827; font-size: 15px;">${formatCurrencyWithCode(
+                  invoice.subtotal,
+                  invoice.currency
                 )}</td>
               </tr>
               <tr>
                 <td style="padding: 10px 16px 10px 0; color: #6b7280; font-weight: 600; font-size: 14px;">Tax (${
                   invoice.tax_rate
                 }%)</td>
-                <td style="padding: 10px 0; text-align: right; color: #111827; font-size: 15px;">${formatCurrency(
-                  invoice.tax_amount
+                <td style="padding: 10px 0; text-align: right; color: #111827; font-size: 15px;">${formatCurrencyWithCode(
+                  invoice.tax_amount,
+                  invoice.currency
                 )}</td>
               </tr>
               <tr style="border-top: 2px solid #111827;">
                 <td style="padding: 16px 16px 0 0; color: #111827; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">Total</td>
-                <td style="padding: 16px 0 0 0; text-align: right; color: #111827; font-weight: 700; font-size: 26px;">${formatCurrency(
-                  invoice.total
+                <td style="padding: 16px 0 0 0; text-align: right; color: #111827; font-weight: 700; font-size: 26px;">${formatCurrencyWithCode(
+                  invoice.total,
+                  invoice.currency
                 )}</td>
               </tr>
             </table>
@@ -174,29 +186,14 @@ export const ProfessionalTemplate: InvoiceTemplate = {
         <!-- Payment Information -->
         <div style="padding: 30px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 2px;">
           <div style="margin-bottom: 8px; color: #111827; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Payment Information</div>
-          ${
-            profile?.bank_name || profile?.account_number
-              ? `
           <div style="color: #374151; line-height: 1.8; font-size: 14px;">
-            ${
-              profile.bank_name
-                ? `<div><span style="color: #6b7280; font-weight: 600;">Bank:</span> ${profile.bank_name}</div>`
-                : ""
-            }
-            ${
-              profile.account_number
-                ? `<div><span style="color: #6b7280; font-weight: 600;">Account Number:</span> ${profile.account_number}</div>`
-                : ""
-            }
-            ${
-              profile.routing_number
-                ? `<div><span style="color: #6b7280; font-weight: 600;">Routing Number:</span> ${profile.routing_number}</div>`
-                : ""
-            }
+            ${getBankingDetails(
+              profile,
+              invoice.show_account_number,
+              invoice.show_iban,
+              invoice.show_swift_bic
+            )}
           </div>
-          `
-              : '<div style="color: #9ca3af; font-size: 14px;">[Payment information not set]</div>'
-          }
           ${
             profile?.payment_instructions
               ? `

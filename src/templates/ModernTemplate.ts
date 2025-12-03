@@ -1,9 +1,11 @@
 import { InvoiceTemplate, InvoiceTemplateData } from "./types";
 import {
-  formatCurrency,
+  formatCurrencyWithCode,
   formatDate,
   getCompanyInfo,
   formatClientAddress,
+  formatCompanyAddress,
+  getBankingDetails,
 } from "./utils";
 
 export const ModernTemplate: InvoiceTemplate = {
@@ -21,11 +23,13 @@ export const ModernTemplate: InvoiceTemplate = {
             item.description
           }</td>
           <td style="padding: 16px; text-align: center;">${item.quantity}</td>
-          <td style="padding: 16px; text-align: right;">${formatCurrency(
-            item.unit_price
+          <td style="padding: 16px; text-align: right;">${formatCurrencyWithCode(
+            item.unit_price,
+            invoice.currency
           )}</td>
-          <td style="padding: 16px; text-align: right; font-weight: 600; color: #1f2937;">${formatCurrency(
-            item.amount
+          <td style="padding: 16px; text-align: right; font-weight: 600; color: #1f2937;">${formatCurrencyWithCode(
+            item.amount,
+            invoice.currency
           )}</td>
         </tr>
       `
@@ -55,11 +59,16 @@ export const ModernTemplate: InvoiceTemplate = {
               ${getCompanyInfo(profile, "company_name")}
             </div>
             <div style="color: #6b7280; font-size: 13px; line-height: 1.6;">
-              ${getCompanyInfo(profile, "address")}<br />
+              ${formatCompanyAddress(profile).replace(/\n/g, "<br />")}<br />
               ${getCompanyInfo(profile, "phone")}<br />
               ${getCompanyInfo(profile, "email")}
               ${profile?.website ? `<br />${profile.website}` : ""}
-              ${profile?.tax_id ? `<br />Tax ID: ${profile.tax_id}` : ""}
+              ${
+                profile?.organization_number
+                  ? `<br />Org: ${profile.organization_number}`
+                  : ""
+              }
+              ${profile?.tax_number ? `<br />Tax: ${profile.tax_number}` : ""}
             </div>
           </div>
         </div>
@@ -112,22 +121,25 @@ export const ModernTemplate: InvoiceTemplate = {
             <table style="width: 100%;">
               <tr>
                 <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Subtotal:</td>
-                <td style="padding: 8px 0; text-align: right; color: #1f2937; font-size: 16px;">${formatCurrency(
-                  invoice.subtotal
+                <td style="padding: 8px 0; text-align: right; color: #1f2937; font-size: 16px;">${formatCurrencyWithCode(
+                  invoice.subtotal,
+                  invoice.currency
                 )}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Tax (${
                   invoice.tax_rate
                 }%):</td>
-                <td style="padding: 8px 0; text-align: right; color: #1f2937; font-size: 16px;">${formatCurrency(
-                  invoice.tax_amount
+                <td style="padding: 8px 0; text-align: right; color: #1f2937; font-size: 16px;">${formatCurrencyWithCode(
+                  invoice.tax_amount,
+                  invoice.currency
                 )}</td>
               </tr>
               <tr style="border-top: 2px solid #d1d5db;">
                 <td style="padding: 16px 0 0 0; color: #1f2937; font-weight: 700; font-size: 18px;">Total Due:</td>
-                <td style="padding: 16px 0 0 0; text-align: right; color: #3b82f6; font-weight: 700; font-size: 24px;">${formatCurrency(
-                  invoice.total
+                <td style="padding: 16px 0 0 0; text-align: right; color: #3b82f6; font-weight: 700; font-size: 24px;">${formatCurrencyWithCode(
+                  invoice.total,
+                  invoice.currency
                 )}</td>
               </tr>
             </table>
@@ -151,29 +163,14 @@ export const ModernTemplate: InvoiceTemplate = {
             <span style="display: inline-block; width: 4px; height: 20px; background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%); margin-right: 10px; border-radius: 2px;"></span>
             Payment Information
           </h3>
-          ${
-            profile?.bank_name || profile?.account_number
-              ? `
           <div style="color: #374151; line-height: 1.8; font-size: 14px;">
-            ${
-              profile.bank_name
-                ? `<div><strong>Bank:</strong> ${profile.bank_name}</div>`
-                : ""
-            }
-            ${
-              profile.account_number
-                ? `<div><strong>Account Number:</strong> ${profile.account_number}</div>`
-                : ""
-            }
-            ${
-              profile.routing_number
-                ? `<div><strong>Routing Number:</strong> ${profile.routing_number}</div>`
-                : ""
-            }
+            ${getBankingDetails(
+              profile,
+              invoice.show_account_number,
+              invoice.show_iban,
+              invoice.show_swift_bic
+            )}
           </div>
-          `
-              : '<div style="color: #9ca3af; font-size: 14px;">[Payment information not set]</div>'
-          }
           ${
             profile?.payment_instructions
               ? `

@@ -140,6 +140,11 @@ CREATE TABLE invoices (
   -- Template selection (classic, modern, professional)
   template text DEFAULT 'classic',
   
+  -- Banking details display options
+  show_account_number boolean DEFAULT true,
+  show_iban boolean DEFAULT true,
+  show_swift_bic boolean DEFAULT true,
+  
   -- Additional information
   notes text,
   

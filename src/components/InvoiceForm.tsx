@@ -20,6 +20,18 @@ interface LineItem {
   amount: number;
 }
 
+const getCurrencySymbol = (currency: string): string => {
+  const symbols: Record<string, string> = {
+    EUR: "€",
+    NOK: "kr",
+    USD: "$",
+    GBP: "£",
+    SEK: "kr",
+    DKK: "kr",
+  };
+  return symbols[currency] || currency;
+};
+
 export default function InvoiceForm({
   onClose,
   onSuccess,
@@ -40,8 +52,12 @@ export default function InvoiceForm({
         .toISOString()
         .split("T")[0],
     tax_rate: invoice?.tax_rate || 0,
+    currency: invoice?.currency || "EUR",
     notes: invoice?.notes || "",
     template: invoice?.template || "classic",
+    show_account_number: invoice?.show_account_number ?? true,
+    show_iban: invoice?.show_iban ?? true,
+    show_swift_bic: invoice?.show_swift_bic ?? true,
   });
 
   const [items, setItems] = useState<LineItem[]>([
@@ -199,8 +215,12 @@ export default function InvoiceForm({
             tax_rate: formData.tax_rate,
             tax_amount,
             total,
+            currency: formData.currency,
             notes: formData.notes || null,
             template: formData.template,
+            show_account_number: formData.show_account_number,
+            show_iban: formData.show_iban,
+            show_swift_bic: formData.show_swift_bic,
           })
           .eq("id", invoice.id);
 
@@ -248,8 +268,12 @@ export default function InvoiceForm({
             tax_rate: formData.tax_rate,
             tax_amount,
             total,
+            currency: formData.currency,
             notes: formData.notes || null,
             template: formData.template,
+            show_account_number: formData.show_account_number,
+            show_iban: formData.show_iban,
+            show_swift_bic: formData.show_swift_bic,
           })
           .select()
           .single();
@@ -292,14 +316,14 @@ export default function InvoiceForm({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 my-8">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 my-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {invoice ? "Edit Invoice" : "New Invoice"}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition"
+            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition"
           >
             <X className="w-6 h-6" />
           </button>
@@ -308,7 +332,7 @@ export default function InvoiceForm({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Client *
               </label>
               <div className="flex gap-2">
@@ -338,7 +362,28 @@ export default function InvoiceForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Currency *
+              </label>
+              <select
+                value={formData.currency}
+                onChange={(e) =>
+                  setFormData({ ...formData, currency: e.target.value })
+                }
+                required
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="NOK">NOK (kr)</option>
+                <option value="USD">USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="SEK">SEK (kr)</option>
+                <option value="DKK">DKK (kr)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Tax Rate (%)
               </label>
               <input
@@ -358,7 +403,7 @@ export default function InvoiceForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Issue Date *
               </label>
               <input
@@ -373,7 +418,7 @@ export default function InvoiceForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Due Date *
               </label>
               <input
@@ -397,15 +442,15 @@ export default function InvoiceForm({
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Line Items
               </label>
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center gap-2 text-sm text-slate-900 hover:text-slate-700 transition font-medium"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition font-medium"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Add Item
               </button>
             </div>
@@ -453,13 +498,14 @@ export default function InvoiceForm({
                     className="w-32 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                   />
                   <div className="w-32 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-right text-slate-700">
-                    ${item.amount.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)}
+                    {item.amount.toFixed(2)}
                   </div>
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
                     disabled={items.length === 1}
-                    className="p-2 text-red-600 hover:text-red-800 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -472,29 +518,89 @@ export default function InvoiceForm({
             <div className="flex justify-end">
               <div className="w-64 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Subtotal:</span>
-                  <span className="font-medium text-slate-900">
-                    ${subtotal.toFixed(2)}
+                  <span className="text-slate-600 dark:text-slate-400">
+                    Subtotal:
+                  </span>
+                  <span className="font-medium text-slate-900 dark:text-white">
+                    {getCurrencySymbol(formData.currency)}
+                    {subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">
+                  <span className="text-slate-600 dark:text-slate-400">
                     Tax ({formData.tax_rate}%):
                   </span>
-                  <span className="font-medium text-slate-900">
-                    ${tax_amount.toFixed(2)}
+                  <span className="font-medium text-slate-900 dark:text-white">
+                    {getCurrencySymbol(formData.currency)}
+                    {tax_amount.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span className="text-slate-900">Total:</span>
-                  <span className="text-slate-900">${total.toFixed(2)}</span>
+                <div className="flex justify-between text-lg font-bold border-t border-slate-200 dark:border-slate-700 pt-2">
+                  <span className="text-slate-900 dark:text-white">Total:</span>
+                  <span className="text-slate-900 dark:text-white">
+                    {getCurrencySymbol(formData.currency)}
+                    {total.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+              Banking Details to Display
+            </label>
+            <div className="space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.show_account_number}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      show_account_number: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                />
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  Show Account Number
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.show_iban}
+                  onChange={(e) =>
+                    setFormData({ ...formData, show_iban: e.target.checked })
+                  }
+                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                />
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  Show IBAN
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.show_swift_bic}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      show_swift_bic: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                />
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  Show SWIFT/BIC
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Notes
             </label>
             <textarea
@@ -509,7 +615,7 @@ export default function InvoiceForm({
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -518,7 +624,7 @@ export default function InvoiceForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium"
+              className="flex-1 px-4 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium"
             >
               Cancel
             </button>

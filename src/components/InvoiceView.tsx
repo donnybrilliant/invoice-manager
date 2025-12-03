@@ -28,6 +28,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice.id]);
 
   const loadData = async () => {
@@ -108,13 +109,15 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 my-8">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 my-8">
         <div className="flex items-center justify-between mb-6 print:hidden">
-          <h2 className="text-2xl font-bold text-slate-900">Invoice Details</h2>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+            Invoice Details
+          </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="p-2 text-slate-600 hover:text-slate-900 transition"
+              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
               title="Print"
             >
               <Printer className="w-5 h-5" />
@@ -122,14 +125,14 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
             <button
               onClick={handleDownload}
               disabled={downloading}
-              className="p-2 text-slate-600 hover:text-slate-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               title="Download PDF"
             >
               <Download className="w-5 h-5" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 transition"
+              className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition"
             >
               <X className="w-6 h-6" />
             </button>
@@ -138,7 +141,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
         <div
           ref={invoiceContentRef}
-          className="border border-slate-200 rounded-lg p-8 print:border-0"
+          className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0"
         >
           {renderInvoice()}
         </div>
@@ -146,7 +149,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
         <div className="mt-6 text-center print:hidden">
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium"
+            className="px-6 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium"
           >
             Close
           </button>

@@ -1,0 +1,251 @@
+import { useState, useEffect, useCallback } from "react";
+import {
+  X,
+  Edit2,
+  FileText,
+  Mail,
+  Phone,
+  MapPin,
+  Building2,
+  Hash,
+  Percent,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { Client, Invoice } from "../types";
+
+interface ClientDetailViewProps {
+  client: Client;
+  onClose: () => void;
+  onEdit: (client: Client) => void;
+  onViewInvoice: (invoice: Invoice) => void;
+}
+
+export default function ClientDetailView({
+  client,
+  onClose,
+  onEdit,
+  onViewInvoice,
+}: ClientDetailViewProps) {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadInvoices = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("client_id", client.id)
+        .order("issue_date", { ascending: false });
+
+      if (error) throw error;
+      setInvoices(data || []);
+    } catch (error) {
+      console.error("Error loading invoices:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [client.id]);
+
+  useEffect(() => {
+    loadInvoices();
+  }, [loadInvoices]);
+
+  const getStatusColor = (status: Invoice["status"]) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "sent":
+        return "bg-blue-100 text-blue-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-slate-100 text-slate-800";
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">{client.name}</h2>
+            {client.client_number && (
+              <p className="text-sm text-slate-600 mt-1">
+                Client #{client.client_number}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onEdit(client)}
+              className="flex items-center gap-2 px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition font-medium"
+            >
+              <Edit2 className="w-4 h-4" />
+              Edit
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-600 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Client Information */}
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">
+            Contact Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {client.email && (
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">Email</p>
+                  <p className="text-slate-900">{client.email}</p>
+                </div>
+              </div>
+            )}
+            {client.phone && (
+              <div className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">Phone</p>
+                  <p className="text-slate-900">{client.phone}</p>
+                </div>
+              </div>
+            )}
+            {client.organization_number && (
+              <div className="flex items-start gap-3">
+                <Building2 className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">Organization Number</p>
+                  <p className="text-slate-900">{client.organization_number}</p>
+                </div>
+              </div>
+            )}
+            {client.tax_number && (
+              <div className="flex items-start gap-3">
+                <Percent className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">Tax/VAT/MVA Number</p>
+                  <p className="text-slate-900">{client.tax_number}</p>
+                </div>
+              </div>
+            )}
+            {client.kid_number && (
+              <div className="flex items-start gap-3">
+                <Hash className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">KID Number</p>
+                  <p className="text-slate-900">{client.kid_number}</p>
+                </div>
+              </div>
+            )}
+            {(client.street_address ||
+              client.city ||
+              client.postal_code ||
+              client.country) && (
+              <div className="flex items-start gap-3 md:col-span-2">
+                <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-600">Address</p>
+                  <div className="text-slate-900">
+                    {client.street_address && (
+                      <div>{client.street_address}</div>
+                    )}
+                    {(client.postal_code || client.city) && (
+                      <div>
+                        {client.postal_code && (
+                          <span>{client.postal_code} </span>
+                        )}
+                        {client.city && <span>{client.city}</span>}
+                      </div>
+                    )}
+                    {client.state && <div>{client.state}</div>}
+                    {client.country && <div>{client.country}</div>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Invoices List */}
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">
+            Invoices ({invoices.length})
+          </h3>
+
+          {loading ? (
+            <div className="text-center py-8 text-slate-600">
+              Loading invoices...
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="text-center py-8 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
+              <FileText className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+              <p className="text-slate-600">
+                No invoices found for this client
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {invoices.map((invoice) => (
+                <div
+                  key={invoice.id}
+                  onClick={() => onViewInvoice(invoice)}
+                  className="bg-slate-50 hover:bg-slate-100 rounded-lg p-4 cursor-pointer transition border border-slate-200"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-slate-600" />
+                      <span className="font-semibold text-slate-900">
+                        {invoice.invoice_number}
+                      </span>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        invoice.status
+                      )}`}
+                    >
+                      {invoice.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-slate-600">
+                      <span>Issue: </span>
+                      <span className="text-slate-900">
+                        {new Date(invoice.issue_date).toLocaleDateString()}
+                      </span>
+                      <span className="mx-2">•</span>
+                      <span>Due: </span>
+                      <span className="text-slate-900">
+                        {new Date(invoice.due_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="font-semibold text-slate-900">
+                      {invoice.currency} {invoice.total.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-200">
+          <button
+            onClick={onClose}
+            className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

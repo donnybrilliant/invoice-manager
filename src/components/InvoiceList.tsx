@@ -1,0 +1,252 @@
+import { useState, useEffect } from "react";
+import { FileText, Trash2, Search, Edit } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { Invoice } from "../types";
+
+interface InvoiceListProps {
+  onViewInvoice: (invoice: Invoice) => void;
+  onEditInvoice?: (invoice: Invoice) => void;
+  refresh: number;
+}
+
+export default function InvoiceList({
+  onViewInvoice,
+  onEditInvoice,
+  refresh,
+}: InvoiceListProps) {
+  const { user } = useAuth();
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  useEffect(() => {
+    loadInvoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, refresh]);
+
+  const loadInvoices = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select(
+          `
+          *,
+          client:clients(*)
+        `
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setInvoices(data || []);
+    } catch (error) {
+      console.error("Error loading invoices:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteInvoice = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this invoice?")) return;
+
+    try {
+      const { error } = await supabase.from("invoices").delete().eq("id", id);
+      if (error) throw error;
+      loadInvoices();
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      alert("Failed to delete invoice");
+    }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (error) throw error;
+      loadInvoices();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
+  const filteredInvoices = invoices.filter((invoice) => {
+    const matchesSearch =
+      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.client?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || invoice.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "sent":
+        return "bg-blue-100 text-blue-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-slate-100 text-slate-800";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-slate-600">Loading invoices...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search invoices..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+        >
+          <option value="all">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="paid">Paid</option>
+          <option value="overdue">Overdue</option>
+        </select>
+      </div>
+
+      {filteredInvoices.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-slate-300">
+          <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <p className="text-slate-600 mb-2">No invoices found</p>
+          <p className="text-sm text-slate-500">
+            Create your first invoice to get started
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    Invoice
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    Client
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    Due Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {filteredInvoices.map((invoice) => (
+                  <tr
+                    key={invoice.id}
+                    className="hover:bg-slate-50 transition cursor-pointer"
+                    onClick={() => onViewInvoice(invoice)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-slate-900">
+                        {invoice.invoice_number}
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        {new Date(invoice.issue_date).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-900">
+                        {invoice.client?.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-slate-900">
+                        ${invoice.total.toFixed(2)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-900">
+                        {new Date(invoice.due_date).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td
+                      className="px-6 py-4 whitespace-nowrap"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <select
+                        value={invoice.status}
+                        onChange={(e) =>
+                          updateStatus(invoice.id, e.target.value)
+                        }
+                        className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${getStatusColor(
+                          invoice.status
+                        )}`}
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="sent">Sent</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                      </select>
+                    </td>
+                    <td
+                      className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-end gap-2">
+                        {invoice.status === "draft" && onEditInvoice && (
+                          <button
+                            onClick={() => onEditInvoice(invoice)}
+                            className="text-blue-600 hover:text-blue-800 transition p-2"
+                            title="Edit"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteInvoice(invoice.id)}
+                          className="text-red-600 hover:text-red-800 transition p-2"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

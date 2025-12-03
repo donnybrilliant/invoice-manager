@@ -1,0 +1,178 @@
+import { useState, useEffect } from "react";
+import { CheckCircle } from "lucide-react";
+import { supabase } from "../lib/supabase";
+
+interface ResetPasswordProps {
+  onSuccess: () => void;
+}
+
+export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [validToken, setValidToken] = useState(true);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        setValidToken(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password,
+      });
+
+      if (updateError) throw updateError;
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reset password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!validToken) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              Invalid or expired link
+            </h1>
+            <p className="text-slate-600 mb-6">
+              This password reset link has expired or is invalid. Please request
+              a new one.
+            </p>
+            <button
+              onClick={onSuccess}
+              className="w-full px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="flex justify-center mb-6">
+              <CheckCircle className="w-16 h-16 text-green-600" />
+            </div>
+
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              Password reset successful
+            </h1>
+            <p className="text-slate-600 mb-6">
+              Your password has been updated. You can now sign in with your new
+              password.
+            </p>
+
+            <button
+              onClick={onSuccess}
+              className="w-full px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Set new password
+          </h1>
+          <p className="text-slate-600 mb-8">
+            Enter a new password for your account.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                New Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-slate-900 text-white py-3 rounded-lg font-medium hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Updating..." : "Update Password"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

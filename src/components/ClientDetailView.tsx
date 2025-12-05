@@ -93,37 +93,37 @@ export default function ClientDetailView({
             )}
             {client.phone && (
               <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-slate-400 mt-0.5" />
+                <Phone className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600">Phone</p>
-                  <p className="text-slate-900">{client.phone}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Phone</p>
+                  <p className="text-slate-900 dark:text-white">{client.phone}</p>
                 </div>
               </div>
             )}
             {client.organization_number && (
               <div className="flex items-start gap-3">
-                <Building2 className="w-5 h-5 text-slate-400 mt-0.5" />
+                <Building2 className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600">Organization Number</p>
-                  <p className="text-slate-900">{client.organization_number}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Organization Number</p>
+                  <p className="text-slate-900 dark:text-white">{client.organization_number}</p>
                 </div>
               </div>
             )}
             {client.tax_number && (
               <div className="flex items-start gap-3">
-                <Percent className="w-5 h-5 text-slate-400 mt-0.5" />
+                <Percent className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600">Tax/VAT/MVA Number</p>
-                  <p className="text-slate-900">{client.tax_number}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Tax/VAT/MVA Number</p>
+                  <p className="text-slate-900 dark:text-white">{client.tax_number}</p>
                 </div>
               </div>
             )}
             {client.kid_number && (
               <div className="flex items-start gap-3">
-                <Hash className="w-5 h-5 text-slate-400 mt-0.5" />
+                <Hash className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600">KID Number</p>
-                  <p className="text-slate-900">{client.kid_number}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">KID Number</p>
+                  <p className="text-slate-900 dark:text-white">{client.kid_number}</p>
                 </div>
               </div>
             )}
@@ -132,10 +132,10 @@ export default function ClientDetailView({
               client.postal_code ||
               client.country) && (
               <div className="flex items-start gap-3 md:col-span-2">
-                <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
+                <MapPin className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600">Address</p>
-                  <div className="text-slate-900">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Address</p>
+                  <div className="text-slate-900 dark:text-white">
                     {client.street_address && (
                       <div>{client.street_address}</div>
                     )}
@@ -183,32 +183,32 @@ export default function ClientDetailView({
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-slate-600" />
-                      <span className="font-semibold text-slate-900">
+                      <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                      <span className="font-semibold text-slate-900 dark:text-white">
                         {invoice.invoice_number}
                       </span>
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
                         invoice.status
-                      )}`}
+                      )} dark:opacity-90`}
                     >
                       {invoice.status.toUpperCase()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <div className="text-slate-600">
+                    <div className="text-slate-600 dark:text-slate-400">
                       <span>Issue: </span>
-                      <span className="text-slate-900">
+                      <span className="text-slate-900 dark:text-white">
                         {new Date(invoice.issue_date).toLocaleDateString()}
                       </span>
                       <span className="mx-2">•</span>
                       <span>Due: </span>
-                      <span className="text-slate-900">
+                      <span className="text-slate-900 dark:text-white">
                         {new Date(invoice.due_date).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="font-semibold text-slate-900">
+                    <div className="font-semibold text-slate-900 dark:text-white">
                       {invoice.currency} {invoice.total.toFixed(2)}
                     </div>
                   </div>

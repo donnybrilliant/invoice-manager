@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState } from "react";
 import { CheckCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -6,12 +6,14 @@ interface ResetPasswordProps {
   onSuccess: () => void;
 }
 
+interface ResetPasswordState {
+  error?: string;
+  success?: boolean;
+}
+
 export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [validToken, setValidToken] = useState(true);
 
   useEffect(() => {
@@ -82,35 +84,40 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      _prevState: ResetPasswordState | null,
+      formData: FormData
+    ): Promise<ResetPasswordState> => {
+      const passwordValue = formData.get("password") as string;
+      const confirmPasswordValue = formData.get("confirmPassword") as string;
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+      if (passwordValue !== confirmPasswordValue) {
+        return { error: "Passwords do not match" };
+      }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
+      if (passwordValue.length < 6) {
+        return { error: "Password must be at least 6 characters" };
+      }
 
-    setLoading(true);
+      try {
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: passwordValue,
+        });
 
-    try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password,
-      });
+        if (updateError) throw updateError;
+        return { success: true };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error ? err.message : "Failed to reset password",
+        };
+      }
+    },
+    null
+  );
 
-      if (updateError) throw updateError;
-      setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reset password");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const success = state?.success ?? false;
 
   if (!validToken) {
     return (
@@ -176,7 +183,7 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
             Enter a new password for your account.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form action={submitAction} className="space-y-6">
             <div>
               <label
                 htmlFor="password"
@@ -186,6 +193,7 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -205,6 +213,7 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
               </label>
               <input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -215,18 +224,18 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
               />
             </div>
 
-            {error && (
+            {state?.error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {state.error}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="w-full bg-slate-900 dark:bg-slate-700 text-white py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Updating..." : "Update Password"}
+              {isPending ? "Updating..." : "Update Password"}
             </button>
           </form>
         </div>

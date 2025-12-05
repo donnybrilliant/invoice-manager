@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState, useRef } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
@@ -48,7 +48,6 @@ export default function InvoiceForm({
   const { data: invoiceItemsData = [] } = useInvoiceItems(invoice?.id);
   const createInvoiceMutation = useCreateInvoice();
   const updateInvoiceMutation = useUpdateInvoice();
-  const [error, setError] = useState("");
   const [showClientForm, setShowClientForm] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -118,6 +117,19 @@ export default function InvoiceForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.client_id, clients]);
 
+  // Refs to access current state in action
+  const formDataRef = useRef(formData);
+  const itemsRef = useRef(items);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+  
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
   const handleClientFormSuccess = async (createdClientId?: string) => {
     // Invalidate clients query to refetch
     await queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
@@ -182,69 +194,84 @@ export default function InvoiceForm({
     );
   };
 
-  const calculateTotals = () => {
-    const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-    const tax_amount = subtotal * (formData.tax_rate / 100);
+  const calculateTotals = (currentItems: LineItem[], currentFormData: typeof formData) => {
+    const subtotal = currentItems.reduce((sum, item) => sum + item.amount, 0);
+    const tax_amount = subtotal * (currentFormData.tax_rate / 100);
     const total = subtotal + tax_amount;
     return { subtotal, tax_amount, total };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !formData.client_id) return;
+  interface InvoiceFormState {
+    error?: string;
+  }
 
-    setError("");
-
-    try {
-      const { subtotal, tax_amount, total } = calculateTotals();
-
-      const invoiceData = {
-        client_id: formData.client_id,
-        issue_date: formData.issue_date,
-        due_date: formData.due_date,
-        subtotal,
-        tax_rate: formData.tax_rate,
-        tax_amount,
-        total,
-        currency: formData.currency,
-        notes: formData.notes || null,
-        template: formData.template,
-        show_account_number: formData.show_account_number ?? true,
-        show_iban: formData.show_iban ?? false,
-        show_swift_bic: formData.show_swift_bic ?? false,
-        kid_number: formData.kid_number || null,
-        items: items
-          .filter((item) => item.description.trim())
-          .map((item) => ({
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            amount: item.amount,
-          })),
-      };
-
-      if (invoice) {
-        await updateInvoiceMutation.mutateAsync({
-          id: invoice.id,
-          data: invoiceData,
-        });
-      } else {
-        await createInvoiceMutation.mutateAsync(invoiceData);
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _prevState: InvoiceFormState | null,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _formData: FormData
+    ): Promise<InvoiceFormState> => {
+      if (!user || !formDataRef.current.client_id) {
+        return { error: "Please select a client" };
       }
 
-      onSuccess();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : invoice
-          ? "Failed to update invoice"
-          : "Failed to create invoice"
-      );
-    }
-  };
+      try {
+        const currentFormData = formDataRef.current;
+        const currentItems = itemsRef.current;
+        const { subtotal, tax_amount, total } = calculateTotals(currentItems, currentFormData);
 
-  const { subtotal, tax_amount, total } = calculateTotals();
+        const invoiceData = {
+          client_id: currentFormData.client_id,
+          issue_date: currentFormData.issue_date,
+          due_date: currentFormData.due_date,
+          subtotal,
+          tax_rate: currentFormData.tax_rate,
+          tax_amount,
+          total,
+          currency: currentFormData.currency,
+          notes: currentFormData.notes || null,
+          template: currentFormData.template,
+          show_account_number: currentFormData.show_account_number ?? true,
+          show_iban: currentFormData.show_iban ?? false,
+          show_swift_bic: currentFormData.show_swift_bic ?? false,
+          kid_number: currentFormData.kid_number || null,
+          items: currentItems
+            .filter((item) => item.description.trim())
+            .map((item) => ({
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              amount: item.amount,
+            })),
+        };
+
+        if (invoice) {
+          await updateInvoiceMutation.mutateAsync({
+            id: invoice.id,
+            data: invoiceData,
+          });
+        } else {
+          await createInvoiceMutation.mutateAsync(invoiceData);
+        }
+
+        onSuccess();
+        return { error: undefined };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error
+              ? err.message
+              : invoice
+              ? "Failed to update invoice"
+              : "Failed to create invoice",
+        };
+      }
+    },
+    null
+  );
+
+  const { subtotal, tax_amount, total } = calculateTotals(items, formData);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -261,7 +288,7 @@ export default function InvoiceForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={submitAction} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -579,9 +606,9 @@ export default function InvoiceForm({
             />
           </div>
 
-          {error && (
+          {state?.error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {state.error}
             </div>
           )}
 
@@ -595,14 +622,10 @@ export default function InvoiceForm({
             </button>
             <button
               type="submit"
-              disabled={
-                createInvoiceMutation.isPending ||
-                updateInvoiceMutation.isPending
-              }
+              disabled={isPending}
               className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createInvoiceMutation.isPending ||
-              updateInvoiceMutation.isPending
+              {isPending
                 ? invoice
                   ? "Updating..."
                   : "Creating..."

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState, useRef } from "react";
 import { X, Trash2 } from "lucide-react";
 import { Client } from "../types";
 import {
@@ -21,7 +21,6 @@ export default function ClientForm({
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
   const deleteClientMutation = useDeleteClient();
-  const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -39,6 +38,7 @@ export default function ClientForm({
 
   useEffect(() => {
     if (client) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setFormData({
         name: client.name,
         email: client.email || "",
@@ -55,54 +55,76 @@ export default function ClientForm({
     }
   }, [client]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  // Ref to access current formData in action
+  const formDataRef = useRef(formData);
+  
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
 
-    try {
-      const clientData = {
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        organization_number: formData.organization_number || null,
-        tax_number: formData.tax_number || null,
-        kid_number: formData.kid_number || null,
-        street_address: formData.street_address || null,
-        postal_code: formData.postal_code || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        country: formData.country || null,
-      };
+  interface ClientFormState {
+    error?: string;
+  }
 
-      if (client) {
-        await updateClientMutation.mutateAsync({
-          id: client.id,
-          data: clientData,
-        });
-        onSuccess();
-      } else {
-        const newClient = await createClientMutation.mutateAsync(clientData);
-        onSuccess(newClient.id);
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _prevState: ClientFormState | null,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _formData: FormData
+    ): Promise<ClientFormState> => {
+      const currentFormData = formDataRef.current;
+      
+      try {
+        const clientData = {
+          name: currentFormData.name,
+          email: currentFormData.email || null,
+          phone: currentFormData.phone || null,
+          organization_number: currentFormData.organization_number || null,
+          tax_number: currentFormData.tax_number || null,
+          kid_number: currentFormData.kid_number || null,
+          street_address: currentFormData.street_address || null,
+          postal_code: currentFormData.postal_code || null,
+          city: currentFormData.city || null,
+          state: currentFormData.state || null,
+          country: currentFormData.country || null,
+        };
+
+        if (client) {
+          await updateClientMutation.mutateAsync({
+            id: client.id,
+            data: clientData,
+          });
+          onSuccess();
+        } else {
+          const newClient = await createClientMutation.mutateAsync(clientData);
+          onSuccess(newClient.id);
+        }
+        return { error: undefined };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error
+              ? err.message
+              : `Failed to ${client ? "update" : "create"} client`,
+        };
       }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : `Failed to ${client ? "update" : "create"} client`
-      );
-    }
-  };
+    },
+    null
+  );
+
+  const [deleteError, setDeleteError] = useState("");
 
   const handleDelete = async () => {
     if (!client) return;
 
-    setError("");
+    setDeleteError("");
 
     try {
       await deleteClientMutation.mutateAsync(client.id);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete client");
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete client");
       setShowDeleteConfirm(false);
     }
   };
@@ -122,7 +144,7 @@ export default function ClientForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={submitAction} className="space-y-6">
           {/* Basic Information */}
           <div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
@@ -371,9 +393,9 @@ export default function ClientForm({
             </div>
           </div>
 
-          {error && (
+          {(state?.error || deleteError) && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {state?.error || deleteError}
             </div>
           )}
 
@@ -401,12 +423,10 @@ export default function ClientForm({
             </button>
             <button
               type="submit"
-              disabled={
-                createClientMutation.isPending || updateClientMutation.isPending
-              }
+              disabled={isPending}
               className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createClientMutation.isPending || updateClientMutation.isPending
+              {isPending
                 ? client
                   ? "Updating..."
                   : "Creating..."

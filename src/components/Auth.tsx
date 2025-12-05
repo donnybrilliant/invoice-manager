@@ -1,42 +1,65 @@
-import { useState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { LogIn, CheckCircle } from "lucide-react";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
 
+interface AuthState {
+  error?: string;
+  signupEmail?: string;
+  showSignupConfirmation?: boolean;
+}
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetMode, setResetMode] = useState(false);
-  const [showSignupConfirmation, setShowSignupConfirmation] = useState(false);
-  const [signupEmail, setSignupEmail] = useState("");
   const { signIn, signUp, clearSignupEmail } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      _prevState: AuthState | null,
+      formData: FormData
+    ): Promise<AuthState> => {
+      const emailValue = formData.get("email") as string;
+      const passwordValue = formData.get("password") as string;
 
-    try {
-      if (isLogin) {
-        await signIn(email, password);
-      } else {
-        const result = await signUp(email, password);
-        // Always show confirmation message after signup
-        // Supabase sends a welcome/confirmation email regardless of confirmation settings
-        setSignupEmail(result.email);
-        setShowSignupConfirmation(true);
+      try {
+        if (isLogin) {
+          await signIn(emailValue, passwordValue);
+          return { error: undefined };
+        } else {
+          const result = await signUp(emailValue, passwordValue);
+          // Always show confirmation message after signup
+          // Supabase sends a welcome/confirmation email regardless of confirmation settings
+          return {
+            error: undefined,
+            signupEmail: result.email,
+            showSignupConfirmation: true,
+          };
+        }
+      } catch (err) {
+        return {
+          error: err instanceof Error ? err.message : "An error occurred",
+        };
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
+    },
+    null
+  );
+
+  // Update local state when signup confirmation is triggered
+  const [showSignupConfirmation, setShowSignupConfirmation] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
+  
+  useEffect(() => {
+    if (state?.showSignupConfirmation && state?.signupEmail) {
+      setShowSignupConfirmation(true);
+      setSignupEmail(state.signupEmail);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.showSignupConfirmation, state?.signupEmail]);
 
   if (resetMode) {
     return <ResetPassword onSuccess={() => setResetMode(false)} />;
@@ -103,7 +126,7 @@ export default function Auth() {
             {isLogin ? "Sign in to your account" : "Create your account"}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form action={submitAction} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -113,6 +136,7 @@ export default function Auth() {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -131,6 +155,7 @@ export default function Auth() {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -141,18 +166,18 @@ export default function Auth() {
               />
             </div>
 
-            {error && (
+            {state?.error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {state.error}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="w-full bg-slate-900 dark:bg-slate-700 text-white py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              {isPending ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </button>
           </form>
 

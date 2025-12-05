@@ -77,7 +77,12 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
     setDownloading(true);
     try {
-      const filename = generateInvoiceFilename(invoice.invoice_number);
+      const customerName = invoice.client?.name || "";
+      const filename = generateInvoiceFilename(
+        invoice.invoice_number,
+        customerName,
+        invoice.issue_date
+      );
       await generatePDFFromElement(invoiceContentRef.current, { filename });
     } catch (error) {
       console.error("Error downloading PDF:", error);

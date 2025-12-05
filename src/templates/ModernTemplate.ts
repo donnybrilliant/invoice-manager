@@ -5,7 +5,7 @@ import {
   getCompanyInfo,
   formatClientAddress,
   formatCompanyAddress,
-  getBankingDetails,
+  getPaymentInformation,
 } from "./utils";
 
 export const ModernTemplate: InvoiceTemplate = {
@@ -164,8 +164,9 @@ export const ModernTemplate: InvoiceTemplate = {
             Payment Information
           </h3>
           <div style="color: #374151; line-height: 1.8; font-size: 14px;">
-            ${getBankingDetails(
+            ${getPaymentInformation(
               profile,
+              invoice,
               invoice.show_account_number,
               invoice.show_iban,
               invoice.show_swift_bic

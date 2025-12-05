@@ -1,8 +1,13 @@
-import { useState, useEffect } from "react";
-import { FileText, Trash2, Search, Edit } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { FileText, Trash2, Search, Edit, Download } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { Invoice } from "../types";
+import { Invoice, InvoiceItem, CompanyProfile } from "../types";
+import { getTemplate } from "../templates";
+import {
+  generatePDFFromElement,
+  generateInvoiceFilename,
+} from "../lib/pdfUtils";
 
 interface InvoiceListProps {
   onViewInvoice: (invoice: Invoice) => void;
@@ -20,6 +25,8 @@ export default function InvoiceList({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const downloadContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     loadInvoices();
@@ -97,6 +104,76 @@ export default function InvoiceList({
         return "bg-red-100 text-red-800";
       default:
         return "bg-slate-100 text-slate-800";
+    }
+  };
+
+  const handleDownload = async (invoice: Invoice) => {
+    if (downloadingId) return;
+    
+    setDownloadingId(invoice.id);
+    try {
+      // Load invoice items
+      const { data: itemsData, error: itemsError } = await supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoice.id)
+        .order("created_at");
+
+      if (itemsError) throw itemsError;
+      const items: InvoiceItem[] = itemsData || [];
+
+      // Load company profile
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      let profile: CompanyProfile | null = null;
+      if (user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from("company_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (!profileError || profileError.code === "PGRST116") {
+          profile = profileData;
+        }
+      }
+
+      // Create a temporary container for rendering
+      const tempDiv = document.createElement("div");
+      tempDiv.style.position = "absolute";
+      tempDiv.style.left = "-9999px";
+      tempDiv.style.width = "800px";
+      document.body.appendChild(tempDiv);
+
+      // Render invoice HTML
+      const template = getTemplate(invoice.template);
+      const html = template.render({
+        invoice,
+        items,
+        client: invoice.client!,
+        profile,
+      });
+      tempDiv.innerHTML = html;
+
+      // Generate filename
+      const customerName = invoice.client?.name || "";
+      const filename = generateInvoiceFilename(
+        invoice.invoice_number,
+        customerName,
+        invoice.issue_date
+      );
+
+      // Generate PDF
+      await generatePDFFromElement(tempDiv, { filename });
+
+      // Cleanup
+      document.body.removeChild(tempDiv);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Failed to download PDF. Please try again.");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -226,9 +303,23 @@ export default function InvoiceList({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(invoice);
+                          }}
+                          disabled={downloadingId === invoice.id}
+                          className="text-green-600 hover:text-green-800 transition p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Download PDF"
+                        >
+                          <Download className="w-5 h-5" />
+                        </button>
                         {invoice.status === "draft" && onEditInvoice && (
                           <button
-                            onClick={() => onEditInvoice(invoice)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditInvoice(invoice);
+                            }}
                             className="text-blue-600 hover:text-blue-800 transition p-2"
                             title="Edit"
                           >
@@ -236,7 +327,10 @@ export default function InvoiceList({
                           </button>
                         )}
                         <button
-                          onClick={() => deleteInvoice(invoice.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteInvoice(invoice.id);
+                          }}
                           className="text-red-600 hover:text-red-800 transition p-2"
                           title="Delete"
                         >

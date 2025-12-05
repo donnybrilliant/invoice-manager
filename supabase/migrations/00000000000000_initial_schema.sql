@@ -151,6 +151,7 @@ CREATE TABLE invoices (
   
   -- Additional information
   notes text,
+  kid_number text, -- Norwegian banking customer ID (per invoice, separate from client KID)
   
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()

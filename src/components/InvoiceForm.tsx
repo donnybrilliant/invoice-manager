@@ -56,8 +56,9 @@ export default function InvoiceForm({
     notes: invoice?.notes || "",
     template: invoice?.template || "classic",
     show_account_number: invoice?.show_account_number ?? true,
-    show_iban: invoice?.show_iban ?? true,
-    show_swift_bic: invoice?.show_swift_bic ?? true,
+    show_iban: invoice?.show_iban ?? false,
+    show_swift_bic: invoice?.show_swift_bic ?? false,
+    kid_number: invoice?.kid_number || "",
   });
 
   const [items, setItems] = useState<LineItem[]>([
@@ -77,6 +78,20 @@ export default function InvoiceForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, invoice]);
+
+  // When client is selected, pre-fill KID number from client if invoice doesn't have one
+  useEffect(() => {
+    if (formData.client_id && !invoice?.kid_number && clients.length > 0) {
+      const selectedClient = clients.find((c) => c.id === formData.client_id);
+      if (selectedClient?.kid_number && !formData.kid_number) {
+        setFormData((prev) => ({ ...prev, kid_number: selectedClient.kid_number }));
+      } else if (!selectedClient?.kid_number && !formData.kid_number) {
+        // Clear KID if client doesn't have one and form doesn't have one
+        setFormData((prev) => ({ ...prev, kid_number: "" }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.client_id, clients]);
 
   const loadClients = async () => {
     if (!user) return;
@@ -221,6 +236,7 @@ export default function InvoiceForm({
             show_account_number: formData.show_account_number,
             show_iban: formData.show_iban,
             show_swift_bic: formData.show_swift_bic,
+            kid_number: formData.kid_number || null,
           })
           .eq("id", invoice.id);
 
@@ -274,6 +290,7 @@ export default function InvoiceForm({
             show_account_number: formData.show_account_number,
             show_iban: formData.show_iban,
             show_swift_bic: formData.show_swift_bic,
+            kid_number: formData.kid_number || null,
           })
           .select()
           .single();
@@ -354,9 +371,10 @@ export default function InvoiceForm({
                 <button
                   type="button"
                   onClick={() => setShowClientForm(true)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
+                  className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition flex items-center justify-center"
+                  title="New Client"
                 >
-                  New
+                  <Plus className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -431,6 +449,24 @@ export default function InvoiceForm({
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                KID Number (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.kid_number}
+                onChange={(e) =>
+                  setFormData({ ...formData, kid_number: e.target.value })
+                }
+                placeholder="Leave empty if not needed"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Customer identification number for Norwegian banking
+              </p>
+            </div>
           </div>
 
           <TemplateSelector
@@ -471,14 +507,16 @@ export default function InvoiceForm({
                     type="number"
                     step="0.01"
                     min="0"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateItem(
-                        item.id,
-                        "quantity",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
+                    value={item.quantity === 0 ? "" : item.quantity}
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
+                      updateItem(item.id, "quantity", value);
+                    }}
+                    onFocus={(e) => {
+                      if (e.target.value === "0" || e.target.value === "") {
+                        e.target.select();
+                      }
+                    }}
                     placeholder="Qty"
                     className="w-24 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                   />
@@ -486,20 +524,21 @@ export default function InvoiceForm({
                     type="number"
                     step="0.01"
                     min="0"
-                    value={item.unit_price}
-                    onChange={(e) =>
-                      updateItem(
-                        item.id,
-                        "unit_price",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
+                    value={item.unit_price === 0 ? "" : item.unit_price}
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
+                      updateItem(item.id, "unit_price", value);
+                    }}
+                    onFocus={(e) => {
+                      if (e.target.value === "0" || e.target.value === "") {
+                        e.target.select();
+                      }
+                    }}
                     placeholder="Price"
                     className="w-32 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                   />
                   <div className="w-32 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-right text-slate-700">
-                    {getCurrencySymbol(formData.currency)}
-                    {item.amount.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)} {item.amount.toFixed(2)}
                   </div>
                   <button
                     type="button"
@@ -522,8 +561,7 @@ export default function InvoiceForm({
                     Subtotal:
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)}
-                    {subtotal.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)} {subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -531,15 +569,13 @@ export default function InvoiceForm({
                     Tax ({formData.tax_rate}%):
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)}
-                    {tax_amount.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)} {tax_amount.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t border-slate-200 dark:border-slate-700 pt-2">
                   <span className="text-slate-900 dark:text-white">Total:</span>
                   <span className="text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)}
-                    {total.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)} {total.toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -36,6 +36,7 @@ export interface Invoice {
   show_account_number?: boolean;
   show_iban?: boolean;
   show_swift_bic?: boolean;
+  kid_number?: string | null;
   created_at: string;
   updated_at: string;
   client?: Client;

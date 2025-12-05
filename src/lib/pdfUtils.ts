@@ -127,11 +127,34 @@ export function printElement(element: HTMLElement): void {
 
 /**
  * Generates a standardized filename for invoice PDFs
- * Format: Invoice-{invoice_number}.pdf
+ * Format: invoice-{customer-name}-{date}.pdf
  *
  * @param invoiceNumber - The invoice number
+ * @param customerName - The customer/client name (optional)
+ * @param date - The invoice date (optional)
  * @returns Formatted filename
  */
-export function generateInvoiceFilename(invoiceNumber: string): string {
-  return `Invoice-${invoiceNumber}.pdf`;
+export function generateInvoiceFilename(
+  invoiceNumber: string,
+  customerName?: string,
+  date?: string
+): string {
+  let filename = "invoice";
+  
+  if (customerName) {
+    // Sanitize customer name for filename
+    const sanitizedName = customerName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    filename += `-${sanitizedName}`;
+  }
+  
+  if (date) {
+    // Format date as YYYY-MM-DD
+    const dateStr = new Date(date).toISOString().split("T")[0];
+    filename += `-${dateStr}`;
+  }
+  
+  return `${filename}.pdf`;
 }

@@ -14,7 +14,7 @@ export default function Auth() {
   const [resetMode, setResetMode] = useState(false);
   const [showSignupConfirmation, setShowSignupConfirmation] = useState(false);
   const [signupEmail, setSignupEmail] = useState("");
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, clearSignupEmail } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +73,8 @@ export default function Auth() {
                 setEmail("");
                 setPassword("");
                 setIsLogin(true);
+                // Clear the context's signupEmail to prevent overlay from showing again
+                clearSignupEmail();
               }}
               className="w-full px-4 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium"
             >

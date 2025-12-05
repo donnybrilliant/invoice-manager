@@ -15,14 +15,26 @@ function AppContent() {
   useEffect(() => {
     // Check for password recovery token in hash fragment
     // Supabase sends type=recovery in hash fragment when password reset link is clicked
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get("type");
-    
-    if (type === "recovery") {
-      // Route to reset password page
-      // Don't clear hash yet - Supabase needs to process it first
-      setCurrentRoute("reset-password");
-    }
+    const checkHash = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get("type");
+
+      if (type === "recovery") {
+        // Route to reset password page
+        // Don't clear hash yet - Supabase needs to process it first
+        setCurrentRoute("reset-password");
+      }
+    };
+
+    // Check on mount
+    checkHash();
+
+    // Listen for hash changes (when user clicks password reset link while app is already open)
+    window.addEventListener("hashchange", checkHash);
+
+    return () => {
+      window.removeEventListener("hashchange", checkHash);
+    };
   }, []);
 
   if (loading) {
@@ -48,7 +60,10 @@ function AppContent() {
       <>
         <CompanyProfile onBack={() => setCurrentRoute("dashboard")} />
         {signupEmail && (
-          <SignupConfirmationOverlay email={signupEmail} onClose={clearSignupEmail} />
+          <SignupConfirmationOverlay
+            email={signupEmail}
+            onClose={clearSignupEmail}
+          />
         )}
       </>
     );
@@ -56,15 +71,26 @@ function AppContent() {
 
   return (
     <>
-      <Dashboard onNavigateToProfile={() => setCurrentRoute("company-profile")} />
+      <Dashboard
+        onNavigateToProfile={() => setCurrentRoute("company-profile")}
+      />
       {signupEmail && (
-        <SignupConfirmationOverlay email={signupEmail} onClose={clearSignupEmail} />
+        <SignupConfirmationOverlay
+          email={signupEmail}
+          onClose={clearSignupEmail}
+        />
       )}
     </>
   );
 }
 
-function SignupConfirmationOverlay({ email, onClose }: { email: string; onClose: () => void }) {
+function SignupConfirmationOverlay({
+  email,
+  onClose,
+}: {
+  email: string;
+  onClose: () => void;
+}) {
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center max-w-md w-full relative">
@@ -74,7 +100,7 @@ function SignupConfirmationOverlay({ email, onClose }: { email: string; onClose:
         >
           <X className="w-5 h-5" />
         </button>
-        
+
         <div className="flex justify-center mb-6">
           <CheckCircle className="w-16 h-16 text-green-600 dark:text-green-500" />
         </div>
@@ -83,8 +109,8 @@ function SignupConfirmationOverlay({ email, onClose }: { email: string; onClose:
           Account created!
         </h1>
         <p className="text-slate-600 dark:text-slate-300 mb-6">
-          We've sent a confirmation email to <strong>{email}</strong>.
-          Please check your inbox to verify your account.
+          We've sent a confirmation email to <strong>{email}</strong>. Please
+          check your inbox to verify your account.
         </p>
 
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">

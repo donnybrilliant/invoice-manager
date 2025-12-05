@@ -95,14 +95,18 @@ CREATE INDEX idx_clients_user_id ON clients(user_id);
 CREATE SEQUENCE clients_number_seq START 1;
 
 CREATE OR REPLACE FUNCTION generate_client_number()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
 BEGIN
   IF NEW.client_number IS NULL THEN
-    NEW.client_number := 'CL-' || LPAD(nextval('clients_number_seq')::text, 6, '0');
+    NEW.client_number := 'CL-' || LPAD(nextval('public.clients_number_seq')::text, 6, '0');
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER set_client_number
   BEFORE INSERT ON clients

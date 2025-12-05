@@ -393,7 +393,7 @@ export default function InvoiceForm({
                     setFormData({ ...formData, client_id: e.target.value })
                   }
                   required
-                  className="w-full px-4 py-2 pr-10 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent appearance-none bg-white dark:bg-slate-800"
+                  className="w-full px-4 py-2 pr-10 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent appearance-none"
                 >
                   <option value="">Select a client</option>
                   {clients.map((client) => (
@@ -423,7 +423,7 @@ export default function InvoiceForm({
                   setFormData({ ...formData, currency: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
               >
                 <option value="EUR">EUR (€)</option>
                 <option value="NOK">NOK (kr)</option>
@@ -450,7 +450,7 @@ export default function InvoiceForm({
                     tax_rate: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
               />
             </div>
 
@@ -465,7 +465,7 @@ export default function InvoiceForm({
                   setFormData({ ...formData, issue_date: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
               />
             </div>
 
@@ -480,7 +480,7 @@ export default function InvoiceForm({
                   setFormData({ ...formData, due_date: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
               />
             </div>
 
@@ -495,7 +495,7 @@ export default function InvoiceForm({
                   setFormData({ ...formData, kid_number: e.target.value })
                 }
                 placeholder="Leave empty if not needed"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
               />
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Customer identification number for Norwegian banking
@@ -541,7 +541,7 @@ export default function InvoiceForm({
                       updateItem(item.id, "description", e.target.value)
                     }
                     placeholder="Description"
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   />
                   <input
                     type="number"
@@ -561,7 +561,7 @@ export default function InvoiceForm({
                       }
                     }}
                     placeholder="Qty"
-                    className="w-24 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-24 px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   />
                   <input
                     type="number"
@@ -581,9 +581,9 @@ export default function InvoiceForm({
                       }
                     }}
                     placeholder="Price"
-                    className="w-32 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-32 px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   />
-                  <div className="w-32 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-right text-slate-700">
+                  <div className="w-32 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-slate-700 dark:text-slate-300">
                     {getCurrencySymbol(formData.currency)}{" "}
                     {item.amount.toFixed(2)}
                   </div>
@@ -634,7 +634,7 @@ export default function InvoiceForm({
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               Banking Details to Display
             </label>
-            <div className="space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div className="space-y-2 bg-slate-50 dark:bg-slate-700 p-4 rounded-lg border border-slate-200 dark:border-slate-600">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -645,7 +645,7 @@ export default function InvoiceForm({
                       show_account_number: e.target.checked,
                     })
                   }
-                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   Show Account Number
@@ -658,7 +658,7 @@ export default function InvoiceForm({
                   onChange={(e) =>
                     setFormData({ ...formData, show_iban: e.target.checked })
                   }
-                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   Show IBAN
@@ -674,7 +674,7 @@ export default function InvoiceForm({
                       show_swift_bic: e.target.checked,
                     })
                   }
-                  className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   Show SWIFT/BIC
@@ -693,7 +693,7 @@ export default function InvoiceForm({
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent resize-none"
               placeholder="Payment terms, thank you message, etc."
             />
           </div>

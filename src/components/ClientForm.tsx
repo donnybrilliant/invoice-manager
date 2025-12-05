@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
-import { supabase } from "../lib/supabase";
-import { useAuth } from "../contexts/AuthContext";
 import { Client } from "../types";
+import { useCreateClient, useUpdateClient, useDeleteClient } from "../hooks/useClients";
 
 interface ClientFormProps {
   onClose: () => void;
@@ -15,8 +14,9 @@ export default function ClientForm({
   onSuccess,
   client,
 }: ClientFormProps) {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const createClientMutation = useCreateClient();
+  const updateClientMutation = useUpdateClient();
+  const deleteClientMutation = useDeleteClient();
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [formData, setFormData] = useState({
@@ -53,9 +53,6 @@ export default function ClientForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-
-    setLoading(true);
     setError("");
 
     try {
@@ -74,18 +71,9 @@ export default function ClientForm({
       };
 
       if (client) {
-        const { error: updateError } = await supabase
-          .from("clients")
-          .update(clientData)
-          .eq("id", client.id);
-
-        if (updateError) throw updateError;
+        await updateClientMutation.mutateAsync({ id: client.id, data: clientData });
       } else {
-        const { error: insertError } = await supabase
-          .from("clients")
-          .insert({ user_id: user.id, ...clientData });
-
-        if (insertError) throw insertError;
+        await createClientMutation.mutateAsync(clientData);
       }
 
       onSuccess();
@@ -95,31 +83,20 @@ export default function ClientForm({
           ? err.message
           : `Failed to ${client ? "update" : "create"} client`
       );
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async () => {
     if (!client) return;
 
-    setLoading(true);
     setError("");
 
     try {
-      const { error: deleteError } = await supabase
-        .from("clients")
-        .delete()
-        .eq("id", client.id);
-
-      if (deleteError) throw deleteError;
-
+      await deleteClientMutation.mutateAsync(client.id);
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete client");
       setShowDeleteConfirm(false);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -398,7 +375,7 @@ export default function ClientForm({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                disabled={loading}
+                disabled={deleteClientMutation.isPending}
                 className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
@@ -417,10 +394,10 @@ export default function ClientForm({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={createClientMutation.isPending || updateClientMutation.isPending}
               className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading
+              {(createClientMutation.isPending || updateClientMutation.isPending)
                 ? client
                   ? "Updating..."
                   : "Creating..."
@@ -442,22 +419,22 @@ export default function ClientForm({
                 invoices. This action cannot be undone.
               </p>
               <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={loading}
-                  className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Deleting..." : "Delete"}
-                </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleteClientMutation.isPending}
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteClientMutation.isPending}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteClientMutation.isPending ? "Deleting..." : "Delete"}
+              </button>
               </div>
             </div>
           </div>

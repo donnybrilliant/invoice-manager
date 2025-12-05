@@ -24,19 +24,16 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleInvoiceSuccess = () => {
     setShowInvoiceForm(false);
     setEditingInvoice(null);
-    setRefreshKey((prev) => prev + 1);
   };
 
   const handleClientSuccess = () => {
     setShowClientForm(false);
     setEditingClient(null);
-    setRefreshKey((prev) => prev + 1);
   };
 
   const handleEditClient = (client: Client) => {
@@ -169,11 +166,9 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
             <InvoiceList
               onViewInvoice={setViewingInvoice}
               onEditInvoice={handleEditInvoice}
-              refresh={refreshKey}
             />
           ) : (
             <ClientList
-              refresh={refreshKey}
               onEditClient={handleEditClient}
               onViewClient={handleViewClient}
             />

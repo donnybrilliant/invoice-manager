@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   X,
   Edit2,
@@ -10,8 +9,8 @@ import {
   Hash,
   Percent,
 } from "lucide-react";
-import { supabase } from "../lib/supabase";
 import { Client, Invoice } from "../types";
+import { useClientInvoices } from "../hooks/useClientInvoices";
 
 interface ClientDetailViewProps {
   client: Client;
@@ -26,30 +25,7 @@ export default function ClientDetailView({
   onEdit,
   onViewInvoice,
 }: ClientDetailViewProps) {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadInvoices = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("client_id", client.id)
-        .order("issue_date", { ascending: false });
-
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error) {
-      console.error("Error loading invoices:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [client.id]);
-
-  useEffect(() => {
-    loadInvoices();
-  }, [loadInvoices]);
+  const { data: invoices = [], isLoading: loading } = useClientInvoices(client.id);
 
   const getStatusColor = (status: Invoice["status"]) => {
     switch (status) {

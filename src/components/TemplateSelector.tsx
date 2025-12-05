@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { templates, getTemplate } from "../templates";
 import { InvoiceTemplateData } from "../templates/types";
 import { Client, CompanyProfile } from "../types";
@@ -100,6 +101,10 @@ export default function TemplateSelector({
   onChange,
   previewData,
 }: TemplateSelectorProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
   // Generate HTML for all templates (for thumbnails)
   const templateHtmls = useMemo(() => {
     const htmls: Record<string, string> = {};
@@ -114,63 +119,145 @@ export default function TemplateSelector({
   const hasClient =
     previewData?.formData.client_id && previewData.clients.length > 0;
 
+  // Check scroll position
+  const checkScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", checkScroll);
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        container.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+      };
+    }
+  }, [templateHtmls]);
+
+  const scroll = (direction: "left" | "right") => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollAmount = container.clientWidth * 0.8;
+    const targetScroll =
+      direction === "left"
+        ? container.scrollLeft - scrollAmount
+        : container.scrollLeft + scrollAmount;
+
+    container.scrollTo({
+      left: targetScroll,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
         Invoice Template
       </label>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {templates.map((template) => {
-          const thumbnailHtml = templateHtmls[template.id] || "";
-          return (
-            <button
-              key={template.id}
-              type="button"
-              onClick={() => onChange(template.id)}
-              className={`relative p-3 border-2 rounded-lg transition-all ${
-                selected === template.id
-                  ? "border-slate-900 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 ring-2 ring-slate-900 dark:ring-slate-600 ring-offset-2"
-                  : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800"
-              }`}
-            >
-              {/* Template Name */}
-              <div className="font-semibold text-slate-900 dark:text-white text-xs mb-2 text-center">
-                {template.name}
-              </div>
+      <div className="relative">
+        {/* Left Arrow */}
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={() => scroll("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+          </button>
+        )}
 
-              {/* Actual Template Preview (scaled down, showing full length) */}
-              <div className="aspect-[8.5/11] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden">
-                {thumbnailHtml ? (
-                  <div
-                    className="transform scale-[0.35] origin-top-left w-[285%] h-[285%]"
-                    dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
-                  />
-                ) : (
-                  <div className="h-full flex items-center justify-center text-slate-400 text-[8px] p-1">
-                    {hasClient ? "Loading..." : "Select client"}
+        {/* Scrollable Container */}
+        <div
+          ref={scrollContainerRef}
+          className="flex gap-4 overflow-x-auto pb-2 px-1 scroll-smooth scrollbar-hide"
+          style={{
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {templates.map((template) => {
+            const thumbnailHtml = templateHtmls[template.id] || "";
+            return (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => onChange(template.id)}
+                className={`relative p-3 border-2 rounded-lg transition-all flex-shrink-0 w-48 ${
+                  selected === template.id
+                    ? "border-slate-900 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 ring-2 ring-slate-900 dark:ring-slate-600 ring-offset-2"
+                    : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800"
+                }`}
+              >
+                {/* Template Name */}
+                <div className="font-semibold text-slate-900 dark:text-white text-xs mb-2 text-center">
+                  {template.name}
+                </div>
+
+                {/* Actual Template Preview (scaled down, showing full length) */}
+                <div className="aspect-[8.5/11] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden">
+                  {thumbnailHtml ? (
+                    <div
+                      className="transform scale-[0.35] origin-top-left w-[285%] h-[285%]"
+                      dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400 text-[8px] p-1">
+                      {hasClient ? "Loading..." : "Select client"}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Indicator */}
+                {selected === template.id && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-slate-900 dark:bg-slate-600 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7"></path>
+                    </svg>
                   </div>
                 )}
-              </div>
+              </button>
+            );
+          })}
+        </div>
 
-              {/* Selected Indicator */}
-              {selected === template.id && (
-                <div className="absolute top-2 right-2 w-5 h-5 bg-slate-900 dark:bg-slate-600 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-3 h-3 text-white"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-              )}
-            </button>
-          );
-        })}
+        {/* Right Arrow */}
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={() => scroll("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+          </button>
+        )}
+
+        {/* Scroll Indicator - Shows that more templates are available */}
+        {templates.length > 4 && (
+          <div className="flex justify-center items-center gap-2 mt-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></div>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Scroll to see more templates
+              </span>
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

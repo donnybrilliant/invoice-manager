@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Printer, Download } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { Invoice, InvoiceItem, CompanyProfile } from "../types";
+import { Invoice, InvoiceItem, CompanyProfile, Client } from "../types";
 import { getTemplate } from "../templates";
 import {
   generatePDFFromElement,
@@ -16,6 +16,7 @@ interface InvoiceViewProps {
 export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [profile, setProfile] = useState<CompanyProfile | null>(null);
+  const [client, setClient] = useState<Client | null>(invoice.client || null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const invoiceContentRef = useRef<HTMLDivElement>(null);
@@ -27,6 +28,8 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   };
 
   useEffect(() => {
+    // Reset client when invoice changes
+    setClient(invoice.client || null);
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice.id]);
@@ -43,6 +46,21 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
       if (itemsError) throw itemsError;
       setItems(itemsData || []);
+
+      // Load client if not already present
+      if (!client && invoice.client_id) {
+        const { data: clientData, error: clientError } = await supabase
+          .from("clients")
+          .select("*")
+          .eq("id", invoice.client_id)
+          .single();
+
+        if (clientError) {
+          console.error("Error loading client:", clientError);
+        } else {
+          setClient(clientData);
+        }
+      }
 
       // Load company profile
       const {
@@ -94,7 +112,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
   // Get the template and render the invoice
   const renderInvoice = () => {
-    if (loading || !invoice.client) {
+    if (loading || !client) {
       return <div className="text-center py-8 text-slate-600">Loading...</div>;
     }
 
@@ -102,7 +120,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
     const html = template.render({
       invoice,
       items,
-      client: invoice.client,
+      client: client,
       profile,
     });
 
@@ -111,7 +129,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]"
       onClick={handleBackdropClick}
     >
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 my-8">

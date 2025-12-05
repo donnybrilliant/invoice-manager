@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { FileText, Trash2, Search, Edit, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
@@ -8,7 +8,11 @@ import {
   generatePDFFromElement,
   generateInvoiceFilename,
 } from "../lib/pdfUtils";
-import { useInvoices, useDeleteInvoice, useUpdateInvoiceStatus } from "../hooks/useInvoices";
+import {
+  useInvoices,
+  useDeleteInvoice,
+  useUpdateInvoiceStatus,
+} from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
 
 interface InvoiceListProps {
@@ -22,13 +26,12 @@ export default function InvoiceList({
 }: InvoiceListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: invoices = [], isLoading: loading, error } = useInvoices();
+  const { data: invoices = [], isLoading: loading } = useInvoices();
   const deleteInvoiceMutation = useDeleteInvoice();
   const updateStatusMutation = useUpdateInvoiceStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const downloadContainerRef = useRef<HTMLDivElement | null>(null);
 
   const handleDeleteInvoice = async (id: string) => {
     if (!confirm("Are you sure you want to delete this invoice?")) return;
@@ -73,7 +76,7 @@ export default function InvoiceList({
 
   const handleDownload = async (invoice: Invoice) => {
     if (downloadingId) return;
-    
+
     setDownloadingId(invoice.id);
     try {
       // Try to get cached data first, otherwise fetch
@@ -81,7 +84,10 @@ export default function InvoiceList({
       let profile: CompanyProfile | null = null;
 
       // Get invoice items from cache or fetch
-      const cachedItems = queryClient.getQueryData<InvoiceItem[]>(['invoiceItems', invoice.id]);
+      const cachedItems = queryClient.getQueryData<InvoiceItem[]>([
+        "invoiceItems",
+        invoice.id,
+      ]);
       if (cachedItems) {
         items = cachedItems;
       } else {
@@ -95,7 +101,10 @@ export default function InvoiceList({
       }
 
       // Get company profile from cache or fetch
-      const cachedProfile = queryClient.getQueryData<CompanyProfile | null>(['companyProfile', user?.id]);
+      const cachedProfile = queryClient.getQueryData<CompanyProfile | null>([
+        "companyProfile",
+        user?.id,
+      ]);
       if (cachedProfile !== undefined) {
         profile = cachedProfile;
       } else {

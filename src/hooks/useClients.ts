@@ -1,21 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { Client } from '../types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { Client } from "../types";
 
 export function useClients() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['clients', user?.id],
+    queryKey: ["clients", user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('No user');
+      if (!user) throw new Error("No user");
 
       const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('name');
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("name");
 
       if (error) throw error;
       return (data || []) as Client[];
@@ -45,10 +45,10 @@ export function useCreateClient() {
 
   return useMutation({
     mutationFn: async (data: CreateClientData) => {
-      if (!user) throw new Error('No user');
+      if (!user) throw new Error("No user");
 
       const { data: result, error } = await supabase
-        .from('clients')
+        .from("clients")
         .insert({ user_id: user.id, ...data })
         .select()
         .single();
@@ -57,7 +57,7 @@ export function useCreateClient() {
       return result as Client;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
     },
   });
 }
@@ -81,11 +81,17 @@ export function useUpdateClient() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateClientData }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateClientData;
+    }) => {
       const { data: result, error } = await supabase
-        .from('clients')
+        .from("clients")
         .update(data)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -93,7 +99,7 @@ export function useUpdateClient() {
       return result as Client;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
     },
   });
 }
@@ -104,16 +110,15 @@ export function useDeleteClient() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('clients').delete().eq('id', id);
+      const { error } = await supabase.from("clients").delete().eq("id", id);
 
       if (error) throw error;
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
       // Also invalidate invoices since they reference clients
-      queryClient.invalidateQueries({ queryKey: ['invoices', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
     },
   });
 }
-

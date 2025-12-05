@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { X, Printer, Download } from "lucide-react";
-import { Invoice, Client } from "../types";
+import { Invoice } from "../types";
 import { getTemplate } from "../templates";
 import {
   generatePDFFromElement,
@@ -16,8 +16,11 @@ interface InvoiceViewProps {
 
 export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   const client = invoice.client || null;
-  const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(invoice.id);
-  const { data: profile = null, isLoading: profileLoading } = useCompanyProfile();
+  const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(
+    invoice.id
+  );
+  const { data: profile = null, isLoading: profileLoading } =
+    useCompanyProfile();
   const [downloading, setDownloading] = useState(false);
   const invoiceContentRef = useRef<HTMLDivElement>(null);
 

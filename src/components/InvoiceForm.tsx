@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Client, Invoice } from "../types";
 import ClientForm from "./ClientForm";
@@ -121,10 +120,13 @@ export default function InvoiceForm({
 
   const handleClientFormSuccess = async () => {
     // Invalidate clients query to refetch
-    await queryClient.invalidateQueries({ queryKey: ['clients', user?.id] });
-    
+    await queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
+
     // Get the most recently created client from cache or refetch
-    const clientsData = queryClient.getQueryData<Client[]>(['clients', user?.id]);
+    const clientsData = queryClient.getQueryData<Client[]>([
+      "clients",
+      user?.id,
+    ]);
     if (clientsData && clientsData.length > 0) {
       // Auto-select the most recently created client (should be first after refetch)
       const newestClient = clientsData[0];
@@ -178,7 +180,6 @@ export default function InvoiceForm({
     return { subtotal, tax_amount, total };
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !formData.client_id) return;
@@ -214,7 +215,10 @@ export default function InvoiceForm({
       };
 
       if (invoice) {
-        await updateInvoiceMutation.mutateAsync({ id: invoice.id, data: invoiceData });
+        await updateInvoiceMutation.mutateAsync({
+          id: invoice.id,
+          data: invoiceData,
+        });
       } else {
         await createInvoiceMutation.mutateAsync(invoiceData);
       }
@@ -582,10 +586,14 @@ export default function InvoiceForm({
             </button>
             <button
               type="submit"
-              disabled={createInvoiceMutation.isPending || updateInvoiceMutation.isPending}
+              disabled={
+                createInvoiceMutation.isPending ||
+                updateInvoiceMutation.isPending
+              }
               className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {(createInvoiceMutation.isPending || updateInvoiceMutation.isPending)
+              {createInvoiceMutation.isPending ||
+              updateInvoiceMutation.isPending
                 ? invoice
                   ? "Updating..."
                   : "Creating..."

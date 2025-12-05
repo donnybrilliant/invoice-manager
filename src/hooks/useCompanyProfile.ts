@@ -1,23 +1,23 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { CompanyProfile } from '../types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { CompanyProfile } from "../types";
 
 export function useCompanyProfile() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['companyProfile', user?.id],
+    queryKey: ["companyProfile", user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('No user');
+      if (!user) throw new Error("No user");
 
       const { data, error } = await supabase
-        .from('company_profiles')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("company_profiles")
+        .select("*")
+        .eq("user_id", user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
@@ -54,10 +54,10 @@ export function useUpdateCompanyProfile() {
 
   return useMutation({
     mutationFn: async (data: UpdateCompanyProfileData) => {
-      if (!user) throw new Error('No user');
+      if (!user) throw new Error("No user");
 
       const { data: result, error } = await supabase
-        .from('company_profiles')
+        .from("company_profiles")
         .upsert(
           {
             user_id: user.id,
@@ -65,7 +65,7 @@ export function useUpdateCompanyProfile() {
             updated_at: new Date().toISOString(),
           },
           {
-            onConflict: 'user_id',
+            onConflict: "user_id",
             ignoreDuplicates: false,
           }
         )
@@ -76,8 +76,7 @@ export function useUpdateCompanyProfile() {
       return result as CompanyProfile;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyProfile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["companyProfile", user?.id] });
     },
   });
 }
-

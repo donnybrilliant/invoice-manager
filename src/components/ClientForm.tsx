@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
 import { Client } from "../types";
-import { useCreateClient, useUpdateClient, useDeleteClient } from "../hooks/useClients";
+import {
+  useCreateClient,
+  useUpdateClient,
+  useDeleteClient,
+} from "../hooks/useClients";
 
 interface ClientFormProps {
   onClose: () => void;
@@ -71,7 +75,10 @@ export default function ClientForm({
       };
 
       if (client) {
-        await updateClientMutation.mutateAsync({ id: client.id, data: clientData });
+        await updateClientMutation.mutateAsync({
+          id: client.id,
+          data: clientData,
+        });
       } else {
         await createClientMutation.mutateAsync(clientData);
       }
@@ -394,10 +401,12 @@ export default function ClientForm({
             </button>
             <button
               type="submit"
-              disabled={createClientMutation.isPending || updateClientMutation.isPending}
+              disabled={
+                createClientMutation.isPending || updateClientMutation.isPending
+              }
               className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {(createClientMutation.isPending || updateClientMutation.isPending)
+              {createClientMutation.isPending || updateClientMutation.isPending
                 ? client
                   ? "Updating..."
                   : "Creating..."
@@ -419,22 +428,22 @@ export default function ClientForm({
                 invoices. This action cannot be undone.
               </p>
               <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleteClientMutation.isPending}
-                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleteClientMutation.isPending}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleteClientMutation.isPending ? "Deleting..." : "Delete"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleteClientMutation.isPending}
+                  className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleteClientMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleteClientMutation.isPending ? "Deleting..." : "Delete"}
+                </button>
               </div>
             </div>
           </div>

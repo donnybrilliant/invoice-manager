@@ -19,10 +19,20 @@ export const SwissTemplate: InvoiceTemplate = {
       .map(
         (item) => `
         <tr>
-          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; font-size: 14px; color: #333;">${item.description}</td>
-          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 14px; color: #333;">${item.quantity}</td>
-          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; text-align: right; font-size: 14px; color: #333;">${formatCurrencyWithCode(item.unit_price, invoice.currency)}</td>
-          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; text-align: right; font-size: 14px; font-weight: 600; color: #000;">${formatCurrencyWithCode(item.amount, invoice.currency)}</td>
+          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; font-size: 14px; color: #333;">${
+            item.description
+          }</td>
+          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 14px; color: #333;">${
+            item.quantity
+          }</td>
+          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; text-align: right; font-size: 14px; color: #333;">${formatCurrencyWithCode(
+            item.unit_price,
+            invoice.currency
+          )}</td>
+          <td style="padding: 16px 0; border-bottom: 1px solid #e0e0e0; text-align: right; font-size: 14px; font-weight: 600; color: #000;">${formatCurrencyWithCode(
+            item.amount,
+            invoice.currency
+          )}</td>
         </tr>
       `
       )
@@ -36,7 +46,11 @@ export const SwissTemplate: InvoiceTemplate = {
         <!-- Header -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-bottom: 80px;">
           <div>
-            ${profile?.logo_url ? `<img src="${profile.logo_url}" alt="Logo" style="max-width: 140px; max-height: 70px; margin-bottom: 30px;" />` : ""}
+            ${
+              profile?.logo_url
+                ? `<img src="${profile.logo_url}" alt="Logo" style="max-width: 140px; max-height: 70px; margin-bottom: 30px;" />`
+                : ""
+            }
             <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: #999; margin-bottom: 8px;">From</div>
             <div style="font-weight: 700; font-size: 18px; color: #000; margin-bottom: 12px;">
               ${getCompanyInfo(profile, "company_name")}
@@ -60,7 +74,9 @@ export const SwissTemplate: InvoiceTemplate = {
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 80px; margin-bottom: 60px; padding-bottom: 40px; border-bottom: 1px solid #e0e0e0;">
           <div>
             <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: #999; margin-bottom: 8px;">Bill To</div>
-            <div style="font-weight: 700; font-size: 18px; color: #000; margin-bottom: 12px;">${client.name}</div>
+            <div style="font-weight: 700; font-size: 18px; color: #000; margin-bottom: 12px;">${
+              client.name
+            }</div>
             <div style="font-size: 13px; color: #666; line-height: 1.8;">
               ${formatClientAddress(client).replace(/\n/g, "<br />")}<br />
               ${client.email}
@@ -69,11 +85,15 @@ export const SwissTemplate: InvoiceTemplate = {
           <div>
             <div style="margin-bottom: 25px;">
               <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: #999; margin-bottom: 6px;">Issue Date</div>
-              <div style="font-size: 15px; color: #000;">${formatDate(invoice.issue_date)}</div>
+              <div style="font-size: 15px; color: #000;">${formatDate(
+                invoice.issue_date
+              )}</div>
             </div>
             <div>
               <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: #999; margin-bottom: 6px;">Due Date</div>
-              <div style="font-size: 15px; color: #FF0000; font-weight: 600;">${formatDate(invoice.due_date)}</div>
+              <div style="font-size: 15px; color: #FF0000; font-weight: 600;">${formatDate(
+                invoice.due_date
+              )}</div>
             </div>
           </div>
         </div>
@@ -98,15 +118,24 @@ export const SwissTemplate: InvoiceTemplate = {
           <div style="width: 280px;">
             <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0e0e0;">
               <span style="font-size: 13px; color: #666;">Subtotal</span>
-              <span style="font-size: 14px; color: #333;">${formatCurrencyWithCode(invoice.subtotal, invoice.currency)}</span>
+              <span style="font-size: 14px; color: #333;">${formatCurrencyWithCode(
+                invoice.subtotal,
+                invoice.currency
+              )}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0e0e0;">
               <span style="font-size: 13px; color: #666;">Tax</span>
-              <span style="font-size: 14px; color: #333;">${formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}</span>
+              <span style="font-size: 14px; color: #333;">${formatCurrencyWithCode(
+                invoice.tax_amount,
+                invoice.currency
+              )}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 20px 0; border-top: 2px solid #000; margin-top: 10px;">
               <span style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: #000;">Total</span>
-              <span style="font-size: 28px; font-weight: 300; color: #000;">${formatCurrencyWithCode(invoice.total, invoice.currency)}</span>
+              <span style="font-size: 28px; font-weight: 300; color: #000;">${formatCurrencyWithCode(
+                invoice.total,
+                invoice.currency
+              )}</span>
             </div>
           </div>
         </div>
@@ -123,12 +152,16 @@ export const SwissTemplate: InvoiceTemplate = {
               invoice.show_swift_bic
             )}</div>
           </div>
-          ${invoice.notes ? `
+          ${
+            invoice.notes
+              ? `
           <div>
             <div style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 3px; color: #999; margin-bottom: 15px;">Notes</div>
             <div style="font-size: 13px; color: #333; line-height: 1.9;">${invoice.notes}</div>
           </div>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
 
         <!-- Footer -->

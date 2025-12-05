@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { useCompanyProfile, useUpdateCompanyProfile } from "../hooks/useCompanyProfile";
+import {
+  useCompanyProfile,
+  useUpdateCompanyProfile,
+} from "../hooks/useCompanyProfile";
 
 interface CompanyProfileProps {
   onBack: () => void;

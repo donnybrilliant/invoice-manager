@@ -1,26 +1,26 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { Invoice, InvoiceItem } from '../types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { Invoice } from "../types";
 
 export function useInvoices() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['invoices', user?.id],
+    queryKey: ["invoices", user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('No user');
+      if (!user) throw new Error("No user");
 
       const { data, error } = await supabase
-        .from('invoices')
+        .from("invoices")
         .select(
           `
           *,
           client:clients(*)
         `
         )
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return (data || []) as Invoice[];
@@ -33,10 +33,10 @@ export function useInvoices() {
 function generateInvoiceNumber(): string {
   const date = new Date();
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const random = Math.floor(Math.random() * 10000)
     .toString()
-    .padStart(4, '0');
+    .padStart(4, "0");
   return `INV-${year}${month}-${random}`;
 }
 
@@ -71,20 +71,20 @@ export function useCreateInvoice() {
 
   return useMutation({
     mutationFn: async (data: CreateInvoiceData) => {
-      if (!user) throw new Error('No user');
+      if (!user) throw new Error("No user");
 
       const invoice_number = generateInvoiceNumber();
 
       // Create invoice
       const { data: newInvoice, error: invoiceError } = await supabase
-        .from('invoices')
+        .from("invoices")
         .insert({
           user_id: user.id,
           invoice_number,
           client_id: data.client_id,
           issue_date: data.issue_date,
           due_date: data.due_date,
-          status: 'draft',
+          status: "draft",
           subtotal: data.subtotal,
           tax_rate: data.tax_rate,
           tax_amount: data.tax_amount,
@@ -115,7 +115,7 @@ export function useCreateInvoice() {
 
       if (itemsToInsert.length > 0) {
         const { error: itemsError } = await supabase
-          .from('invoice_items')
+          .from("invoice_items")
           .insert(itemsToInsert);
         if (itemsError) throw itemsError;
       }
@@ -123,7 +123,7 @@ export function useCreateInvoice() {
       return newInvoice as Invoice;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
     },
   });
 }
@@ -151,10 +151,16 @@ export function useUpdateInvoice() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateInvoiceData }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateInvoiceData;
+    }) => {
       // Update invoice
       const { error: invoiceError } = await supabase
-        .from('invoices')
+        .from("invoices")
         .update({
           client_id: data.client_id,
           issue_date: data.issue_date,
@@ -172,15 +178,15 @@ export function useUpdateInvoice() {
           kid_number: data.kid_number || null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq("id", id);
 
       if (invoiceError) throw invoiceError;
 
       // Delete all existing items
       const { error: deleteError } = await supabase
-        .from('invoice_items')
+        .from("invoice_items")
         .delete()
-        .eq('invoice_id', id);
+        .eq("invoice_id", id);
 
       if (deleteError) throw deleteError;
 
@@ -197,7 +203,7 @@ export function useUpdateInvoice() {
 
       if (itemsToInsert.length > 0) {
         const { error: itemsError } = await supabase
-          .from('invoice_items')
+          .from("invoice_items")
           .insert(itemsToInsert);
         if (itemsError) throw itemsError;
       }
@@ -205,8 +211,8 @@ export function useUpdateInvoice() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['invoiceItems'] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoiceItems"] });
     },
   });
 }
@@ -217,14 +223,14 @@ export function useDeleteInvoice() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('invoices').delete().eq('id', id);
+      const { error } = await supabase.from("invoices").delete().eq("id", id);
 
       if (error) throw error;
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['invoiceItems'] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoiceItems"] });
     },
   });
 }
@@ -236,16 +242,15 @@ export function useUpdateInvoiceStatus() {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
-        .from('invoices')
+        .from("invoices")
         .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
       return { id, status };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
     },
   });
 }
-

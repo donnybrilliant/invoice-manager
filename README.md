@@ -381,3 +381,5 @@ See `ADDITIONAL_IMPROVEMENTS.md` for planned features and enhancements.
 ---
 
 Built with ❤️ for Norwegian and European businesses
+
+test

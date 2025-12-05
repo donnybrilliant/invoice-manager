@@ -60,13 +60,16 @@ export interface CompanyProfile {
   id: string;
   user_id: string;
   company_name: string | null;
-  address: string | null;
   phone: string | null;
   email: string | null;
   website: string | null;
   organization_number: string | null;
   tax_number: string | null;
-  bank_name: string | null;
+  street_address: string | null;
+  postal_code: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
   account_number: string | null;
   iban: string | null;
   swift_bic: string | null;

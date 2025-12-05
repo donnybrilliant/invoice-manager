@@ -84,7 +84,7 @@ export default function InvoiceForm({
     if (formData.client_id && !invoice?.kid_number && clients.length > 0) {
       const selectedClient = clients.find((c) => c.id === formData.client_id);
       if (selectedClient?.kid_number && !formData.kid_number) {
-        setFormData((prev) => ({ ...prev, kid_number: selectedClient.kid_number }));
+        setFormData((prev) => ({ ...prev, kid_number: selectedClient.kid_number || "" }));
       } else if (!selectedClient?.kid_number && !formData.kid_number) {
         // Clear KID if client doesn't have one and form doesn't have one
         setFormData((prev) => ({ ...prev, kid_number: "" }));

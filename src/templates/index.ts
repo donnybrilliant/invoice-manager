@@ -2,6 +2,12 @@ import { InvoiceTemplate } from "./types";
 import { ClassicTemplate } from "./ClassicTemplate";
 import { ModernTemplate } from "./ModernTemplate";
 import { ProfessionalTemplate } from "./ProfessionalTemplate";
+import { BrutalistTemplate } from "./BrutalistTemplate";
+import { DarkModeTemplate } from "./DarkModeTemplate";
+import { MinimalJapaneseTemplate } from "./MinimalJapaneseTemplate";
+import { NeoBrutalistTemplate } from "./NeoBrutalistTemplate";
+import { SwissTemplate } from "./SwissTemplate";
+import { TypewriterTemplate } from "./TypewriterTemplate";
 
 export * from "./types";
 
@@ -10,6 +16,12 @@ export const templates: InvoiceTemplate[] = [
   ClassicTemplate,
   ModernTemplate,
   ProfessionalTemplate,
+  BrutalistTemplate,
+  DarkModeTemplate,
+  MinimalJapaneseTemplate,
+  NeoBrutalistTemplate,
+  SwissTemplate,
+  TypewriterTemplate,
 ];
 
 // Get template by ID

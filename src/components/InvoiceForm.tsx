@@ -118,19 +118,28 @@ export default function InvoiceForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.client_id, clients]);
 
-  const handleClientFormSuccess = async () => {
+  const handleClientFormSuccess = async (createdClientId?: string) => {
     // Invalidate clients query to refetch
     await queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
 
-    // Get the most recently created client from cache or refetch
-    const clientsData = queryClient.getQueryData<Client[]>([
-      "clients",
-      user?.id,
-    ]);
-    if (clientsData && clientsData.length > 0) {
-      // Auto-select the most recently created client (should be first after refetch)
-      const newestClient = clientsData[0];
-      setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+    // If we have the newly created client ID, use it directly
+    if (createdClientId) {
+      setFormData((prev) => ({ ...prev, client_id: createdClientId }));
+    } else {
+      // Fallback: Get clients from cache after refetch
+      const clientsData = queryClient.getQueryData<Client[]>([
+        "clients",
+        user?.id,
+      ]);
+      if (clientsData && clientsData.length > 0) {
+        // Find the most recently created client by created_at
+        const newestClient = clientsData.reduce((latest, current) => {
+          const latestDate = new Date(latest.created_at || 0).getTime();
+          const currentDate = new Date(current.created_at || 0).getTime();
+          return currentDate > latestDate ? current : latest;
+        });
+        setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+      }
     }
 
     setShowClientForm(false);

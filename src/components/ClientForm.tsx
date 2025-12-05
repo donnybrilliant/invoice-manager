@@ -9,7 +9,7 @@ import {
 
 interface ClientFormProps {
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (createdClientId?: string) => void;
   client?: Client;
 }
 
@@ -79,11 +79,11 @@ export default function ClientForm({
           id: client.id,
           data: clientData,
         });
+        onSuccess();
       } else {
-        await createClientMutation.mutateAsync(clientData);
+        const newClient = await createClientMutation.mutateAsync(clientData);
+        onSuccess(newClient.id);
       }
-
-      onSuccess();
     } catch (err) {
       setError(
         err instanceof Error

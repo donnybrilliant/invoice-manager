@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { Client, Invoice } from "../types";
+import { Client, Invoice, CompanyProfile } from "../types";
 import ClientForm from "./ClientForm";
 import TemplateSelector from "./TemplateSelector";
 
@@ -42,6 +42,9 @@ export default function InvoiceForm({
   const [error, setError] = useState("");
   const [clients, setClients] = useState<Client[]>([]);
   const [showClientForm, setShowClientForm] = useState(false);
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(
+    null
+  );
 
   const [formData, setFormData] = useState({
     client_id: invoice?.client_id || "",
@@ -73,18 +76,49 @@ export default function InvoiceForm({
 
   useEffect(() => {
     loadClients();
+    loadCompanyProfile();
     if (invoice) {
       loadInvoiceItems();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, invoice]);
 
+  const loadCompanyProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("company_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error loading company profile:", error);
+        return;
+      }
+
+      if (data) {
+        setCompanyProfile(data);
+        // Set default currency for new invoices only
+        if (!invoice && data.currency) {
+          setFormData((prev) => ({ ...prev, currency: data.currency }));
+        }
+      }
+    } catch (err) {
+      console.error("Error loading company profile:", err);
+    }
+  };
+
   // When client is selected, pre-fill KID number from client if invoice doesn't have one
   useEffect(() => {
     if (formData.client_id && !invoice?.kid_number && clients.length > 0) {
       const selectedClient = clients.find((c) => c.id === formData.client_id);
       if (selectedClient?.kid_number && !formData.kid_number) {
-        setFormData((prev) => ({ ...prev, kid_number: selectedClient.kid_number || "" }));
+        setFormData((prev) => ({
+          ...prev,
+          kid_number: selectedClient.kid_number || "",
+        }));
       } else if (!selectedClient?.kid_number && !formData.kid_number) {
         // Clear KID if client doesn't have one and form doesn't have one
         setFormData((prev) => ({ ...prev, kid_number: "" }));
@@ -352,14 +386,14 @@ export default function InvoiceForm({
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Client *
               </label>
-              <div className="flex gap-2">
+              <div className="relative">
                 <select
                   value={formData.client_id}
                   onChange={(e) =>
                     setFormData({ ...formData, client_id: e.target.value })
                   }
                   required
-                  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                  className="w-full px-4 py-2 pr-10 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent appearance-none bg-white dark:bg-slate-800"
                 >
                   <option value="">Select a client</option>
                   {clients.map((client) => (
@@ -371,10 +405,10 @@ export default function InvoiceForm({
                 <button
                   type="button"
                   onClick={() => setShowClientForm(true)}
-                  className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition flex items-center justify-center"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition"
                   title="New Client"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -474,6 +508,12 @@ export default function InvoiceForm({
             onChange={(templateId) =>
               setFormData({ ...formData, template: templateId })
             }
+            previewData={{
+              formData,
+              items,
+              clients,
+              profile: companyProfile,
+            }}
           />
 
           <div>
@@ -509,7 +549,10 @@ export default function InvoiceForm({
                     min="0"
                     value={item.quantity === 0 ? "" : item.quantity}
                     onChange={(e) => {
-                      const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
+                      const value =
+                        e.target.value === ""
+                          ? 0
+                          : parseFloat(e.target.value) || 0;
                       updateItem(item.id, "quantity", value);
                     }}
                     onFocus={(e) => {
@@ -526,7 +569,10 @@ export default function InvoiceForm({
                     min="0"
                     value={item.unit_price === 0 ? "" : item.unit_price}
                     onChange={(e) => {
-                      const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
+                      const value =
+                        e.target.value === ""
+                          ? 0
+                          : parseFloat(e.target.value) || 0;
                       updateItem(item.id, "unit_price", value);
                     }}
                     onFocus={(e) => {
@@ -538,7 +584,8 @@ export default function InvoiceForm({
                     className="w-32 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
                   />
                   <div className="w-32 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-right text-slate-700">
-                    {getCurrencySymbol(formData.currency)} {item.amount.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)}{" "}
+                    {item.amount.toFixed(2)}
                   </div>
                   <button
                     type="button"
@@ -569,7 +616,8 @@ export default function InvoiceForm({
                     Tax ({formData.tax_rate}%):
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)} {tax_amount.toFixed(2)}
+                    {getCurrencySymbol(formData.currency)}{" "}
+                    {tax_amount.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t border-slate-200 dark:border-slate-700 pt-2">

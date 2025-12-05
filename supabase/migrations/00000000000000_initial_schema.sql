@@ -331,9 +331,9 @@ CREATE INDEX idx_company_profiles_user_id ON company_profiles(user_id);
 -- STORAGE BUCKET FOR COMPANY LOGOS
 -- ============================================================================
 
--- Create storage bucket for company logos (private)
+-- Create storage bucket for company logos (public for invoice display, but RLS protects uploads)
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('company-logos', 'company-logos', false)
+VALUES ('company-logos', 'company-logos', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies for company-logos bucket

@@ -94,7 +94,7 @@ CREATE INDEX idx_clients_user_id ON clients(user_id);
 -- Auto-generate client numbers
 CREATE SEQUENCE clients_number_seq START 1;
 
-CREATE OR REPLACE FUNCTION generate_client_number()
+CREATE FUNCTION generate_client_number()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY INVOKER
@@ -111,7 +111,7 @@ $$;
 CREATE TRIGGER set_client_number
   BEFORE INSERT ON clients
   FOR EACH ROW
-  EXECUTE FUNCTION generate_client_number();
+  EXECUTE FUNCTION public.generate_client_number();
 
 -- ============================================================================
 -- INVOICES TABLE
@@ -128,21 +128,21 @@ CREATE TABLE invoices (
   due_date date NOT NULL,
   
   -- Status: draft, sent, paid, overdue
-  status text NOT NULL DEFAULT 'draft',
+  status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'paid', 'overdue')),
   
   -- Financial calculations
   subtotal numeric(10,2) NOT NULL DEFAULT 0,
-  discount_percentage numeric(5,2) DEFAULT 0,
-  discount_amount numeric(10,2) DEFAULT 0,
-  tax_rate numeric(5,2) NOT NULL DEFAULT 0,
-  tax_amount numeric(10,2) NOT NULL DEFAULT 0,
-  total numeric(10,2) NOT NULL DEFAULT 0,
+  discount_percentage numeric(5,2) DEFAULT 0 CHECK (discount_percentage >= 0 AND discount_percentage <= 100),
+  discount_amount numeric(10,2) DEFAULT 0 CHECK (discount_amount >= 0),
+  tax_rate numeric(5,2) NOT NULL DEFAULT 0 CHECK (tax_rate >= 0 AND tax_rate <= 100),
+  tax_amount numeric(10,2) NOT NULL DEFAULT 0 CHECK (tax_amount >= 0),
+  total numeric(10,2) NOT NULL DEFAULT 0 CHECK (total >= 0),
   
   -- Currency (EUR, NOK, USD, etc.)
-  currency text DEFAULT 'EUR',
+  currency text DEFAULT 'EUR' CHECK (char_length(currency) = 3),
   
   -- Template selection (classic, modern, professional)
-  template text DEFAULT 'classic',
+  template text DEFAULT 'classic' CHECK (template IN ('classic', 'modern', 'professional')),
   
   -- Banking details display options
   show_account_number boolean DEFAULT true,
@@ -193,9 +193,9 @@ CREATE TABLE invoice_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   invoice_id uuid NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
   description text NOT NULL,
-  quantity numeric(10,2) NOT NULL DEFAULT 1,
-  unit_price numeric(10,2) NOT NULL DEFAULT 0,
-  amount numeric(10,2) NOT NULL DEFAULT 0,
+  quantity numeric(10,2) NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  unit_price numeric(10,2) NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+  amount numeric(10,2) NOT NULL DEFAULT 0 CHECK (amount >= 0),
   created_at timestamptz DEFAULT now()
 );
 
@@ -288,7 +288,7 @@ CREATE TABLE company_profiles (
   swift_bic text,
   
   -- Currency and payment
-  currency text DEFAULT 'EUR',
+  currency text DEFAULT 'EUR' CHECK (char_length(currency) = 3),
   payment_instructions text,
   
   -- Branding

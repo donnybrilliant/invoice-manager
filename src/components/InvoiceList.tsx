@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Trash2, Search, Edit, Download } from "lucide-react";
+import { FileText, Search, Edit, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { Invoice, InvoiceItem, CompanyProfile } from "../types";
@@ -10,7 +10,6 @@ import {
 } from "../lib/pdfUtils";
 import {
   useInvoices,
-  useDeleteInvoice,
   useUpdateInvoiceStatus,
 } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
@@ -27,22 +26,10 @@ export default function InvoiceList({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: invoices = [], isLoading: loading } = useInvoices();
-  const deleteInvoiceMutation = useDeleteInvoice();
   const updateStatusMutation = useUpdateInvoiceStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-
-  const handleDeleteInvoice = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this invoice?")) return;
-
-    try {
-      await deleteInvoiceMutation.mutateAsync(id);
-    } catch (error) {
-      console.error("Error deleting invoice:", error);
-      alert("Failed to delete invoice");
-    }
-  };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
@@ -306,16 +293,6 @@ export default function InvoiceList({
                           title="Download PDF"
                         >
                           <Download className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteInvoice(invoice.id);
-                          }}
-                          className="text-red-600 hover:text-red-800 transition p-2"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
                     </td>

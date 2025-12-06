@@ -9,7 +9,7 @@ import TemplateSelector from "./TemplateSelector";
 import { useClients } from "../hooks/useClients";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
-import { useCreateInvoice, useUpdateInvoice } from "../hooks/useInvoices";
+import { useCreateInvoice, useUpdateInvoice, useDeleteInvoice } from "../hooks/useInvoices";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -49,7 +49,24 @@ export default function InvoiceForm({
   const { data: invoiceItemsData = [] } = useInvoiceItems(invoice?.id);
   const createInvoiceMutation = useCreateInvoice();
   const updateInvoiceMutation = useUpdateInvoice();
+  const deleteInvoiceMutation = useDeleteInvoice();
   const [showClientForm, setShowClientForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const handleDelete = async () => {
+    if (!invoice) return;
+
+    setDeleteError("");
+
+    try {
+      await deleteInvoiceMutation.mutateAsync(invoice.id);
+      onSuccess();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete invoice");
+      setShowDeleteConfirm(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     client_id: invoice?.client_id || "",
@@ -628,9 +645,23 @@ export default function InvoiceForm({
             />
           </div>
 
-          {state?.error && (
+          {(state?.error || deleteError) && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-              {state.error}
+              {state?.error || deleteError}
+            </div>
+          )}
+
+          {invoice && invoice.status === "draft" && (
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleteInvoiceMutation.isPending}
+                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Invoice
+              </button>
             </div>
           )}
 
@@ -664,6 +695,37 @@ export default function InvoiceForm({
           onClose={() => setShowClientForm(false)}
           onSuccess={handleClientFormSuccess}
         />
+      )}
+
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 rounded-xl">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              Delete Invoice?
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              This will permanently delete this invoice and all associated items. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleteInvoiceMutation.isPending}
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteInvoiceMutation.isPending}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteInvoiceMutation.isPending ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

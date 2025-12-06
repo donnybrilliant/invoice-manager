@@ -38,8 +38,13 @@ export const TypewriterTemplate: InvoiceTemplate = {
       )
       .join("");
 
+    // Encode SVG for data URL to avoid HTML parsing issues
+    const svgTexture = encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#FDF6E3" width="100" height="100"/><circle fill="#F5E6C8" cx="50" cy="50" r="1"/></svg>'
+    );
+
     return `
-      <div style="font-family: 'Courier New', Courier, monospace; max-width: 800px; margin: 0 auto; padding: 50px; background: #FDF6E3; background-image: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\"><rect fill=\"%23FDF6E3\" width=\"100\" height=\"100\"/><circle fill=\"%23F5E6C8\" cx=\"50\" cy=\"50\" r=\"1\"/></svg>'); position: relative;">
+      <div style="font-family: 'Courier New', Courier, monospace; max-width: 800px; margin: 0 auto; padding: 50px; background: #FDF6E3; background-image: url('data:image/svg+xml,${svgTexture}'); position: relative;">
         <!-- Paper texture overlay -->
         <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(253,246,227,0) 0%, rgba(245,230,200,0.3) 100%); pointer-events: none;"></div>
         

@@ -284,17 +284,6 @@ export default function InvoiceList({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(invoice);
-                          }}
-                          disabled={downloadingId === invoice.id}
-                          className="text-green-600 hover:text-green-800 transition p-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Download PDF"
-                        >
-                          <Download className="w-5 h-5" />
-                        </button>
                         {invoice.status === "draft" && onEditInvoice && (
                           <button
                             onClick={(e) => {
@@ -307,6 +296,17 @@ export default function InvoiceList({
                             <Edit className="w-5 h-5" />
                           </button>
                         )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(invoice);
+                          }}
+                          disabled={downloadingId === invoice.id}
+                          className="text-green-600 hover:text-green-800 transition p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Download PDF"
+                        >
+                          <Download className="w-5 h-5" />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

@@ -10,7 +10,12 @@ export function useClientInvoices(clientId: string | undefined) {
 
       const { data, error } = await supabase
         .from("invoices")
-        .select("*")
+        .select(
+          `
+          *,
+          client:clients(*)
+        `
+        )
         .eq("client_id", clientId)
         .order("issue_date", { ascending: false });
 

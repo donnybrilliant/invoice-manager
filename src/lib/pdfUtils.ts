@@ -52,11 +52,17 @@ export async function generatePDFFromElement(
       scale: 2, // Higher scale for better quality
       useCORS: true, // Allow cross-origin images (for logos)
       logging: false,
+      backgroundColor: '#ffffff', // Ensure white background
     });
 
     // Calculate dimensions
     const imgWidth = 210 - config.margins.left - config.margins.right; // A4 width minus margins
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Ensure filename has .pdf extension
+    const filename = config.filename.endsWith('.pdf') 
+      ? config.filename 
+      : `${config.filename}.pdf`;
 
     // Create PDF
     const pdf = new jsPDF({
@@ -67,36 +73,72 @@ export async function generatePDFFromElement(
 
     // Add image to PDF
     const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(
-      imgData,
-      "PNG",
-      config.margins.left,
-      config.margins.top,
-      imgWidth,
-      imgHeight
-    );
-
-    // Handle multi-page documents if content exceeds one page
+    
+    // Calculate available page height
     const pageHeight = 297 - config.margins.top - config.margins.bottom; // A4 height minus margins
-    let heightLeft = imgHeight;
-    let position = config.margins.top;
-
-    while (heightLeft > pageHeight) {
-      position = heightLeft - pageHeight;
-      pdf.addPage();
+    
+    // If content fits on one page, add it directly (most invoices will be single page)
+    if (imgHeight <= pageHeight) {
       pdf.addImage(
         imgData,
         "PNG",
         config.margins.left,
-        -position + config.margins.top,
+        config.margins.top,
         imgWidth,
         imgHeight
       );
-      heightLeft -= pageHeight;
+    } else {
+      // Handle multi-page documents - split content across pages
+      // This is rare for invoices, but handle it properly
+      let heightLeft = imgHeight;
+      let yPosition = config.margins.top;
+      let sourceY = 0;
+
+      while (heightLeft > 0) {
+        // Calculate how much of the image to show on this page
+        const pageContentHeight = Math.min(heightLeft, pageHeight);
+        const sourceHeight = (pageContentHeight / imgHeight) * canvas.height;
+        
+        // Create a temporary canvas for this page's content
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+        const pageCtx = pageCanvas.getContext('2d');
+        
+        if (pageCtx) {
+          // Draw the portion of the image for this page
+          pageCtx.drawImage(
+            canvas,
+            0, sourceY, canvas.width, sourceHeight, // source
+            0, 0, canvas.width, sourceHeight // destination
+          );
+          
+          const pageImgData = pageCanvas.toDataURL("image/png");
+          const pageImgHeight = pageContentHeight;
+          
+          pdf.addImage(
+            pageImgData,
+            "PNG",
+            config.margins.left,
+            yPosition,
+            imgWidth,
+            pageImgHeight
+          );
+        }
+        
+        // Move to next page if there's more content
+        heightLeft -= pageHeight;
+        sourceY += sourceHeight;
+        
+        if (heightLeft > 0) {
+          pdf.addPage();
+          yPosition = config.margins.top;
+        }
+      }
     }
 
-    // Save the PDF
-    pdf.save(config.filename);
+    // Save the PDF with the provided filename
+    pdf.save(filename);
   } catch (error) {
     console.error("Error generating PDF:", error);
     throw new Error("Failed to generate PDF. Please try again.");

@@ -1,4 +1,4 @@
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useRef, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { LogIn, CheckCircle } from "lucide-react";
 import ForgotPassword from "./ForgotPassword";
@@ -18,6 +18,13 @@ export default function Auth() {
   const [resetMode, setResetMode] = useState(false);
   const { signIn, signUp, clearSignupEmail } = useAuth();
 
+  // Use a ref to track the current isLogin value so the action function always has the latest value
+  const isLoginRef = useRef(isLogin);
+
+  useEffect(() => {
+    isLoginRef.current = isLogin;
+  }, [isLogin]);
+
   const [state, submitAction, isPending] = useActionState(
     async (
       _prevState: AuthState | null,
@@ -27,7 +34,8 @@ export default function Auth() {
       const passwordValue = formData.get("password") as string;
 
       try {
-        if (isLogin) {
+        // Use ref to get the current isLogin value, not the stale closure value
+        if (isLoginRef.current) {
           await signIn(emailValue, passwordValue);
           return { error: undefined };
         } else {
@@ -49,17 +57,16 @@ export default function Auth() {
     null
   );
 
-  // Update local state when signup confirmation is triggered
-  const [showSignupConfirmation, setShowSignupConfirmation] = useState(false);
-  const [signupEmail, setSignupEmail] = useState("");
-  
-  useEffect(() => {
-    if (state?.showSignupConfirmation && state?.signupEmail) {
-      setShowSignupConfirmation(true);
-      setSignupEmail(state.signupEmail);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.showSignupConfirmation, state?.signupEmail]);
+  // Track signup confirmation - show when action state indicates, allow dismissal
+  const [dismissedSignupEmail, setDismissedSignupEmail] = useState<
+    string | null
+  >(null);
+
+  // Derive whether to show confirmation from action state and dismissal state
+  const showSignupConfirmation =
+    !!(state?.showSignupConfirmation && state?.signupEmail) &&
+    dismissedSignupEmail !== state?.signupEmail;
+  const signupEmail = state?.signupEmail ?? "";
 
   if (resetMode) {
     return <ResetPassword onSuccess={() => setResetMode(false)} />;
@@ -92,7 +99,7 @@ export default function Auth() {
 
             <button
               onClick={() => {
-                setShowSignupConfirmation(false);
+                setDismissedSignupEmail(signupEmail);
                 setEmail("");
                 setPassword("");
                 setIsLogin(true);

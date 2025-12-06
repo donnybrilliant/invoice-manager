@@ -70,11 +70,11 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
   // Ref to access current formData and logoFile in action
   const formDataRef = useRef(formData);
   const logoFileRef = useRef(logoFile);
-  
+
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
-  
+
   useEffect(() => {
     logoFileRef.current = logoFile;
   }, [logoFile]);
@@ -103,17 +103,17 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
     reader.readAsDataURL(file);
   };
 
-  const uploadLogo = async (): Promise<string | null> => {
-    if (!logoFile || !user) return null;
+  const uploadLogo = async (file: File): Promise<string | null> => {
+    if (!file || !user) return null;
 
     setUploading(true);
     try {
-      const fileExt = logoFile.name.split(".").pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("company-logos")
-        .upload(fileName, logoFile, {
+        .upload(fileName, file, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -147,9 +147,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
 
   const [state, submitAction, isPending] = useActionState(
     async (
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _prevState: CompanyProfileState | null,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _formData: FormData
     ): Promise<CompanyProfileState> => {
       if (!user) {
@@ -167,7 +165,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
         let logoUrl = currentFormData.logo_url;
 
         if (currentLogoFile) {
-          const uploadedUrl = await uploadLogo();
+          const uploadedUrl = await uploadLogo(currentLogoFile);
           if (uploadedUrl) {
             logoUrl = uploadedUrl;
           }
@@ -195,11 +193,11 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
 
         setSuccessMessage("Company profile saved successfully!");
         setLogoFile(null);
-        
+
         setTimeout(() => {
           onBack();
         }, 1500);
-        
+
         return { success: true, error: undefined };
       } catch (err) {
         return {

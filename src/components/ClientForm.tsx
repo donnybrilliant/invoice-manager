@@ -1,4 +1,4 @@
-import { useState, useEffect, useActionState, useRef } from "react";
+import { useState, useEffect, useActionState, useRef, useMemo } from "react";
 import { X, Trash2 } from "lucide-react";
 import { Client } from "../types";
 import {
@@ -22,24 +22,11 @@ export default function ClientForm({
   const updateClientMutation = useUpdateClient();
   const deleteClientMutation = useDeleteClient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    organization_number: "",
-    tax_number: "",
-    kid_number: "",
-    street_address: "",
-    postal_code: "",
-    city: "",
-    state: "",
-    country: "Norway",
-  });
-
-  useEffect(() => {
+  
+  // Compute initial form data based on client prop
+  const initialFormData = useMemo(() => {
     if (client) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setFormData({
+      return {
         name: client.name,
         email: client.email || "",
         phone: client.phone || "",
@@ -51,9 +38,29 @@ export default function ClientForm({
         city: client.city || "",
         state: client.state || "",
         country: client.country || "Norway",
-      });
+      };
     }
-  }, [client]);
+    return {
+      name: "",
+      email: "",
+      phone: "",
+      organization_number: "",
+      tax_number: "",
+      kid_number: "",
+      street_address: "",
+      postal_code: "",
+      city: "",
+      state: "",
+      country: "Norway",
+    };
+  }, [client]); // Recompute when client changes
+  
+  const [formData, setFormData] = useState(initialFormData);
+  
+  // Reset form when initial data changes
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   // Ref to access current formData in action
   const formDataRef = useRef(formData);
@@ -68,9 +75,7 @@ export default function ClientForm({
 
   const [state, submitAction, isPending] = useActionState(
     async (
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _prevState: ClientFormState | null,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _formData: FormData
     ): Promise<ClientFormState> => {
       const currentFormData = formDataRef.current;

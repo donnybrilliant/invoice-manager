@@ -2,6 +2,7 @@ import { useState, useEffect, useActionState, useRef } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 import { Client, Invoice } from "../types";
 import ClientForm from "./ClientForm";
 import TemplateSelector from "./TemplateSelector";
@@ -120,37 +121,54 @@ export default function InvoiceForm({
   // Refs to access current state in action
   const formDataRef = useRef(formData);
   const itemsRef = useRef(items);
-  
+
   // Keep refs in sync with state
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
-  
+
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
 
   const handleClientFormSuccess = async (createdClientId?: string) => {
-    // Invalidate clients query to refetch
-    await queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
-
     // If we have the newly created client ID, use it directly
     if (createdClientId) {
       setFormData((prev) => ({ ...prev, client_id: createdClientId }));
+      // Invalidate to refresh the list, but we don't need to wait
+      queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
     } else {
-      // Fallback: Get clients from cache after refetch
-      const clientsData = queryClient.getQueryData<Client[]>([
-        "clients",
-        user?.id,
-      ]);
-      if (clientsData && clientsData.length > 0) {
-        // Find the most recently created client by created_at
-        const newestClient = clientsData.reduce((latest, current) => {
-          const latestDate = new Date(latest.created_at || 0).getTime();
-          const currentDate = new Date(current.created_at || 0).getTime();
-          return currentDate > latestDate ? current : latest;
+      // Fallback: Fetch fresh data and wait for it before using
+      // This ensures we have the newly created client in the data
+      try {
+        const clientsData = await queryClient.fetchQuery<Client[]>({
+          queryKey: ["clients", user?.id],
+          queryFn: async () => {
+            if (!user) throw new Error("No user");
+            const { data, error } = await supabase
+              .from("clients")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("name");
+            if (error) throw error;
+            return (data || []) as Client[];
+          },
         });
-        setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+        if (clientsData && clientsData.length > 0) {
+          // Find the most recently created client by created_at
+          const newestClient = clientsData.reduce(
+            (latest: Client, current: Client) => {
+              const latestDate = new Date(latest.created_at || 0).getTime();
+              const currentDate = new Date(current.created_at || 0).getTime();
+              return currentDate > latestDate ? current : latest;
+            }
+          );
+          setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+        }
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        // If fetch fails, just invalidate and let the component refetch naturally
+        queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
       }
     }
 
@@ -194,7 +212,10 @@ export default function InvoiceForm({
     );
   };
 
-  const calculateTotals = (currentItems: LineItem[], currentFormData: typeof formData) => {
+  const calculateTotals = (
+    currentItems: LineItem[],
+    currentFormData: typeof formData
+  ) => {
     const subtotal = currentItems.reduce((sum, item) => sum + item.amount, 0);
     const tax_amount = subtotal * (currentFormData.tax_rate / 100);
     const total = subtotal + tax_amount;
@@ -207,9 +228,7 @@ export default function InvoiceForm({
 
   const [state, submitAction, isPending] = useActionState(
     async (
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _prevState: InvoiceFormState | null,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _formData: FormData
     ): Promise<InvoiceFormState> => {
       if (!user || !formDataRef.current.client_id) {
@@ -219,7 +238,10 @@ export default function InvoiceForm({
       try {
         const currentFormData = formDataRef.current;
         const currentItems = itemsRef.current;
-        const { subtotal, tax_amount, total } = calculateTotals(currentItems, currentFormData);
+        const { subtotal, tax_amount, total } = calculateTotals(
+          currentItems,
+          currentFormData
+        );
 
         const invoiceData = {
           client_id: currentFormData.client_id,

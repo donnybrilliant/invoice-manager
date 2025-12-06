@@ -16,22 +16,25 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const validateRecoverySession = async () => {
       // Supabase automatically processes the recovery token from the hash fragment
       // We need to wait a moment for it to process, then check for a session
-      
+
       // First, check if we have a recovery token in the hash
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const type = hashParams.get("type");
-      
+
       if (type === "recovery") {
         // Give Supabase a moment to process the recovery token
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         // Check for valid session after token processing
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         if (mounted) {
           if (!session || error) {
             setValidToken(false);
@@ -42,30 +45,37 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
         }
       } else {
         // No recovery token in hash, check if we have an existing session
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (mounted) {
           setValidToken(!!session);
         }
       }
     };
-    
+
     validateRecoverySession();
-    
+
     // Listen for auth state changes to catch PASSWORD_RECOVERY event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      
-      if (event === 'PASSWORD_RECOVERY') {
+
+      if (event === "PASSWORD_RECOVERY") {
         // Valid recovery session detected
         setValidToken(true);
         // Clear hash from URL
         window.history.replaceState(null, "", window.location.pathname);
-      } else if (event === 'SIGNED_OUT' || (!session && event !== 'TOKEN_REFRESHED')) {
+      } else if (
+        event === "SIGNED_OUT" ||
+        (!session && event !== "TOKEN_REFRESHED")
+      ) {
         // Session invalid or expired
         setValidToken(false);
       }
     });
-    
+
     return () => {
       mounted = false;
       subscription.unsubscribe();

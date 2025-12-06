@@ -19,10 +19,20 @@ export const TypewriterTemplate: InvoiceTemplate = {
       .map(
         (item) => `
         <tr>
-          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355;">${item.description}</td>
-          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355; text-align: center;">${item.quantity}</td>
-          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355; text-align: right;">${formatCurrencyWithCode(item.unit_price, invoice.currency)}</td>
-          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355; text-align: right;">${formatCurrencyWithCode(item.amount, invoice.currency)}</td>
+          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355;">${
+            item.description
+          }</td>
+          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355; text-align: center;">${
+            item.quantity
+          }</td>
+          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355; text-align: right;">${formatCurrencyWithCode(
+            item.unit_price,
+            invoice.currency
+          )}</td>
+          <td style="padding: 10px 12px; border-bottom: 1px dashed #8B7355; text-align: right;">${formatCurrencyWithCode(
+            item.amount,
+            invoice.currency
+          )}</td>
         </tr>
       `
       )
@@ -45,7 +55,11 @@ export const TypewriterTemplate: InvoiceTemplate = {
         <div style="position: relative; margin-bottom: 50px; padding-bottom: 25px; border-bottom: 2px solid #8B7355;">
           <div style="display: flex; justify-content: space-between; align-items: start;">
             <div>
-              ${profile?.logo_url ? `<img src="${profile.logo_url}" alt="Logo" style="max-width: 120px; max-height: 60px; margin-bottom: 15px; filter: sepia(50%);" />` : ""}
+              ${
+                profile?.logo_url
+                  ? `<img src="${profile.logo_url}" alt="Logo" style="max-width: 120px; max-height: 60px; margin-bottom: 15px; filter: sepia(50%);" />`
+                  : ""
+              }
               <div style="font-size: 36px; font-weight: bold; color: #3D2914; letter-spacing: 8px; text-transform: uppercase;">
                 I N V O I C E
               </div>
@@ -70,7 +84,9 @@ export const TypewriterTemplate: InvoiceTemplate = {
         <div style="position: relative; display: flex; justify-content: space-between; margin-bottom: 40px; padding: 25px; background: rgba(139,115,85,0.08); border: 1px dashed #8B7355;">
           <div>
             <div style="font-size: 11px; font-weight: bold; color: #8B7355; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px;">BILLED TO:</div>
-            <div style="font-size: 16px; font-weight: bold; color: #3D2914; margin-bottom: 8px; text-transform: uppercase;">${client.name}</div>
+            <div style="font-size: 16px; font-weight: bold; color: #3D2914; margin-bottom: 8px; text-transform: uppercase;">${
+              client.name
+            }</div>
             <div style="font-size: 12px; color: #5D4E37; line-height: 1.8;">
               ${formatClientAddress(client).replace(/\n/g, "<br />")}<br />
               ${client.email}
@@ -79,11 +95,15 @@ export const TypewriterTemplate: InvoiceTemplate = {
           <div style="text-align: right;">
             <div style="margin-bottom: 18px;">
               <div style="font-size: 10px; color: #8B7355; text-transform: uppercase; letter-spacing: 2px;">Date Issued</div>
-              <div style="font-size: 14px; color: #3D2914; margin-top: 4px; text-decoration: underline;">${formatDate(invoice.issue_date)}</div>
+              <div style="font-size: 14px; color: #3D2914; margin-top: 4px; text-decoration: underline;">${formatDate(
+                invoice.issue_date
+              )}</div>
             </div>
             <div>
               <div style="font-size: 10px; color: #8B7355; text-transform: uppercase; letter-spacing: 2px;">Payment Due</div>
-              <div style="font-size: 14px; color: #8B0000; margin-top: 4px; font-weight: bold; text-decoration: underline;">${formatDate(invoice.due_date)}</div>
+              <div style="font-size: 14px; color: #8B0000; margin-top: 4px; font-weight: bold; text-decoration: underline;">${formatDate(
+                invoice.due_date
+              )}</div>
             </div>
           </div>
         </div>
@@ -108,15 +128,24 @@ export const TypewriterTemplate: InvoiceTemplate = {
           <div style="width: 280px; border: 2px solid #8B7355; background: rgba(139,115,85,0.05);">
             <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px dashed #8B7355;">
               <span style="font-size: 12px; color: #5D4E37; text-transform: uppercase; letter-spacing: 1px;">Subtotal</span>
-              <span style="color: #3D2914;">${formatCurrencyWithCode(invoice.subtotal, invoice.currency)}</span>
+              <span style="color: #3D2914;">${formatCurrencyWithCode(
+                invoice.subtotal,
+                invoice.currency
+              )}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px dashed #8B7355;">
               <span style="font-size: 12px; color: #5D4E37; text-transform: uppercase; letter-spacing: 1px;">Tax</span>
-              <span style="color: #3D2914;">${formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}</span>
+              <span style="color: #3D2914;">${formatCurrencyWithCode(
+                invoice.tax_amount,
+                invoice.currency
+              )}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 16px; background: #3D2914; color: #FDF6E3;">
               <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">TOTAL DUE</span>
-              <span style="font-size: 18px; font-weight: bold;">${formatCurrencyWithCode(invoice.total, invoice.currency)}</span>
+              <span style="font-size: 18px; font-weight: bold;">${formatCurrencyWithCode(
+                invoice.total,
+                invoice.currency
+              )}</span>
             </div>
           </div>
         </div>
@@ -125,20 +154,24 @@ export const TypewriterTemplate: InvoiceTemplate = {
         <div style="position: relative; border: 1px dashed #8B7355; padding: 20px; margin-bottom: 25px; background: rgba(139,115,85,0.05);">
           <div style="font-size: 11px; font-weight: bold; color: #5D4E37; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px;">Payment Instructions:</div>
           <div style="font-size: 12px; color: #3D2914; line-height: 1.9;">${getPaymentInformation(
-              profile,
-              invoice,
-              invoice.show_account_number,
-              invoice.show_iban,
-              invoice.show_swift_bic
-            )}</div>
+            profile,
+            invoice,
+            invoice.show_account_number,
+            invoice.show_iban,
+            invoice.show_swift_bic
+          )}</div>
         </div>
 
-        ${invoice.notes ? `
+        ${
+          invoice.notes
+            ? `
         <div style="position: relative; padding: 20px; border-left: 4px solid #8B7355; background: rgba(139,115,85,0.05);">
           <div style="font-size: 11px; font-weight: bold; color: #5D4E37; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px;">Memo:</div>
           <div style="font-size: 12px; color: #3D2914; line-height: 1.8; font-style: italic;">${invoice.notes}</div>
         </div>
-        ` : ""}
+        `
+            : ""
+        }
 
         <!-- Footer -->
         <div style="position: relative; margin-top: 50px; text-align: center; color: #8B7355; font-size: 11px; letter-spacing: 2px;">

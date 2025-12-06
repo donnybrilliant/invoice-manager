@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
-import { Client, Invoice, CompanyProfile } from "../types";
+import { Client, Invoice } from "../types";
 import ClientForm from "./ClientForm";
 import TemplateSelector from "./TemplateSelector";
+import { useClients } from "../hooks/useClients";
+import { useCompanyProfile } from "../hooks/useCompanyProfile";
+import { useInvoiceItems } from "../hooks/useInvoiceItems";
+import { useCreateInvoice, useUpdateInvoice } from "../hooks/useInvoices";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -38,13 +42,14 @@ export default function InvoiceForm({
   invoice,
 }: InvoiceFormProps) {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: clients = [] } = useClients();
+  const { data: companyProfile = null } = useCompanyProfile();
+  const { data: invoiceItemsData = [] } = useInvoiceItems(invoice?.id);
+  const createInvoiceMutation = useCreateInvoice();
+  const updateInvoiceMutation = useUpdateInvoice();
   const [error, setError] = useState("");
-  const [clients, setClients] = useState<Client[]>([]);
   const [showClientForm, setShowClientForm] = useState(false);
-  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(
-    null
-  );
 
   const [formData, setFormData] = useState({
     client_id: invoice?.client_id || "",
@@ -74,41 +79,27 @@ export default function InvoiceForm({
     },
   ]);
 
+  // Set default currency from company profile for new invoices
   useEffect(() => {
-    loadClients();
-    loadCompanyProfile();
-    if (invoice) {
-      loadInvoiceItems();
+    if (!invoice && companyProfile?.currency) {
+      setFormData((prev) => ({ ...prev, currency: companyProfile.currency }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, invoice]);
+  }, [companyProfile, invoice]);
 
-  const loadCompanyProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("company_profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error loading company profile:", error);
-        return;
-      }
-
-      if (data) {
-        setCompanyProfile(data);
-        // Set default currency for new invoices only
-        if (!invoice && data.currency) {
-          setFormData((prev) => ({ ...prev, currency: data.currency }));
-        }
-      }
-    } catch (err) {
-      console.error("Error loading company profile:", err);
+  // Load invoice items when editing
+  useEffect(() => {
+    if (invoice && invoiceItemsData.length > 0) {
+      setItems(
+        invoiceItemsData.map((item) => ({
+          id: item.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          amount: item.amount,
+        }))
+      );
     }
-  };
+  }, [invoice, invoiceItemsData]);
 
   // When client is selected, pre-fill KID number from client if invoice doesn't have one
   useEffect(() => {
@@ -127,62 +118,28 @@ export default function InvoiceForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.client_id, clients]);
 
-  const loadClients = async () => {
-    if (!user) return;
+  const handleClientFormSuccess = async (createdClientId?: string) => {
+    // Invalidate clients query to refetch
+    await queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
 
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("name");
-
-    if (error) {
-      console.error("Error loading clients:", error);
+    // If we have the newly created client ID, use it directly
+    if (createdClientId) {
+      setFormData((prev) => ({ ...prev, client_id: createdClientId }));
     } else {
-      setClients(data || []);
-    }
-  };
-
-  const loadInvoiceItems = async () => {
-    if (!invoice) return;
-
-    const { data, error } = await supabase
-      .from("invoice_items")
-      .select("*")
-      .eq("invoice_id", invoice.id)
-      .order("created_at");
-
-    if (error) {
-      console.error("Error loading invoice items:", error);
-    } else if (data && data.length > 0) {
-      setItems(
-        data.map((item) => ({
-          id: item.id,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          amount: item.amount,
-        }))
-      );
-    }
-  };
-
-  const handleClientFormSuccess = async () => {
-    // Reload clients
-    await loadClients();
-
-    // Get the most recently created client (by created_at)
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("user_id", user?.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!error && data) {
-      // Auto-select the newly created client
-      setFormData({ ...formData, client_id: data.id });
+      // Fallback: Get clients from cache after refetch
+      const clientsData = queryClient.getQueryData<Client[]>([
+        "clients",
+        user?.id,
+      ]);
+      if (clientsData && clientsData.length > 0) {
+        // Find the most recently created client by created_at
+        const newestClient = clientsData.reduce((latest, current) => {
+          const latestDate = new Date(latest.created_at || 0).getTime();
+          const currentDate = new Date(current.created_at || 0).getTime();
+          return currentDate > latestDate ? current : latest;
+        });
+        setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+      }
     }
 
     setShowClientForm(false);
@@ -232,121 +189,47 @@ export default function InvoiceForm({
     return { subtotal, tax_amount, total };
   };
 
-  const generateInvoiceNumber = async () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const random = Math.floor(Math.random() * 10000)
-      .toString()
-      .padStart(4, "0");
-    return `INV-${year}${month}-${random}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !formData.client_id) return;
 
-    setLoading(true);
     setError("");
 
     try {
       const { subtotal, tax_amount, total } = calculateTotals();
 
+      const invoiceData = {
+        client_id: formData.client_id,
+        issue_date: formData.issue_date,
+        due_date: formData.due_date,
+        subtotal,
+        tax_rate: formData.tax_rate,
+        tax_amount,
+        total,
+        currency: formData.currency,
+        notes: formData.notes || null,
+        template: formData.template,
+        show_account_number: formData.show_account_number ?? true,
+        show_iban: formData.show_iban ?? false,
+        show_swift_bic: formData.show_swift_bic ?? false,
+        kid_number: formData.kid_number || null,
+        items: items
+          .filter((item) => item.description.trim())
+          .map((item) => ({
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            amount: item.amount,
+          })),
+      };
+
       if (invoice) {
-        // Update existing invoice
-        const { error: invoiceError } = await supabase
-          .from("invoices")
-          .update({
-            client_id: formData.client_id,
-            issue_date: formData.issue_date,
-            due_date: formData.due_date,
-            subtotal,
-            tax_rate: formData.tax_rate,
-            tax_amount,
-            total,
-            currency: formData.currency,
-            notes: formData.notes || null,
-            template: formData.template,
-            show_account_number: formData.show_account_number,
-            show_iban: formData.show_iban,
-            show_swift_bic: formData.show_swift_bic,
-            kid_number: formData.kid_number || null,
-          })
-          .eq("id", invoice.id);
-
-        if (invoiceError) throw invoiceError;
-
-        // Delete all existing items
-        const { error: deleteError } = await supabase
-          .from("invoice_items")
-          .delete()
-          .eq("invoice_id", invoice.id);
-
-        if (deleteError) throw deleteError;
-
-        // Insert updated items
-        const itemsToInsert = items
-          .filter((item) => item.description.trim())
-          .map((item) => ({
-            invoice_id: invoice.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            amount: item.amount,
-          }));
-
-        if (itemsToInsert.length > 0) {
-          const { error: itemsError } = await supabase
-            .from("invoice_items")
-            .insert(itemsToInsert);
-          if (itemsError) throw itemsError;
-        }
+        await updateInvoiceMutation.mutateAsync({
+          id: invoice.id,
+          data: invoiceData,
+        });
       } else {
-        // Create new invoice
-        const invoice_number = await generateInvoiceNumber();
-
-        const { data: newInvoice, error: invoiceError } = await supabase
-          .from("invoices")
-          .insert({
-            user_id: user.id,
-            invoice_number,
-            client_id: formData.client_id,
-            issue_date: formData.issue_date,
-            due_date: formData.due_date,
-            status: "draft",
-            subtotal,
-            tax_rate: formData.tax_rate,
-            tax_amount,
-            total,
-            currency: formData.currency,
-            notes: formData.notes || null,
-            template: formData.template,
-            show_account_number: formData.show_account_number,
-            show_iban: formData.show_iban,
-            show_swift_bic: formData.show_swift_bic,
-            kid_number: formData.kid_number || null,
-          })
-          .select()
-          .single();
-
-        if (invoiceError) throw invoiceError;
-
-        const itemsToInsert = items
-          .filter((item) => item.description.trim())
-          .map((item) => ({
-            invoice_id: newInvoice.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            amount: item.amount,
-          }));
-
-        if (itemsToInsert.length > 0) {
-          const { error: itemsError } = await supabase
-            .from("invoice_items")
-            .insert(itemsToInsert);
-          if (itemsError) throw itemsError;
-        }
+        await createInvoiceMutation.mutateAsync(invoiceData);
       }
 
       onSuccess();
@@ -358,8 +241,6 @@ export default function InvoiceForm({
           ? "Failed to update invoice"
           : "Failed to create invoice"
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -714,10 +595,14 @@ export default function InvoiceForm({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                createInvoiceMutation.isPending ||
+                updateInvoiceMutation.isPending
+              }
               className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading
+              {createInvoiceMutation.isPending ||
+              updateInvoiceMutation.isPending
                 ? invoice
                   ? "Updating..."
                   : "Creating..."

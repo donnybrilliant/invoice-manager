@@ -1,11 +1,14 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { createContext, useContext, useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ needsConfirmation: boolean; email: string }>;
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<{ needsConfirmation: boolean; email: string }>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signupEmail: string | null;
@@ -25,13 +28,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
         setUser(session?.user ?? null);
-        
+
         // Handle password recovery event
         // When user clicks reset password link, Supabase sets a recovery session
-        if (event === 'PASSWORD_RECOVERY') {
+        if (event === "PASSWORD_RECOVERY") {
           // Session is automatically set by Supabase, no action needed here
           // The ResetPassword component will handle the password update
         }
@@ -44,15 +49,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
-    
+
     // Check if email confirmation is required
     // If user is null, it means email confirmation is required
     // If user exists, they were signed in automatically
     const needsConfirmation = !data.user || !data.session;
-    
+
     // Store signup email to show confirmation message
     setSignupEmail(email);
-    
+
     return { needsConfirmation, email };
   };
 
@@ -61,7 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) throw error;
   };
 
@@ -71,7 +79,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, signupEmail, clearSignupEmail }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signUp,
+        signIn,
+        signOut,
+        signupEmail,
+        clearSignupEmail,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -80,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

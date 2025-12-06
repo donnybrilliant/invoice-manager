@@ -1,49 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Users, Edit2, Search } from "lucide-react";
-import { supabase } from "../lib/supabase";
-import { useAuth } from "../contexts/AuthContext";
 import { Client } from "../types";
+import { useClients } from "../hooks/useClients";
 
 interface ClientListProps {
-  refresh: number;
   onEditClient: (client: Client) => void;
   onViewClient: (client: Client) => void;
 }
 
 export default function ClientList({
-  refresh,
   onEditClient,
   onViewClient,
 }: ClientListProps) {
-  const { user } = useAuth();
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: clients = [], isLoading: loading } = useClients();
   const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    loadClients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, refresh]);
-
-  const loadClients = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("name");
-
-      if (error) throw error;
-      setClients(data || []);
-    } catch (error) {
-      console.error("Error loading clients:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredClients = clients.filter(
     (client) =>

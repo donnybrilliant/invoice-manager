@@ -121,6 +121,25 @@ The migrations create a storage bucket for company logos. Verify it exists:
 2. You should see a bucket named `company-logos`
 3. The bucket should be set to **Private** with RLS policies enabled
 
+#### Seed Database for Local Development
+
+For local development with Supabase CLI, the project includes a seed file that automatically creates test data:
+
+```bash
+# Reset the database (runs migrations + seed automatically)
+supabase db reset
+```
+
+The seed file (`supabase/seed.sql`) creates:
+
+- **Test user**: `test@example.com` / `password123`
+- **20 clients** with realistic Norwegian/European business data
+- **40 invoices** with various statuses (draft, sent, paid, overdue)
+- **Invoice items** for each invoice
+- **Company profile** for the test user
+
+After running `supabase db reset`, you can immediately log in with the test credentials and see all the seeded data.
+
 ### 4. Start Development Server
 
 ```bash

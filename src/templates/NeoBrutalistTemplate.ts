@@ -19,10 +19,24 @@ export const NeoBrutalistTemplate: InvoiceTemplate = {
       .map(
         (item, index) => `
         <tr>
-          <td style="padding: 14px 16px; border: 3px solid #000; background: ${index % 2 === 0 ? '#fff' : '#FFEB3B'}; font-family: 'Arial Black', sans-serif; font-size: 13px;">${item.description}</td>
-          <td style="padding: 14px 16px; border: 3px solid #000; background: ${index % 2 === 0 ? '#fff' : '#FFEB3B'}; text-align: center; font-weight: 900;">${item.quantity}</td>
-          <td style="padding: 14px 16px; border: 3px solid #000; background: ${index % 2 === 0 ? '#fff' : '#FFEB3B'}; text-align: right;">${formatCurrencyWithCode(item.unit_price, invoice.currency)}</td>
-          <td style="padding: 14px 16px; border: 3px solid #000; background: #FF5722; color: #fff; text-align: right; font-weight: 900;">${formatCurrencyWithCode(item.amount, invoice.currency)}</td>
+          <td style="padding: 14px 16px; border: 3px solid #000; background: ${
+            index % 2 === 0 ? "#fff" : "#FFEB3B"
+          }; font-family: 'Arial Black', sans-serif; font-size: 13px;">${
+          item.description
+        }</td>
+          <td style="padding: 14px 16px; border: 3px solid #000; background: ${
+            index % 2 === 0 ? "#fff" : "#FFEB3B"
+          }; text-align: center; font-weight: 900;">${item.quantity}</td>
+          <td style="padding: 14px 16px; border: 3px solid #000; background: ${
+            index % 2 === 0 ? "#fff" : "#FFEB3B"
+          }; text-align: right;">${formatCurrencyWithCode(
+          item.unit_price,
+          invoice.currency
+        )}</td>
+          <td style="padding: 14px 16px; border: 3px solid #000; background: #FF5722; color: #fff; text-align: right; font-weight: 900;">${formatCurrencyWithCode(
+            item.amount,
+            invoice.currency
+          )}</td>
         </tr>
       `
       )
@@ -41,7 +55,11 @@ export const NeoBrutalistTemplate: InvoiceTemplate = {
             </div>
           </div>
           <div style="background: #fff; border: 4px solid #000; padding: 20px; box-shadow: 6px 6px 0px #000; max-width: 260px;">
-            ${profile?.logo_url ? `<img src="${profile.logo_url}" alt="Logo" style="max-width: 100px; max-height: 50px; margin-bottom: 12px;" />` : ""}
+            ${
+              profile?.logo_url
+                ? `<img src="${profile.logo_url}" alt="Logo" style="max-width: 100px; max-height: 50px; margin-bottom: 12px;" />`
+                : ""
+            }
             <div style="font-weight: 900; font-size: 16px; margin-bottom: 8px;">
               ${getCompanyInfo(profile, "company_name")}
             </div>
@@ -56,7 +74,9 @@ export const NeoBrutalistTemplate: InvoiceTemplate = {
         <div style="display: flex; gap: 20px; margin-bottom: 40px;">
           <div style="flex: 1; background: #2196F3; border: 4px solid #000; padding: 20px; box-shadow: 6px 6px 0px #000;">
             <div style="font-size: 12px; font-weight: 900; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">→ BILL TO</div>
-            <div style="font-size: 18px; font-weight: 900; color: #FFEB3B; margin-bottom: 8px;">${client.name}</div>
+            <div style="font-size: 18px; font-weight: 900; color: #FFEB3B; margin-bottom: 8px;">${
+              client.name
+            }</div>
             <div style="font-size: 12px; color: #fff; line-height: 1.7; font-family: Arial, sans-serif;">
               ${formatClientAddress(client).replace(/\n/g, "<br />")}<br />
               ${client.email}
@@ -65,11 +85,15 @@ export const NeoBrutalistTemplate: InvoiceTemplate = {
           <div style="background: #FFEB3B; border: 4px solid #000; padding: 20px; box-shadow: 6px 6px 0px #000;">
             <div style="margin-bottom: 15px;">
               <div style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">ISSUED</div>
-              <div style="font-size: 16px; font-weight: 900; margin-top: 4px;">${formatDate(invoice.issue_date)}</div>
+              <div style="font-size: 16px; font-weight: 900; margin-top: 4px;">${formatDate(
+                invoice.issue_date
+              )}</div>
             </div>
             <div>
               <div style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">DUE DATE</div>
-              <div style="font-size: 16px; font-weight: 900; margin-top: 4px; color: #D32F2F;">${formatDate(invoice.due_date)}</div>
+              <div style="font-size: 16px; font-weight: 900; margin-top: 4px; color: #D32F2F;">${formatDate(
+                invoice.due_date
+              )}</div>
             </div>
           </div>
         </div>
@@ -96,15 +120,24 @@ export const NeoBrutalistTemplate: InvoiceTemplate = {
           <div style="background: #000; border: 4px solid #000; box-shadow: 8px 8px 0px #FF5722; padding: 0; min-width: 300px;">
             <div style="display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 3px solid #333; color: #fff;">
               <span style="font-size: 13px; text-transform: uppercase;">Subtotal</span>
-              <span style="font-weight: 900;">${formatCurrencyWithCode(invoice.subtotal, invoice.currency)}</span>
+              <span style="font-weight: 900;">${formatCurrencyWithCode(
+                invoice.subtotal,
+                invoice.currency
+              )}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 3px solid #333; color: #fff;">
               <span style="font-size: 13px; text-transform: uppercase;">Tax</span>
-              <span style="font-weight: 900;">${formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}</span>
+              <span style="font-weight: 900;">${formatCurrencyWithCode(
+                invoice.tax_amount,
+                invoice.currency
+              )}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 20px; background: #FFEB3B; color: #000;">
               <span style="font-size: 16px; text-transform: uppercase; font-weight: 900;">TOTAL DUE</span>
-              <span style="font-size: 28px; font-weight: 900;">${formatCurrencyWithCode(invoice.total, invoice.currency)}</span>
+              <span style="font-size: 28px; font-weight: 900;">${formatCurrencyWithCode(
+                invoice.total,
+                invoice.currency
+              )}</span>
             </div>
           </div>
         </div>
@@ -113,20 +146,24 @@ export const NeoBrutalistTemplate: InvoiceTemplate = {
         <div style="background: #fff; border: 4px solid #000; padding: 20px; box-shadow: 6px 6px 0px #2196F3;">
           <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">💰 Payment Details</div>
           <div style="font-size: 13px; line-height: 1.8; font-family: Arial, sans-serif;">${getPaymentInformation(
-              profile,
-              invoice,
-              invoice.show_account_number,
-              invoice.show_iban,
-              invoice.show_swift_bic
-            )}</div>
+            profile,
+            invoice,
+            invoice.show_account_number,
+            invoice.show_iban,
+            invoice.show_swift_bic
+          )}</div>
         </div>
 
-        ${invoice.notes ? `
+        ${
+          invoice.notes
+            ? `
         <div style="margin-top: 20px; background: #FFEB3B; border: 4px dashed #000; padding: 20px;">
           <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">📝 Notes</div>
           <div style="font-size: 13px; line-height: 1.8; font-family: Arial, sans-serif;">${invoice.notes}</div>
         </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
     `;
   },

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { queryClient } from "./lib/queryClient";
 import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard";
 import ResetPassword from "./components/ResetPassword";
@@ -130,9 +132,11 @@ function SignupConfirmationOverlay({
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

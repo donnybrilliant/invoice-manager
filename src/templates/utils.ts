@@ -85,7 +85,12 @@ export function getBankingDetails(
 
 export function getPaymentInformation(
   profile: CompanyProfile | null,
-  invoice: { kid_number?: string | null; due_date: string; total: number; currency: string },
+  invoice: {
+    kid_number?: string | null;
+    due_date: string;
+    total: number;
+    currency: string;
+  },
   showAccountNumber: boolean = true,
   showIban: boolean = true,
   showSwiftBic: boolean = true
@@ -105,7 +110,9 @@ export function getPaymentInformation(
     }
 
     if (showSwiftBic && profile.swift_bic) {
-      details.push(`<div><strong>SWIFT/BIC:</strong> ${profile.swift_bic}</div>`);
+      details.push(
+        `<div><strong>SWIFT/BIC:</strong> ${profile.swift_bic}</div>`
+      );
     }
   }
 
@@ -115,15 +122,25 @@ export function getPaymentInformation(
   }
 
   // Due date
-  details.push(`<div><strong>Due Date:</strong> ${formatDate(invoice.due_date)}</div>`);
+  details.push(
+    `<div><strong>Due Date:</strong> ${formatDate(invoice.due_date)}</div>`
+  );
 
   // Amount Due (with comma as decimal separator)
-  const currencySymbol = invoice.currency === "EUR" ? "€" : 
-                         invoice.currency === "NOK" ? "kr" :
-                         invoice.currency === "USD" ? "$" :
-                         invoice.currency === "GBP" ? "£" : invoice.currency;
+  const currencySymbol =
+    invoice.currency === "EUR"
+      ? "€"
+      : invoice.currency === "NOK"
+      ? "kr"
+      : invoice.currency === "USD"
+      ? "$"
+      : invoice.currency === "GBP"
+      ? "£"
+      : invoice.currency;
   const amountWithComma = formatAmountWithComma(invoice.total);
-  details.push(`<div><strong>Amount Due:</strong> ${currencySymbol} ${amountWithComma}</div>`);
+  details.push(
+    `<div><strong>Amount Due:</strong> ${currencySymbol} ${amountWithComma}</div>`
+  );
 
   return details.length > 0
     ? details.join("")
@@ -165,7 +182,7 @@ export function formatCurrencyWithCode(
     style: "currency",
     currency: currency,
   }).format(amount);
-  
+
   // Ensure space between currency symbol and amount
   // Handles formats like "€1,234.56" -> "€ 1,234.56" or "kr1,234.56" -> "kr 1,234.56"
   return formatted.replace(/([€$£]|kr)(\d)/, "$1 $2");

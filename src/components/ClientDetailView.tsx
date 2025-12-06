@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import {
   X,
   Edit2,
@@ -10,8 +9,8 @@ import {
   Hash,
   Percent,
 } from "lucide-react";
-import { supabase } from "../lib/supabase";
 import { Client, Invoice } from "../types";
+import { useClientInvoices } from "../hooks/useClientInvoices";
 
 interface ClientDetailViewProps {
   client: Client;
@@ -26,30 +25,9 @@ export default function ClientDetailView({
   onEdit,
   onViewInvoice,
 }: ClientDetailViewProps) {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadInvoices = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("client_id", client.id)
-        .order("issue_date", { ascending: false });
-
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error) {
-      console.error("Error loading invoices:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [client.id]);
-
-  useEffect(() => {
-    loadInvoices();
-  }, [loadInvoices]);
+  const { data: invoices = [], isLoading: loading } = useClientInvoices(
+    client.id
+  );
 
   const getStatusColor = (status: Invoice["status"]) => {
     switch (status) {
@@ -119,8 +97,12 @@ export default function ClientDetailView({
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Phone</p>
-                  <p className="text-slate-900 dark:text-white">{client.phone}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Phone
+                  </p>
+                  <p className="text-slate-900 dark:text-white">
+                    {client.phone}
+                  </p>
                 </div>
               </div>
             )}
@@ -128,8 +110,12 @@ export default function ClientDetailView({
               <div className="flex items-start gap-3">
                 <Building2 className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Organization Number</p>
-                  <p className="text-slate-900 dark:text-white">{client.organization_number}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Organization Number
+                  </p>
+                  <p className="text-slate-900 dark:text-white">
+                    {client.organization_number}
+                  </p>
                 </div>
               </div>
             )}
@@ -137,8 +123,12 @@ export default function ClientDetailView({
               <div className="flex items-start gap-3">
                 <Percent className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Tax/VAT/MVA Number</p>
-                  <p className="text-slate-900 dark:text-white">{client.tax_number}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Tax/VAT/MVA Number
+                  </p>
+                  <p className="text-slate-900 dark:text-white">
+                    {client.tax_number}
+                  </p>
                 </div>
               </div>
             )}
@@ -146,8 +136,12 @@ export default function ClientDetailView({
               <div className="flex items-start gap-3">
                 <Hash className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">KID Number</p>
-                  <p className="text-slate-900 dark:text-white">{client.kid_number}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    KID Number
+                  </p>
+                  <p className="text-slate-900 dark:text-white">
+                    {client.kid_number}
+                  </p>
                 </div>
               </div>
             )}
@@ -158,7 +152,9 @@ export default function ClientDetailView({
               <div className="flex items-start gap-3 md:col-span-2">
                 <MapPin className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Address</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Address
+                  </p>
                   <div className="text-slate-900 dark:text-white">
                     {client.street_address && (
                       <div>{client.street_address}</div>

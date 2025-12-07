@@ -8,6 +8,7 @@ import {
 } from "../lib/pdfUtils";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
+import { useToast } from "../contexts/ToastContext";
 
 interface InvoiceViewProps {
   invoice: Invoice;
@@ -21,6 +22,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   );
   const { data: profile = null, isLoading: profileLoading } =
     useCompanyProfile();
+  const { showToast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
   const loading = itemsLoading || profileLoading;
@@ -131,9 +133,10 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
       // Cleanup
       document.body.removeChild(tempDiv);
+      showToast("PDF downloaded successfully", "success");
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      alert("Failed to download PDF. Please try again.");
+      showToast("Failed to download PDF. Please try again.", "error");
     } finally {
       setDownloading(false);
     }

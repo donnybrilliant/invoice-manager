@@ -9,7 +9,12 @@ import TemplateSelector from "./TemplateSelector";
 import { useClients } from "../hooks/useClients";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
-import { useCreateInvoice, useUpdateInvoice, useDeleteInvoice } from "../hooks/useInvoices";
+import {
+  useCreateInvoice,
+  useUpdateInvoice,
+  useDeleteInvoice,
+} from "../hooks/useInvoices";
+import { getCurrencySymbol } from "../lib/currencyUtils";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -24,18 +29,6 @@ interface LineItem {
   unit_price: number;
   amount: number;
 }
-
-const getCurrencySymbol = (currency: string): string => {
-  const symbols: Record<string, string> = {
-    EUR: "€",
-    NOK: "kr",
-    USD: "$",
-    GBP: "£",
-    SEK: "kr",
-    DKK: "kr",
-  };
-  return symbols[currency] || currency;
-};
 
 export default function InvoiceForm({
   onClose,
@@ -63,7 +56,9 @@ export default function InvoiceForm({
       await deleteInvoiceMutation.mutateAsync(invoice.id);
       onSuccess();
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete invoice");
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete invoice"
+      );
       setShowDeleteConfirm(false);
     }
   };
@@ -704,7 +699,8 @@ export default function InvoiceForm({
               Delete Invoice?
             </h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              This will permanently delete this invoice and all associated items. This action cannot be undone.
+              This will permanently delete this invoice and all associated
+              items. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button

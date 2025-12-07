@@ -6,6 +6,7 @@ import {
   useUpdateClient,
   useDeleteClient,
 } from "../hooks/useClients";
+import { useClientInvoices } from "../hooks/useClientInvoices";
 
 interface ClientFormProps {
   onClose: () => void;
@@ -22,7 +23,14 @@ export default function ClientForm({
   const updateClientMutation = useUpdateClient();
   const deleteClientMutation = useDeleteClient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
+  // Check if client has non-draft invoices
+  const { data: clientInvoices = [] } = useClientInvoices(client?.id);
+  const hasNonDraftInvoices = clientInvoices.some(
+    (invoice) => invoice.status !== "draft"
+  );
+  const canDelete = !hasNonDraftInvoices;
+
   // Compute initial form data based on client prop
   const initialFormData = useMemo(() => {
     if (client) {
@@ -54,9 +62,9 @@ export default function ClientForm({
       country: "Norway",
     };
   }, [client]); // Recompute when client changes
-  
+
   const [formData, setFormData] = useState(initialFormData);
-  
+
   // Reset form when initial data changes
   useEffect(() => {
     setFormData(initialFormData);
@@ -64,7 +72,7 @@ export default function ClientForm({
 
   // Ref to access current formData in action
   const formDataRef = useRef(formData);
-  
+
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
@@ -79,7 +87,7 @@ export default function ClientForm({
       _formData: FormData
     ): Promise<ClientFormState> => {
       const currentFormData = formDataRef.current;
-      
+
       try {
         const clientData = {
           name: currentFormData.name,
@@ -123,13 +131,29 @@ export default function ClientForm({
   const handleDelete = async () => {
     if (!client) return;
 
+    // Double-check: prevent deletion if client has non-draft invoices
+    if (hasNonDraftInvoices) {
+      setDeleteError(
+        "Cannot delete client with invoices that are not in draft status. Please delete or update all non-draft invoices first."
+      );
+      setShowDeleteConfirm(false);
+      return;
+    }
+
     setDeleteError("");
 
     try {
       await deleteClientMutation.mutateAsync(client.id);
       onSuccess();
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete client");
+      // Extract error message from Supabase error or generic error
+      let errorMessage = "Failed to delete client";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err && typeof err === "object" && "message" in err) {
+        errorMessage = String(err.message);
+      }
+      setDeleteError(errorMessage);
       setShowDeleteConfirm(false);
     }
   };
@@ -405,11 +429,20 @@ export default function ClientForm({
           )}
 
           {client && (
-            <div className="pt-4 border-t border-slate-200">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              {!canDelete && (
+                <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                    This client cannot be deleted because they have invoices
+                    that are not in draft status. Please delete or update all
+                    non-draft invoices first.
+                  </p>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                disabled={deleteClientMutation.isPending}
+                disabled={deleteClientMutation.isPending || !canDelete}
                 className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
@@ -449,8 +482,9 @@ export default function ClientForm({
                 Delete Client?
               </h3>
               <p className="text-slate-600 dark:text-slate-400 mb-6">
-                This will permanently delete this client and all associated
-                invoices. This action cannot be undone.
+                {hasNonDraftInvoices
+                  ? "This client has invoices that are not in draft status and cannot be deleted. Please delete or update all non-draft invoices first."
+                  : "This will permanently delete this client and all associated draft invoices. This action cannot be undone."}
               </p>
               <div className="flex gap-3">
                 <button

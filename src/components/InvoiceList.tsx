@@ -8,11 +8,10 @@ import {
   generatePDFFromElement,
   generateInvoiceFilename,
 } from "../lib/pdfUtils";
-import {
-  useInvoices,
-  useUpdateInvoiceStatus,
-} from "../hooks/useInvoices";
+import { useInvoices, useUpdateInvoiceStatus } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
+import { getCurrencySymbol } from "../lib/currencyUtils";
 
 interface InvoiceListProps {
   onViewInvoice: (invoice: Invoice) => void;
@@ -25,6 +24,7 @@ export default function InvoiceList({
 }: InvoiceListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const { data: invoices = [], isLoading: loading } = useInvoices();
   const updateStatusMutation = useUpdateInvoiceStatus();
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,9 +137,10 @@ export default function InvoiceList({
 
       // Cleanup
       document.body.removeChild(tempDiv);
+      showToast("PDF downloaded successfully", "success");
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      alert("Failed to download PDF. Please try again.");
+      showToast("Failed to download PDF. Please try again.", "error");
     } finally {
       setDownloadingId(null);
     }
@@ -239,7 +240,8 @@ export default function InvoiceList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-slate-900 dark:text-white">
-                        ${invoice.total.toFixed(2)}
+                        {getCurrencySymbol(invoice.currency)}{" "}
+                        {invoice.total.toFixed(2)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

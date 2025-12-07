@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Client, Invoice } from "../types";
 import { useClientInvoices } from "../hooks/useClientInvoices";
+import { getCurrencySymbol } from "../lib/currencyUtils";
 
 interface ClientDetailViewProps {
   client: Client;
@@ -229,7 +230,8 @@ export default function ClientDetailView({
                       </span>
                     </div>
                     <div className="font-semibold text-slate-900 dark:text-white">
-                      {invoice.currency} {invoice.total.toFixed(2)}
+                      {getCurrencySymbol(invoice.currency)}{" "}
+                      {invoice.total.toFixed(2)}
                     </div>
                   </div>
                 </div>

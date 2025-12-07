@@ -11,6 +11,21 @@ export function useInvoices() {
     queryFn: async () => {
       if (!user) throw new Error("No user");
 
+      // First, mark any overdue invoices automatically
+      try {
+        const { error: overdueError } = await supabase.rpc(
+          "mark_overdue_invoices_for_user",
+          { user_uuid: user.id }
+        );
+        // Don't throw on error - just log it, as this is a background operation
+        if (overdueError) {
+          console.warn("Error marking overdue invoices:", overdueError);
+        }
+      } catch (err) {
+        // Function might not exist yet if migration hasn't run
+        console.warn("Could not mark overdue invoices:", err);
+      }
+
       const { data, error } = await supabase
         .from("invoices")
         .select(

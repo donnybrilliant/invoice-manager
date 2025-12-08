@@ -41,7 +41,7 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showStats, setShowStats] = useState(true);
+  const [showStats, setShowStats] = useState(false);
 
   // Calculate statistics
   const totalInvoices = invoices.length;

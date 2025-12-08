@@ -14,6 +14,7 @@ A modern, full-featured invoice management system built with React, TypeScript, 
 - ✅ Multi-currency support (EUR, NOK, USD, etc.)
 - ✅ Invoice status tracking (Draft, Sent, Paid, Overdue)
 - ✅ PDF export with company branding
+- ✅ EHF (Elektronisk Handelsformat) export for Norwegian e-invoicing
 
 ### Client Management
 
@@ -176,7 +177,9 @@ invoice-manager/
 │   │   └── AuthContext.tsx
 │   ├── lib/                 # Utilities
 │   │   ├── supabase.ts      # Supabase client
-│   │   └── pdfUtils.ts      # PDF generation
+│   │   ├── pdfUtils.ts      # PDF generation
+│   │   ├── ehfGenerator.ts  # EHF XML generation
+│   │   └── utils.ts         # Shared utilities
 │   ├── templates/           # Invoice PDF templates
 │   │   ├── ClassicTemplate.ts
 │   │   ├── ModernTemplate.ts
@@ -279,6 +282,16 @@ invoice-manager/
 3. The PDF will be generated with your selected template
 4. Includes your company logo and branding
 
+### Exporting EHF (Electronic Invoice Format)
+
+1. Open an invoice
+2. Click the **EHF export** button (FileCode icon)
+3. The EHF XML file will be downloaded
+4. Format: PEPPOL BIS Billing 3.0 compliant UBL 2.1 XML
+5. Requirements:
+   - Both company and client must have organization numbers
+   - All required fields must be filled in
+
 ## Invoice Templates
 
 ### Classic Template
@@ -320,6 +333,23 @@ Set your default currency in Company Profile. Each invoice can use a different c
 - Full support for Norwegian MVA numbers
 - Tax calculations with configurable rates
 - Proper formatting on invoices
+- Support for 0% MVA (zero-rated)
+
+### EHF (Elektronisk Handelsformat) Export
+
+- **PEPPOL BIS Billing 3.0 compliant** electronic invoice format
+- Based on **UBL 2.1** (Universal Business Language) standard
+- Fully compliant with Norwegian e-invoicing requirements
+- Features:
+  - Proper namespace handling (cac, cbc, ubl)
+  - ISO alpha-2 country codes (converts country names automatically)
+  - Sanitized IBAN (removes spaces)
+  - Payment due dates in structured format
+  - Tax category codes (S for standard, Z for zero-rated)
+  - Norwegian organization number scheme (0192)
+  - All required PEPPOL fields included
+
+**Usage**: Export invoices as EHF XML files directly from the invoice view. The files can be uploaded to PEPPOL-compliant e-invoicing systems or sent to clients who require electronic invoices.
 
 ## Dark Mode
 

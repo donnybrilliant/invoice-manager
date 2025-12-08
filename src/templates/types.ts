@@ -8,7 +8,16 @@ export interface InvoiceTemplateData {
 }
 
 export interface InvoiceTemplate {
-  id: "classic" | "modern" | "professional" | "brutalist" | "dark-mode" | "minimal-japanese" | "neo-brutalist" | "swiss" | "typewriter";
+  id:
+    | "classic"
+    | "modern"
+    | "professional"
+    | "brutalist"
+    | "dark-mode"
+    | "minimal-japanese"
+    | "neo-brutalist"
+    | "swiss"
+    | "typewriter";
   name: string;
   description: string;
   render: (data: InvoiceTemplateData) => string;

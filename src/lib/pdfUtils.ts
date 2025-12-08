@@ -127,7 +127,7 @@ export function printElement(element: HTMLElement): void {
 
 /**
  * Generates a standardized filename for invoice PDFs
- * Format: invoice-{customer-name}-{date}.pdf
+ * Format: invoice-{invoice-number}-{customer-name}-{date}.pdf
  *
  * @param invoiceNumber - The invoice number
  * @param customerName - The customer/client name (optional)
@@ -139,8 +139,14 @@ export function generateInvoiceFilename(
   customerName?: string,
   date?: string
 ): string {
-  let filename = "invoice";
-  
+  // Sanitize invoice number for filename
+  const sanitizedInvoiceNumber = invoiceNumber
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  let filename = `invoice-${sanitizedInvoiceNumber}`;
+
   if (customerName) {
     // Sanitize customer name for filename
     const sanitizedName = customerName
@@ -149,12 +155,12 @@ export function generateInvoiceFilename(
       .replace(/^-+|-+$/g, "");
     filename += `-${sanitizedName}`;
   }
-  
+
   if (date) {
     // Format date as YYYY-MM-DD
     const dateStr = new Date(date).toISOString().split("T")[0];
     filename += `-${dateStr}`;
   }
-  
+
   return `${filename}.pdf`;
 }

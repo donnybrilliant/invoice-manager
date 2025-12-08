@@ -1,7 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  useCompanyProfile,
+  useUpdateCompanyProfile,
+} from "../hooks/useCompanyProfile";
 
 interface CompanyProfileProps {
   onBack: () => void;
@@ -9,7 +13,8 @@ interface CompanyProfileProps {
 
 export default function CompanyProfile({ onBack }: CompanyProfileProps) {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { data: profile } = useCompanyProfile();
+  const updateProfileMutation = useUpdateCompanyProfile();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -35,51 +40,32 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
     logo_url: "",
   });
 
-  const loadProfile = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const { data, error: fetchError } = await supabase
-        .from("company_profiles")
-        .select("*")
-        .maybeSingle();
-
-      if (fetchError && fetchError.code !== "PGRST116") {
-        throw fetchError;
-      }
-
-      if (data) {
-        setFormData({
-          company_name: data.company_name || "",
-          phone: data.phone || "",
-          email: data.email || "",
-          website: data.website || "",
-          organization_number: data.organization_number || "",
-          tax_number: data.tax_number || "",
-          street_address: data.street_address || "",
-          postal_code: data.postal_code || "",
-          city: data.city || "",
-          state: data.state || "",
-          country: data.country || "Norway",
-          account_number: data.account_number || "",
-          iban: data.iban || "",
-          swift_bic: data.swift_bic || "",
-          currency: data.currency || "EUR",
-          payment_instructions: data.payment_instructions || "",
-          logo_url: data.logo_url || "",
-        });
-        if (data.logo_url) {
-          setLogoPreview(data.logo_url);
-        }
-      }
-    } catch (err) {
-      console.error("Error loading profile:", err);
-    }
-  }, [user]);
-
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+    if (profile) {
+      setFormData({
+        company_name: profile.company_name || "",
+        phone: profile.phone || "",
+        email: profile.email || "",
+        website: profile.website || "",
+        organization_number: profile.organization_number || "",
+        tax_number: profile.tax_number || "",
+        street_address: profile.street_address || "",
+        postal_code: profile.postal_code || "",
+        city: profile.city || "",
+        state: profile.state || "",
+        country: profile.country || "Norway",
+        account_number: profile.account_number || "",
+        iban: profile.iban || "",
+        swift_bic: profile.swift_bic || "",
+        currency: profile.currency || "EUR",
+        payment_instructions: profile.payment_instructions || "",
+        logo_url: profile.logo_url || "",
+      });
+      if (profile.logo_url) {
+        setLogoPreview(profile.logo_url);
+      }
+    }
+  }, [profile]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -151,7 +137,6 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
       return;
     }
 
-    setLoading(true);
     setError("");
     setSuccessMessage("");
 
@@ -165,44 +150,28 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
         }
       }
 
-      const { error: upsertError } = await supabase
-        .from("company_profiles")
-        .upsert(
-          {
-            user_id: user.id,
-            company_name: formData.company_name || null,
-            phone: formData.phone || null,
-            email: formData.email || null,
-            website: formData.website || null,
-            organization_number: formData.organization_number || null,
-            tax_number: formData.tax_number || null,
-            street_address: formData.street_address || null,
-            postal_code: formData.postal_code || null,
-            city: formData.city || null,
-            state: formData.state || null,
-            country: formData.country || null,
-            account_number: formData.account_number || null,
-            iban: formData.iban || null,
-            swift_bic: formData.swift_bic || null,
-            currency: formData.currency || "EUR",
-            payment_instructions: formData.payment_instructions || null,
-            logo_url: logoUrl || null,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "user_id",
-            ignoreDuplicates: false,
-          }
-        )
-        .select()
-        .single();
-
-      if (upsertError) throw upsertError;
+      await updateProfileMutation.mutateAsync({
+        company_name: formData.company_name || null,
+        phone: formData.phone || null,
+        email: formData.email || null,
+        website: formData.website || null,
+        organization_number: formData.organization_number || null,
+        tax_number: formData.tax_number || null,
+        street_address: formData.street_address || null,
+        postal_code: formData.postal_code || null,
+        city: formData.city || null,
+        state: formData.state || null,
+        country: formData.country || null,
+        account_number: formData.account_number || null,
+        iban: formData.iban || null,
+        swift_bic: formData.swift_bic || null,
+        currency: formData.currency || "EUR",
+        payment_instructions: formData.payment_instructions || null,
+        logo_url: logoUrl || null,
+      });
 
       setSuccessMessage("Company profile saved successfully!");
       setLogoFile(null);
-
-      await loadProfile();
 
       setTimeout(() => {
         onBack();
@@ -211,8 +180,6 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
       setError(
         err instanceof Error ? err.message : "Failed to save company profile"
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -665,15 +632,15 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
               </button>
               <button
                 type="submit"
-                disabled={loading || uploading}
+                disabled={updateProfileMutation.isPending || uploading}
                 className="flex-1 px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {(loading || uploading) && (
+                {(updateProfileMutation.isPending || uploading) && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
                 {uploading
                   ? "Uploading..."
-                  : loading
+                  : updateProfileMutation.isPending
                   ? "Saving..."
                   : "Save Profile"}
               </button>

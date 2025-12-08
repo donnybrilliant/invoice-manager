@@ -1,85 +1,52 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { FileText, Trash2, Search, Edit, Download } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "../contexts/AuthContext";
 import { Invoice, InvoiceItem, CompanyProfile } from "../types";
 import { getTemplate } from "../templates";
 import {
   generatePDFFromElement,
   generateInvoiceFilename,
 } from "../lib/pdfUtils";
+import {
+  useInvoices,
+  useDeleteInvoice,
+  useUpdateInvoiceStatus,
+} from "../hooks/useInvoices";
+import { useAuth } from "../contexts/AuthContext";
 
 interface InvoiceListProps {
   onViewInvoice: (invoice: Invoice) => void;
   onEditInvoice?: (invoice: Invoice) => void;
-  refresh: number;
 }
 
 export default function InvoiceList({
   onViewInvoice,
   onEditInvoice,
-  refresh,
 }: InvoiceListProps) {
   const { user } = useAuth();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: invoices = [], isLoading: loading } = useInvoices();
+  const deleteInvoiceMutation = useDeleteInvoice();
+  const updateStatusMutation = useUpdateInvoiceStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const downloadContainerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    loadInvoices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, refresh]);
-
-  const loadInvoices = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("invoices")
-        .select(
-          `
-          *,
-          client:clients(*)
-        `
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error) {
-      console.error("Error loading invoices:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteInvoice = async (id: string) => {
+  const handleDeleteInvoice = async (id: string) => {
     if (!confirm("Are you sure you want to delete this invoice?")) return;
 
     try {
-      const { error } = await supabase.from("invoices").delete().eq("id", id);
-      if (error) throw error;
-      loadInvoices();
+      await deleteInvoiceMutation.mutateAsync(id);
     } catch (error) {
       console.error("Error deleting invoice:", error);
       alert("Failed to delete invoice");
     }
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("id", id);
-
-      if (error) throw error;
-      loadInvoices();
+      await updateStatusMutation.mutateAsync({ id, status });
     } catch (error) {
       console.error("Error updating status:", error);
     }
@@ -109,33 +76,47 @@ export default function InvoiceList({
 
   const handleDownload = async (invoice: Invoice) => {
     if (downloadingId) return;
-    
+
     setDownloadingId(invoice.id);
     try {
-      // Load invoice items
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("invoice_items")
-        .select("*")
-        .eq("invoice_id", invoice.id)
-        .order("created_at");
-
-      if (itemsError) throw itemsError;
-      const items: InvoiceItem[] = itemsData || [];
-
-      // Load company profile
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Try to get cached data first, otherwise fetch
+      let items: InvoiceItem[] = [];
       let profile: CompanyProfile | null = null;
-      if (user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from("company_profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
 
-        if (!profileError || profileError.code === "PGRST116") {
-          profile = profileData;
+      // Get invoice items from cache or fetch
+      const cachedItems = queryClient.getQueryData<InvoiceItem[]>([
+        "invoiceItems",
+        invoice.id,
+      ]);
+      if (cachedItems) {
+        items = cachedItems;
+      } else {
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("invoice_items")
+          .select("*")
+          .eq("invoice_id", invoice.id)
+          .order("created_at");
+        if (itemsError) throw itemsError;
+        items = itemsData || [];
+      }
+
+      // Get company profile from cache or fetch
+      const cachedProfile = queryClient.getQueryData<CompanyProfile | null>([
+        "companyProfile",
+        user?.id,
+      ]);
+      if (cachedProfile !== undefined) {
+        profile = cachedProfile;
+      } else {
+        if (user) {
+          const { data: profileData, error: profileError } = await supabase
+            .from("company_profiles")
+            .select("*")
+            .eq("user_id", user.id)
+            .single();
+          if (!profileError || profileError.code === "PGRST116") {
+            profile = profileData;
+          }
         }
       }
 
@@ -286,7 +267,7 @@ export default function InvoiceList({
                       <select
                         value={invoice.status}
                         onChange={(e) =>
-                          updateStatus(invoice.id, e.target.value)
+                          handleUpdateStatus(invoice.id, e.target.value)
                         }
                         className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${getStatusColor(
                           invoice.status
@@ -329,7 +310,7 @@ export default function InvoiceList({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteInvoice(invoice.id);
+                            handleDeleteInvoice(invoice.id);
                           }}
                           className="text-red-600 hover:text-red-800 transition p-2"
                           title="Delete"

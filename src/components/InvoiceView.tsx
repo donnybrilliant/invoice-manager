@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { X, Printer, Download } from "lucide-react";
-import { supabase } from "../lib/supabase";
-import { Invoice, InvoiceItem, CompanyProfile, Client } from "../types";
+import { Invoice } from "../types";
 import { getTemplate } from "../templates";
 import {
   generatePDFFromElement,
   generateInvoiceFilename,
 } from "../lib/pdfUtils";
+import { useInvoiceItems } from "../hooks/useInvoiceItems";
+import { useCompanyProfile } from "../hooks/useCompanyProfile";
 
 interface InvoiceViewProps {
   invoice: Invoice;
@@ -14,75 +15,20 @@ interface InvoiceViewProps {
 }
 
 export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
-  const [items, setItems] = useState<InvoiceItem[]>([]);
-  const [profile, setProfile] = useState<CompanyProfile | null>(null);
-  const [client, setClient] = useState<Client | null>(invoice.client || null);
-  const [loading, setLoading] = useState(true);
+  const client = invoice.client || null;
+  const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(
+    invoice.id
+  );
+  const { data: profile = null, isLoading: profileLoading } =
+    useCompanyProfile();
   const [downloading, setDownloading] = useState(false);
   const invoiceContentRef = useRef<HTMLDivElement>(null);
+
+  const loading = itemsLoading || profileLoading;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
-    }
-  };
-
-  useEffect(() => {
-    // Reset client when invoice changes
-    setClient(invoice.client || null);
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoice.id]);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      // Load invoice items
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("invoice_items")
-        .select("*")
-        .eq("invoice_id", invoice.id)
-        .order("created_at");
-
-      if (itemsError) throw itemsError;
-      setItems(itemsData || []);
-
-      // Load client if not already present
-      if (!client && invoice.client_id) {
-        const { data: clientData, error: clientError } = await supabase
-          .from("clients")
-          .select("*")
-          .eq("id", invoice.client_id)
-          .single();
-
-        if (clientError) {
-          console.error("Error loading client:", clientError);
-        } else {
-          setClient(clientData);
-        }
-      }
-
-      // Load company profile
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from("company_profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-
-        if (profileError && profileError.code !== "PGRST116") {
-          console.error("Error loading profile:", profileError);
-        } else {
-          setProfile(profileData);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

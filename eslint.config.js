@@ -23,6 +23,24 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Allow unused variables that start with underscore
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      // Allow setState in effects when syncing external state (e.g., from useActionState)
+      // This is a valid pattern for syncing action state to local UI state
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': [
+        'warn',
+        {
+          // Allow effects that sync external state to local state
+          additionalHooks: '(useEffect|useLayoutEffect)',
+        },
+      ],
     },
   }
 );

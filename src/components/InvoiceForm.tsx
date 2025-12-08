@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState, useRef } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 import { Client, Invoice } from "../types";
 import ClientForm from "./ClientForm";
 import TemplateSelector from "./TemplateSelector";
 import { useClients } from "../hooks/useClients";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
-import { useCreateInvoice, useUpdateInvoice } from "../hooks/useInvoices";
+import {
+  useCreateInvoice,
+  useUpdateInvoice,
+  useDeleteInvoice,
+} from "../hooks/useInvoices";
+import { getCurrencySymbol } from "../lib/utils";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -24,18 +30,6 @@ interface LineItem {
   amount: number;
 }
 
-const getCurrencySymbol = (currency: string): string => {
-  const symbols: Record<string, string> = {
-    EUR: "€",
-    NOK: "kr",
-    USD: "$",
-    GBP: "£",
-    SEK: "kr",
-    DKK: "kr",
-  };
-  return symbols[currency] || currency;
-};
-
 export default function InvoiceForm({
   onClose,
   onSuccess,
@@ -48,8 +42,26 @@ export default function InvoiceForm({
   const { data: invoiceItemsData = [] } = useInvoiceItems(invoice?.id);
   const createInvoiceMutation = useCreateInvoice();
   const updateInvoiceMutation = useUpdateInvoice();
-  const [error, setError] = useState("");
+  const deleteInvoiceMutation = useDeleteInvoice();
   const [showClientForm, setShowClientForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const handleDelete = async () => {
+    if (!invoice) return;
+
+    setDeleteError("");
+
+    try {
+      await deleteInvoiceMutation.mutateAsync(invoice.id);
+      onSuccess();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete invoice"
+      );
+      setShowDeleteConfirm(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     client_id: invoice?.client_id || "",
@@ -118,27 +130,57 @@ export default function InvoiceForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.client_id, clients]);
 
-  const handleClientFormSuccess = async (createdClientId?: string) => {
-    // Invalidate clients query to refetch
-    await queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
+  // Refs to access current state in action
+  const formDataRef = useRef(formData);
+  const itemsRef = useRef(items);
 
+  // Keep refs in sync with state
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  const handleClientFormSuccess = async (createdClientId?: string) => {
     // If we have the newly created client ID, use it directly
     if (createdClientId) {
       setFormData((prev) => ({ ...prev, client_id: createdClientId }));
+      // Invalidate to refresh the list, but we don't need to wait
+      queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
     } else {
-      // Fallback: Get clients from cache after refetch
-      const clientsData = queryClient.getQueryData<Client[]>([
-        "clients",
-        user?.id,
-      ]);
-      if (clientsData && clientsData.length > 0) {
-        // Find the most recently created client by created_at
-        const newestClient = clientsData.reduce((latest, current) => {
-          const latestDate = new Date(latest.created_at || 0).getTime();
-          const currentDate = new Date(current.created_at || 0).getTime();
-          return currentDate > latestDate ? current : latest;
+      // Fallback: Fetch fresh data and wait for it before using
+      // This ensures we have the newly created client in the data
+      try {
+        const clientsData = await queryClient.fetchQuery<Client[]>({
+          queryKey: ["clients", user?.id],
+          queryFn: async () => {
+            if (!user) throw new Error("No user");
+            const { data, error } = await supabase
+              .from("clients")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("name");
+            if (error) throw error;
+            return (data || []) as Client[];
+          },
         });
-        setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+        if (clientsData && clientsData.length > 0) {
+          // Find the most recently created client by created_at
+          const newestClient = clientsData.reduce(
+            (latest: Client, current: Client) => {
+              const latestDate = new Date(latest.created_at || 0).getTime();
+              const currentDate = new Date(current.created_at || 0).getTime();
+              return currentDate > latestDate ? current : latest;
+            }
+          );
+          setFormData((prev) => ({ ...prev, client_id: newestClient.id }));
+        }
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+        // If fetch fails, just invalidate and let the component refetch naturally
+        queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
       }
     }
 
@@ -182,69 +224,88 @@ export default function InvoiceForm({
     );
   };
 
-  const calculateTotals = () => {
-    const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-    const tax_amount = subtotal * (formData.tax_rate / 100);
+  const calculateTotals = (
+    currentItems: LineItem[],
+    currentFormData: typeof formData
+  ) => {
+    const subtotal = currentItems.reduce((sum, item) => sum + item.amount, 0);
+    const tax_amount = subtotal * (currentFormData.tax_rate / 100);
     const total = subtotal + tax_amount;
     return { subtotal, tax_amount, total };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !formData.client_id) return;
+  interface InvoiceFormState {
+    error?: string;
+  }
 
-    setError("");
-
-    try {
-      const { subtotal, tax_amount, total } = calculateTotals();
-
-      const invoiceData = {
-        client_id: formData.client_id,
-        issue_date: formData.issue_date,
-        due_date: formData.due_date,
-        subtotal,
-        tax_rate: formData.tax_rate,
-        tax_amount,
-        total,
-        currency: formData.currency,
-        notes: formData.notes || null,
-        template: formData.template,
-        show_account_number: formData.show_account_number ?? true,
-        show_iban: formData.show_iban ?? false,
-        show_swift_bic: formData.show_swift_bic ?? false,
-        kid_number: formData.kid_number || null,
-        items: items
-          .filter((item) => item.description.trim())
-          .map((item) => ({
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            amount: item.amount,
-          })),
-      };
-
-      if (invoice) {
-        await updateInvoiceMutation.mutateAsync({
-          id: invoice.id,
-          data: invoiceData,
-        });
-      } else {
-        await createInvoiceMutation.mutateAsync(invoiceData);
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      _prevState: InvoiceFormState | null,
+      _formData: FormData
+    ): Promise<InvoiceFormState> => {
+      if (!user || !formDataRef.current.client_id) {
+        return { error: "Please select a client" };
       }
 
-      onSuccess();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : invoice
-          ? "Failed to update invoice"
-          : "Failed to create invoice"
-      );
-    }
-  };
+      try {
+        const currentFormData = formDataRef.current;
+        const currentItems = itemsRef.current;
+        const { subtotal, tax_amount, total } = calculateTotals(
+          currentItems,
+          currentFormData
+        );
 
-  const { subtotal, tax_amount, total } = calculateTotals();
+        const invoiceData = {
+          client_id: currentFormData.client_id,
+          issue_date: currentFormData.issue_date,
+          due_date: currentFormData.due_date,
+          subtotal,
+          tax_rate: currentFormData.tax_rate,
+          tax_amount,
+          total,
+          currency: currentFormData.currency,
+          notes: currentFormData.notes || null,
+          template: currentFormData.template,
+          show_account_number: currentFormData.show_account_number ?? true,
+          show_iban: currentFormData.show_iban ?? false,
+          show_swift_bic: currentFormData.show_swift_bic ?? false,
+          kid_number: currentFormData.kid_number || null,
+          items: currentItems
+            .filter((item) => item.description.trim())
+            .map((item) => ({
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              amount: item.amount,
+            })),
+        };
+
+        if (invoice) {
+          await updateInvoiceMutation.mutateAsync({
+            id: invoice.id,
+            data: invoiceData,
+          });
+        } else {
+          await createInvoiceMutation.mutateAsync(invoiceData);
+        }
+
+        onSuccess();
+        return { error: undefined };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error
+              ? err.message
+              : invoice
+              ? "Failed to update invoice"
+              : "Failed to create invoice",
+        };
+      }
+    },
+    null
+  );
+
+  const { subtotal, tax_amount, total } = calculateTotals(items, formData);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -261,7 +322,7 @@ export default function InvoiceForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={submitAction} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -579,9 +640,23 @@ export default function InvoiceForm({
             />
           </div>
 
-          {error && (
+          {(state?.error || deleteError) && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {state?.error || deleteError}
+            </div>
+          )}
+
+          {invoice && invoice.status === "draft" && (
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleteInvoiceMutation.isPending}
+                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Invoice
+              </button>
             </div>
           )}
 
@@ -595,14 +670,10 @@ export default function InvoiceForm({
             </button>
             <button
               type="submit"
-              disabled={
-                createInvoiceMutation.isPending ||
-                updateInvoiceMutation.isPending
-              }
+              disabled={isPending}
               className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createInvoiceMutation.isPending ||
-              updateInvoiceMutation.isPending
+              {isPending
                 ? invoice
                   ? "Updating..."
                   : "Creating..."
@@ -619,6 +690,38 @@ export default function InvoiceForm({
           onClose={() => setShowClientForm(false)}
           onSuccess={handleClientFormSuccess}
         />
+      )}
+
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 rounded-xl">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              Delete Invoice?
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              This will permanently delete this invoice and all associated
+              items. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleteInvoiceMutation.isPending}
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteInvoiceMutation.isPending}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteInvoiceMutation.isPending ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

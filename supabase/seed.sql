@@ -333,28 +333,22 @@ BEGIN
       due_date_var := CURRENT_DATE + (14 + floor(random() * 14)::int);
     END IF;
     
-    -- Generate financial amounts
-    subtotal_var := (100 + floor(random() * 9000)::int)::numeric;
+    -- Generate tax rate based on currency
     tax_rate_var := CASE 
       WHEN currency_var = 'NOK' THEN 25.00
       WHEN currency_var = 'EUR' THEN 21.00
       ELSE 20.00
     END;
     
-    -- Random discount (20% chance)
+    -- Random discount (20% chance) - will be applied after items are created
     IF random() < 0.2 THEN
       discount_pct_var := (5 + floor(random() * 15)::int)::numeric;
-      discount_amt_var := (subtotal_var * discount_pct_var / 100)::numeric(10,2);
     ELSE
       discount_pct_var := 0;
-      discount_amt_var := 0;
     END IF;
     
-    subtotal_var := subtotal_var - discount_amt_var;
-    tax_amount_var := (subtotal_var * tax_rate_var / 100)::numeric(10,2);
-    total_var := subtotal_var + tax_amount_var;
-    
-    -- Insert invoice
+    -- Insert invoice with initial values (will be updated after items are created)
+    -- We'll set subtotal to 0 initially and calculate it from items
     INSERT INTO invoices (
         invoice_number,
         client_id,
@@ -381,15 +375,15 @@ BEGIN
         'INV-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || LPAD(invoice_num::text, 4, '0'),
         client_id_var,
         test_user_id,
-      issue_date_var,
-      due_date_var,
-      status_var,
-      subtotal_var,
-      discount_pct_var,
-      discount_amt_var,
-      tax_rate_var,
-      tax_amount_var,
-      total_var,
+        issue_date_var,
+        due_date_var,
+        status_var,
+        0, -- subtotal (will be calculated from items)
+        discount_pct_var,
+        0, -- discount_amount (will be calculated after items)
+        tax_rate_var,
+        0, -- tax_amount (will be calculated after items)
+        0, -- total (will be calculated after items)
       currency_var,
       template_var,
       true,
@@ -435,24 +429,33 @@ BEGIN
     invoice_num := invoice_num + 1;
   END LOOP;
   
-  -- Update invoice totals to match sum of items (fix any rounding issues)
+  -- Update invoice totals to match sum of items
+  -- Calculate: items_total -> apply discount -> calculate tax -> total
+  -- First, calculate and set discount_amount
   UPDATE invoices i
     SET 
-      subtotal = COALESCE((
-        SELECT SUM(amount) 
+      discount_amount = CASE 
+        WHEN i.discount_percentage > 0 THEN 
+          ((SELECT COALESCE(SUM(amount), 0) FROM invoice_items WHERE invoice_id = i.id) * i.discount_percentage / 100)::numeric(10,2)
+        ELSE 0
+      END,
+      updated_at = NOW()
+    WHERE user_id = test_user_id;
+  
+  -- Now calculate subtotal, tax, and total based on items and discount
+  UPDATE invoices i
+    SET 
+      subtotal = GREATEST(0, (
+        SELECT COALESCE(SUM(amount), 0) 
         FROM invoice_items 
         WHERE invoice_id = i.id
-      ), 0) - COALESCE(i.discount_amount, 0),
-      tax_amount = (COALESCE((
-        SELECT SUM(amount) 
-        FROM invoice_items 
-        WHERE invoice_id = i.id
-      ), 0) - COALESCE(i.discount_amount, 0)) * i.tax_rate / 100,
-      total = (COALESCE((
-        SELECT SUM(amount) 
-        FROM invoice_items 
-        WHERE invoice_id = i.id
-      ), 0) - COALESCE(i.discount_amount, 0)) * (1 + i.tax_rate / 100),
+      ) - COALESCE(i.discount_amount, 0)),
+      tax_amount = GREATEST(0, (
+        (SELECT COALESCE(SUM(amount), 0) FROM invoice_items WHERE invoice_id = i.id) - COALESCE(i.discount_amount, 0)
+      ) * i.tax_rate / 100),
+      total = GREATEST(0, (
+        (SELECT COALESCE(SUM(amount), 0) FROM invoice_items WHERE invoice_id = i.id) - COALESCE(i.discount_amount, 0)
+      ) * (1 + i.tax_rate / 100)),
       updated_at = NOW()
     WHERE user_id = test_user_id;
     

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState, useRef, useMemo } from "react";
 import { X, Trash2 } from "lucide-react";
 import { Client } from "../types";
 import {
@@ -6,6 +6,7 @@ import {
   useUpdateClient,
   useDeleteClient,
 } from "../hooks/useClients";
+import { useClientInvoices } from "../hooks/useClientInvoices";
 
 interface ClientFormProps {
   onClose: () => void;
@@ -21,25 +22,19 @@ export default function ClientForm({
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
   const deleteClientMutation = useDeleteClient();
-  const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    organization_number: "",
-    tax_number: "",
-    kid_number: "",
-    street_address: "",
-    postal_code: "",
-    city: "",
-    state: "",
-    country: "Norway",
-  });
 
-  useEffect(() => {
+  // Check if client has non-draft invoices
+  const { data: clientInvoices = [] } = useClientInvoices(client?.id);
+  const hasNonDraftInvoices = clientInvoices.some(
+    (invoice) => invoice.status !== "draft"
+  );
+  const canDelete = !hasNonDraftInvoices;
+
+  // Compute initial form data based on client prop
+  const initialFormData = useMemo(() => {
     if (client) {
-      setFormData({
+      return {
         name: client.name,
         email: client.email || "",
         phone: client.phone || "",
@@ -51,58 +46,114 @@ export default function ClientForm({
         city: client.city || "",
         state: client.state || "",
         country: client.country || "Norway",
-      });
-    }
-  }, [client]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      const clientData = {
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        organization_number: formData.organization_number || null,
-        tax_number: formData.tax_number || null,
-        kid_number: formData.kid_number || null,
-        street_address: formData.street_address || null,
-        postal_code: formData.postal_code || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        country: formData.country || null,
       };
-
-      if (client) {
-        await updateClientMutation.mutateAsync({
-          id: client.id,
-          data: clientData,
-        });
-        onSuccess();
-      } else {
-        const newClient = await createClientMutation.mutateAsync(clientData);
-        onSuccess(newClient.id);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : `Failed to ${client ? "update" : "create"} client`
-      );
     }
-  };
+    return {
+      name: "",
+      email: "",
+      phone: "",
+      organization_number: "",
+      tax_number: "",
+      kid_number: "",
+      street_address: "",
+      postal_code: "",
+      city: "",
+      state: "",
+      country: "Norway",
+    };
+  }, [client]); // Recompute when client changes
+
+  const [formData, setFormData] = useState(initialFormData);
+
+  // Reset form when initial data changes
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+
+  // Ref to access current formData in action
+  const formDataRef = useRef(formData);
+
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  interface ClientFormState {
+    error?: string;
+  }
+
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      _prevState: ClientFormState | null,
+      _formData: FormData
+    ): Promise<ClientFormState> => {
+      const currentFormData = formDataRef.current;
+
+      try {
+        const clientData = {
+          name: currentFormData.name,
+          email: currentFormData.email || null,
+          phone: currentFormData.phone || null,
+          organization_number: currentFormData.organization_number || null,
+          tax_number: currentFormData.tax_number || null,
+          kid_number: currentFormData.kid_number || null,
+          street_address: currentFormData.street_address || null,
+          postal_code: currentFormData.postal_code || null,
+          city: currentFormData.city || null,
+          state: currentFormData.state || null,
+          country: currentFormData.country || null,
+        };
+
+        if (client) {
+          await updateClientMutation.mutateAsync({
+            id: client.id,
+            data: clientData,
+          });
+          onSuccess();
+        } else {
+          const newClient = await createClientMutation.mutateAsync(clientData);
+          onSuccess(newClient.id);
+        }
+        return { error: undefined };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error
+              ? err.message
+              : `Failed to ${client ? "update" : "create"} client`,
+        };
+      }
+    },
+    null
+  );
+
+  const [deleteError, setDeleteError] = useState("");
 
   const handleDelete = async () => {
     if (!client) return;
 
-    setError("");
+    // Double-check: prevent deletion if client has non-draft invoices
+    if (hasNonDraftInvoices) {
+      setDeleteError(
+        "Cannot delete client with invoices that are not in draft status. Please delete or update all non-draft invoices first."
+      );
+      setShowDeleteConfirm(false);
+      return;
+    }
+
+    setDeleteError("");
 
     try {
       await deleteClientMutation.mutateAsync(client.id);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete client");
+      // Extract error message from Supabase error or generic error
+      let errorMessage = "Failed to delete client";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err && typeof err === "object" && "message" in err) {
+        errorMessage = String(err.message);
+      }
+      setDeleteError(errorMessage);
       setShowDeleteConfirm(false);
     }
   };
@@ -122,7 +173,7 @@ export default function ClientForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={submitAction} className="space-y-6">
           {/* Basic Information */}
           <div>
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
@@ -371,18 +422,27 @@ export default function ClientForm({
             </div>
           </div>
 
-          {error && (
+          {(state?.error || deleteError) && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {state?.error || deleteError}
             </div>
           )}
 
           {client && (
-            <div className="pt-4 border-t border-slate-200">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              {!canDelete && (
+                <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                    This client cannot be deleted because they have invoices
+                    that are not in draft status. Please delete or update all
+                    non-draft invoices first.
+                  </p>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                disabled={deleteClientMutation.isPending}
+                disabled={deleteClientMutation.isPending || !canDelete}
                 className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
@@ -401,12 +461,10 @@ export default function ClientForm({
             </button>
             <button
               type="submit"
-              disabled={
-                createClientMutation.isPending || updateClientMutation.isPending
-              }
+              disabled={isPending}
               className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createClientMutation.isPending || updateClientMutation.isPending
+              {isPending
                 ? client
                   ? "Updating..."
                   : "Creating..."
@@ -424,8 +482,9 @@ export default function ClientForm({
                 Delete Client?
               </h3>
               <p className="text-slate-600 dark:text-slate-400 mb-6">
-                This will permanently delete this client and all associated
-                invoices. This action cannot be undone.
+                {hasNonDraftInvoices
+                  ? "This client has invoices that are not in draft status and cannot be deleted. Please delete or update all non-draft invoices first."
+                  : "This will permanently delete this client and all associated draft invoices. This action cannot be undone."}
               </p>
               <div className="flex gap-3">
                 <button

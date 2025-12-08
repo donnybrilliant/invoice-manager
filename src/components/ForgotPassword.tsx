@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -6,35 +6,45 @@ interface ForgotPasswordProps {
   onBack: () => void;
 }
 
+interface ForgotPasswordState {
+  error?: string;
+  submitted?: boolean;
+  email?: string;
+}
+
 export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      _prevState: ForgotPasswordState | null,
+      formData: FormData
+    ): Promise<ForgotPasswordState> => {
+      const emailValue = formData.get("email") as string;
 
-    try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email,
-        {
-          redirectTo: `${window.location.origin}`,
-        }
-      );
+      try {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          emailValue,
+          {
+            redirectTo: `${window.location.origin}`,
+          }
+        );
 
-      if (resetError) throw resetError;
-      setSubmitted(true);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send reset email"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (resetError) throw resetError;
+        return { submitted: true, email: emailValue };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to send reset email",
+        };
+      }
+    },
+    null
+  );
+
+  const submitted = state?.submitted ?? false;
 
   if (submitted) {
     return (
@@ -49,8 +59,9 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
               Check your email
             </h1>
             <p className="text-slate-600 dark:text-slate-300 mb-6">
-              We've sent a password reset link to <strong>{email}</strong>.
-              Click the link in the email to set a new password.
+              We've sent a password reset link to{" "}
+              <strong>{state?.email || email}</strong>. Click the link in the
+              email to set a new password.
             </p>
 
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
@@ -88,7 +99,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
             Enter your email and we'll send you a link to reset your password.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form action={submitAction} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -98,6 +109,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -107,18 +119,18 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
               />
             </div>
 
-            {error && (
+            {state?.error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {state.error}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="w-full bg-slate-900 dark:bg-slate-700 text-white py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Sending..." : "Send Reset Link"}
+              {isPending ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
         </div>

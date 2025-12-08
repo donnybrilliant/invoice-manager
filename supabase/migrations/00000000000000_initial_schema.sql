@@ -12,7 +12,8 @@
   ## Tables
   
   ### clients
-  Client/customer information with auto-generated client numbers
+  Client/customer information with auto-generated client numbers.
+  Protected from deletion if they have invoices that are not in draft status.
   
   ### invoices
   Invoice records with automatic numbering, multi-currency, and discount support
@@ -112,6 +113,56 @@ CREATE TRIGGER set_client_number
   BEFORE INSERT ON clients
   FOR EACH ROW
   EXECUTE FUNCTION public.generate_client_number();
+
+-- ============================================================================
+-- CLIENT DELETION PROTECTION
+-- ============================================================================
+
+-- Function to check if a client has any non-draft invoices
+CREATE FUNCTION public.check_client_deletion_allowed(client_uuid uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+DECLARE
+  has_non_draft_invoices boolean;
+BEGIN
+  -- Check if client has any invoices that are not in draft status
+  SELECT EXISTS(
+    SELECT 1
+    FROM public.invoices
+    WHERE client_id = client_uuid
+    AND status != 'draft'
+  ) INTO has_non_draft_invoices;
+  
+  -- Return true if deletion is allowed (no non-draft invoices)
+  RETURN NOT has_non_draft_invoices;
+END;
+$$;
+
+-- Function to prevent deletion of clients with non-draft invoices
+CREATE FUNCTION public.prevent_client_deletion_with_non_draft_invoices()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+BEGIN
+  -- Check if deletion is allowed
+  IF NOT public.check_client_deletion_allowed(OLD.id) THEN
+    RAISE EXCEPTION 'Cannot delete client with invoices that are not in draft status. Please delete or update all non-draft invoices first.';
+  END IF;
+  
+  RETURN OLD;
+END;
+$$;
+
+-- Trigger to prevent deletion of clients with non-draft invoices
+CREATE TRIGGER prevent_client_deletion_trigger
+  BEFORE DELETE ON public.clients
+  FOR EACH ROW
+  EXECUTE FUNCTION public.prevent_client_deletion_with_non_draft_invoices();
 
 -- ============================================================================
 -- INVOICES TABLE
@@ -376,6 +427,67 @@ CREATE POLICY "Users can delete own logos"
   );
 
 -- ============================================================================
+-- AUTOMATIC OVERDUE INVOICE MARKING
+-- ============================================================================
+
+-- Function to automatically mark invoices as overdue when past due date
+CREATE OR REPLACE FUNCTION public.mark_overdue_invoices()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+DECLARE
+  updated_count integer;
+BEGIN
+  -- Update invoices that are past their due date and not already paid or overdue
+  -- Only update invoices that are in 'sent' or 'draft' status
+  UPDATE public.invoices
+  SET 
+    status = 'overdue',
+    updated_at = now()
+  WHERE 
+    due_date < CURRENT_DATE
+    AND status IN ('sent', 'draft');
+  
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+  
+  RETURN updated_count;
+END;
+$$;
+
+-- Function to mark overdue invoices for a specific user
+CREATE OR REPLACE FUNCTION public.mark_overdue_invoices_for_user(user_uuid uuid)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+DECLARE
+  updated_count integer;
+BEGIN
+  -- Update invoices that are past their due date and not already paid or overdue
+  -- Only update invoices that are in 'sent' or 'draft' status
+  UPDATE public.invoices
+  SET 
+    status = 'overdue',
+    updated_at = now()
+  WHERE 
+    user_id = user_uuid
+    AND due_date < CURRENT_DATE
+    AND status IN ('sent', 'draft');
+  
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+  
+  RETURN updated_count;
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION public.mark_overdue_invoices() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.mark_overdue_invoices_for_user(uuid) TO authenticated;
+
+-- ============================================================================
 -- NOTES
 -- ============================================================================
 
@@ -391,6 +503,7 @@ CREATE POLICY "Users can delete own logos"
   - Users can only access their own data
   - Storage bucket is private with user-specific policies
   - Password leak protection should be enabled in Supabase Auth settings
+  - Database-level protection prevents deletion of clients with non-draft invoices
   
   Norwegian/European Features:
   - KID numbers for Norwegian banking

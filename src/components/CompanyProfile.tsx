@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState, useRef } from "react";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,10 +16,10 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
   const { data: profile } = useCompanyProfile();
   const updateProfileMutation = useUpdateCompanyProfile();
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState("");
   const [formData, setFormData] = useState({
     company_name: "",
     phone: "",
@@ -67,22 +67,34 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
     }
   }, [profile]);
 
+  // Ref to access current formData and logoFile in action
+  const formDataRef = useRef(formData);
+  const logoFileRef = useRef(logoFile);
+
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  useEffect(() => {
+    logoFileRef.current = logoFile;
+  }, [logoFile]);
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+      setLogoError("Please select an image file");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image size must be less than 5MB");
+      setLogoError("Image size must be less than 5MB");
       return;
     }
 
     setLogoFile(file);
-    setError("");
+    setLogoError("");
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -91,17 +103,17 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
     reader.readAsDataURL(file);
   };
 
-  const uploadLogo = async (): Promise<string | null> => {
-    if (!logoFile || !user) return null;
+  const uploadLogo = async (file: File): Promise<string | null> => {
+    if (!file || !user) return null;
 
     setUploading(true);
     try {
-      const fileExt = logoFile.name.split(".").pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("company-logos")
-        .upload(fileName, logoFile, {
+        .upload(fileName, file, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -128,60 +140,83 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
     return emailRegex.test(email);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
+  interface CompanyProfileState {
+    error?: string;
+    success?: boolean;
+  }
 
-    if (formData.email && !validateEmail(formData.email)) {
-      setError("Please enter a valid email address");
-      return;
-    }
-
-    setError("");
-    setSuccessMessage("");
-
-    try {
-      let logoUrl = formData.logo_url;
-
-      if (logoFile) {
-        const uploadedUrl = await uploadLogo();
-        if (uploadedUrl) {
-          logoUrl = uploadedUrl;
-        }
+  const [state, submitAction, isPending] = useActionState(
+    async (
+      _prevState: CompanyProfileState | null,
+      _formData: FormData
+    ): Promise<CompanyProfileState> => {
+      if (!user) {
+        return { error: "User not authenticated" };
       }
 
-      await updateProfileMutation.mutateAsync({
-        company_name: formData.company_name || null,
-        phone: formData.phone || null,
-        email: formData.email || null,
-        website: formData.website || null,
-        organization_number: formData.organization_number || null,
-        tax_number: formData.tax_number || null,
-        street_address: formData.street_address || null,
-        postal_code: formData.postal_code || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        country: formData.country || null,
-        account_number: formData.account_number || null,
-        iban: formData.iban || null,
-        swift_bic: formData.swift_bic || null,
-        currency: formData.currency || "EUR",
-        payment_instructions: formData.payment_instructions || null,
-        logo_url: logoUrl || null,
-      });
+      const currentFormData = formDataRef.current;
+      const currentLogoFile = logoFileRef.current;
 
+      if (currentFormData.email && !validateEmail(currentFormData.email)) {
+        return { error: "Please enter a valid email address" };
+      }
+
+      try {
+        let logoUrl = currentFormData.logo_url;
+
+        if (currentLogoFile) {
+          const uploadedUrl = await uploadLogo(currentLogoFile);
+          if (uploadedUrl) {
+            logoUrl = uploadedUrl;
+          }
+        }
+
+        await updateProfileMutation.mutateAsync({
+          company_name: currentFormData.company_name || null,
+          phone: currentFormData.phone || null,
+          email: currentFormData.email || null,
+          website: currentFormData.website || null,
+          organization_number: currentFormData.organization_number || null,
+          tax_number: currentFormData.tax_number || null,
+          street_address: currentFormData.street_address || null,
+          postal_code: currentFormData.postal_code || null,
+          city: currentFormData.city || null,
+          state: currentFormData.state || null,
+          country: currentFormData.country || null,
+          account_number: currentFormData.account_number || null,
+          iban: currentFormData.iban || null,
+          swift_bic: currentFormData.swift_bic || null,
+          currency: currentFormData.currency || "EUR",
+          payment_instructions: currentFormData.payment_instructions || null,
+          logo_url: logoUrl || null,
+        });
+
+        setSuccessMessage("Company profile saved successfully!");
+        setLogoFile(null);
+
+        setTimeout(() => {
+          onBack();
+        }, 1500);
+
+        return { success: true, error: undefined };
+      } catch (err) {
+        return {
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to save company profile",
+        };
+      }
+    },
+    null
+  );
+
+  // Update success message when state changes
+  useEffect(() => {
+    if (state?.success) {
       setSuccessMessage("Company profile saved successfully!");
-      setLogoFile(null);
-
-      setTimeout(() => {
-        onBack();
-      }, 1500);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to save company profile"
-      );
     }
-  };
+  }, [state?.success]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -210,7 +245,7 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form action={submitAction} className="space-y-6">
             {/* Logo Upload */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -610,9 +645,9 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
               </div>
             </div>
 
-            {error && (
+            {(state?.error || logoError) && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {state?.error || logoError}
               </div>
             )}
 
@@ -632,15 +667,15 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
               </button>
               <button
                 type="submit"
-                disabled={updateProfileMutation.isPending || uploading}
+                disabled={isPending || uploading}
                 className="flex-1 px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {(updateProfileMutation.isPending || uploading) && (
+                {(isPending || uploading) && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
                 {uploading
                   ? "Uploading..."
-                  : updateProfileMutation.isPending
+                  : isPending
                   ? "Saving..."
                   : "Save Profile"}
               </button>

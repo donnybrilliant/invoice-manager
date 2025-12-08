@@ -21,7 +21,7 @@ import ClientDetailView from "./ClientDetailView";
 import { Invoice, Client } from "../types";
 import { useInvoices } from "../hooks/useInvoices";
 import { useClients } from "../hooks/useClients";
-import { getCurrencySymbol } from "../lib/currencyUtils";
+import { getCurrencySymbol } from "../lib/utils";
 
 interface DashboardProps {
   onNavigateToProfile: () => void;

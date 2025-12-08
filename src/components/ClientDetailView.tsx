@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Client, Invoice } from "../types";
 import { useClientInvoices } from "../hooks/useClientInvoices";
-import { getCurrencySymbol } from "../lib/currencyUtils";
+import { getCurrencySymbol } from "../lib/utils";
 
 interface ClientDetailViewProps {
   client: Client;

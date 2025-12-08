@@ -14,7 +14,7 @@ import {
   useUpdateInvoice,
   useDeleteInvoice,
 } from "../hooks/useInvoices";
-import { getCurrencySymbol } from "../lib/currencyUtils";
+import { getCurrencySymbol } from "../lib/utils";
 
 interface InvoiceFormProps {
   onClose: () => void;

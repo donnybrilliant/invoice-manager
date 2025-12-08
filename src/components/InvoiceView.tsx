@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { X, Printer, Download } from "lucide-react";
+import { X, Printer, Download, FileCode } from "lucide-react";
 import { Invoice } from "../types";
 import { getTemplate } from "../templates";
+import { generatePDFFromElement } from "../lib/pdfUtils";
 import {
-  generatePDFFromElement,
-  generateInvoiceFilename,
-} from "../lib/pdfUtils";
+  generateEHFXML,
+  downloadEHFXML,
+  generateEHFFilename,
+} from "../lib/ehfGenerator";
+import { generateInvoiceFilename } from "../lib/utils";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useToast } from "../contexts/ToastContext";
@@ -24,6 +27,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
     useCompanyProfile();
   const { showToast } = useToast();
   const [downloading, setDownloading] = useState(false);
+  const [downloadingEHF, setDownloadingEHF] = useState(false);
 
   const loading = itemsLoading || profileLoading;
 
@@ -37,22 +41,24 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
     // Calculate scale to fit ALL content on one A4 page
     // A4: 210mm x 297mm, with 10mm padding = 190mm x 277mm available
     // At 96 DPI: 1mm ≈ 3.78px, so 277mm ≈ 1047px
-    const contentDiv = document.querySelector('.invoice-content-print > div') as HTMLElement;
+    const contentDiv = document.querySelector(
+      ".invoice-content-print > div"
+    ) as HTMLElement;
     if (contentDiv) {
       // Force a reflow to get accurate measurements
-      contentDiv.style.height = 'auto';
-      contentDiv.style.maxHeight = 'none';
-      
+      contentDiv.style.height = "auto";
+      contentDiv.style.maxHeight = "none";
+
       // Get the actual rendered height (including all content)
       const contentHeight = contentDiv.scrollHeight;
       const availableHeight = 1047; // pixels (277mm)
-      
+
       // Always scale to fit, even if slightly smaller than available
       const scale = Math.min(1, availableHeight / contentHeight);
-      
+
       // Apply scale via inline style for print
-      const style = document.createElement('style');
-      style.id = 'invoice-print-scale';
+      const style = document.createElement("style");
+      style.id = "invoice-print-scale";
       style.textContent = `
         @media print {
           .invoice-content-print {
@@ -71,20 +77,20 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
         }
       `;
       // Remove existing scale style if present
-      const existing = document.getElementById('invoice-print-scale');
+      const existing = document.getElementById("invoice-print-scale");
       if (existing) {
         document.head.removeChild(existing);
       }
       document.head.appendChild(style);
-      
+
       // Clean up after print
       const cleanup = () => {
-        const styleEl = document.getElementById('invoice-print-scale');
+        const styleEl = document.getElementById("invoice-print-scale");
         if (styleEl) {
           document.head.removeChild(styleEl);
         }
       };
-      window.addEventListener('afterprint', cleanup, { once: true });
+      window.addEventListener("afterprint", cleanup, { once: true });
     }
     window.print();
   };
@@ -123,6 +129,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       const customerName = client.name || "";
       const filename = generateInvoiceFilename(
         invoice.invoice_number,
+        "pdf",
         customerName,
         invoice.issue_date
       );
@@ -139,6 +146,54 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       showToast("Failed to download PDF. Please try again.", "error");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleDownloadEHF = () => {
+    if (downloadingEHF || loading || !client || !profile) return;
+
+    setDownloadingEHF(true);
+    try {
+      // Validate required fields for EHF
+      if (!profile.organization_number) {
+        showToast(
+          "Company organization number is required for EHF export",
+          "error"
+        );
+        return;
+      }
+
+      if (!client.organization_number) {
+        showToast(
+          "Client organization number is required for EHF export",
+          "error"
+        );
+        return;
+      }
+
+      // Generate EHF XML
+      const xmlContent = generateEHFXML(invoice, items, client, profile);
+
+      // Generate filename
+      const customerName = client.name || "";
+      const filename = generateEHFFilename(
+        invoice.invoice_number,
+        customerName,
+        invoice.issue_date
+      );
+
+      // Download XML file
+      downloadEHFXML(xmlContent, filename);
+      showToast("EHF XML downloaded successfully", "success");
+    } catch (error) {
+      console.error("Error generating EHF XML:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate EHF XML. Please try again.";
+      showToast(errorMessage, "error");
+    } finally {
+      setDownloadingEHF(false);
     }
   };
 
@@ -184,6 +239,14 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
               title="Download PDF"
             >
               <Download className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleDownloadEHF}
+              disabled={downloadingEHF || loading || !client || !profile}
+              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Export EHF (Electronic Invoice Format)"
+            >
+              <FileCode className="w-5 h-5" />
             </button>
             <button
               onClick={onClose}

@@ -52,16 +52,16 @@ export async function generatePDFFromElement(
       scale: 2, // Higher scale for better quality
       useCORS: true, // Allow cross-origin images (for logos)
       logging: false,
-      backgroundColor: '#ffffff', // Ensure white background
+      backgroundColor: "#ffffff", // Ensure white background
     });
 
     // Calculate dimensions
     const imgWidth = 210 - config.margins.left - config.margins.right; // A4 width minus margins
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
+
     // Ensure filename has .pdf extension
-    const filename = config.filename.endsWith('.pdf') 
-      ? config.filename 
+    const filename = config.filename.endsWith(".pdf")
+      ? config.filename
       : `${config.filename}.pdf`;
 
     // Create PDF
@@ -73,10 +73,10 @@ export async function generatePDFFromElement(
 
     // Add image to PDF
     const imgData = canvas.toDataURL("image/png");
-    
+
     // Calculate available page height
     const pageHeight = 297 - config.margins.top - config.margins.bottom; // A4 height minus margins
-    
+
     // If content fits on one page, add it directly (most invoices will be single page)
     if (imgHeight <= pageHeight) {
       pdf.addImage(
@@ -98,24 +98,30 @@ export async function generatePDFFromElement(
         // Calculate how much of the image to show on this page
         const pageContentHeight = Math.min(heightLeft, pageHeight);
         const sourceHeight = (pageContentHeight / imgHeight) * canvas.height;
-        
+
         // Create a temporary canvas for this page's content
-        const pageCanvas = document.createElement('canvas');
+        const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvas.width;
         pageCanvas.height = sourceHeight;
-        const pageCtx = pageCanvas.getContext('2d');
-        
+        const pageCtx = pageCanvas.getContext("2d");
+
         if (pageCtx) {
           // Draw the portion of the image for this page
           pageCtx.drawImage(
             canvas,
-            0, sourceY, canvas.width, sourceHeight, // source
-            0, 0, canvas.width, sourceHeight // destination
+            0,
+            sourceY,
+            canvas.width,
+            sourceHeight, // source
+            0,
+            0,
+            canvas.width,
+            sourceHeight // destination
           );
-          
+
           const pageImgData = pageCanvas.toDataURL("image/png");
           const pageImgHeight = pageContentHeight;
-          
+
           pdf.addImage(
             pageImgData,
             "PNG",
@@ -125,11 +131,11 @@ export async function generatePDFFromElement(
             pageImgHeight
           );
         }
-        
+
         // Move to next page if there's more content
         heightLeft -= pageHeight;
         sourceY += sourceHeight;
-        
+
         if (heightLeft > 0) {
           pdf.addPage();
           yPosition = config.margins.top;
@@ -167,42 +173,5 @@ export function printElement(element: HTMLElement): void {
   window.location.reload();
 }
 
-/**
- * Generates a standardized filename for invoice PDFs
- * Format: invoice-{invoice-number}-{customer-name}-{date}.pdf
- *
- * @param invoiceNumber - The invoice number
- * @param customerName - The customer/client name (optional)
- * @param date - The invoice date (optional)
- * @returns Formatted filename
- */
-export function generateInvoiceFilename(
-  invoiceNumber: string,
-  customerName?: string,
-  date?: string
-): string {
-  // Sanitize invoice number for filename
-  const sanitizedInvoiceNumber = invoiceNumber
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  let filename = `invoice-${sanitizedInvoiceNumber}`;
-
-  if (customerName) {
-    // Sanitize customer name for filename
-    const sanitizedName = customerName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    filename += `-${sanitizedName}`;
-  }
-
-  if (date) {
-    // Format date as YYYY-MM-DD
-    const dateStr = new Date(date).toISOString().split("T")[0];
-    filename += `-${dateStr}`;
-  }
-
-  return `${filename}.pdf`;
-}
+// Re-export for backward compatibility
+export { generateInvoiceFilename } from "./utils";

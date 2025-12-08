@@ -4,14 +4,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { Invoice, InvoiceItem, CompanyProfile } from "../types";
 import { getTemplate } from "../templates";
-import {
-  generatePDFFromElement,
-  generateInvoiceFilename,
-} from "../lib/pdfUtils";
+import { generatePDFFromElement } from "../lib/pdfUtils";
+import { generateInvoiceFilename } from "../lib/utils";
 import { useInvoices, useUpdateInvoiceStatus } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { getCurrencySymbol } from "../lib/currencyUtils";
+import { getCurrencySymbol } from "../lib/utils";
 
 interface InvoiceListProps {
   onViewInvoice: (invoice: Invoice) => void;
@@ -128,6 +126,7 @@ export default function InvoiceList({
       const customerName = invoice.client?.name || "";
       const filename = generateInvoiceFilename(
         invoice.invoice_number,
+        "pdf",
         customerName,
         invoice.issue_date
       );

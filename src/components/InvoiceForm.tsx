@@ -473,9 +473,84 @@ export default function InvoiceForm({
               </button>
             </div>
 
-            <div className="space-y-3">
+            <style>{`
+              .invoice-line-items-container {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+              }
+              .invoice-line-item {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 12px;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                background: white;
+              }
+              @media (prefers-color-scheme: dark) {
+                .invoice-line-item {
+                  border-color: #475569;
+                  background: #334155;
+                }
+              }
+              @media (min-width: 640px) {
+                .invoice-line-items-header {
+                  display: grid;
+                  grid-template-columns: 2fr 100px 140px 160px auto;
+                  gap: 12px;
+                  padding: 8px 12px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #6b7280;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  border-bottom: 2px solid #e5e7eb;
+                }
+                .dark .invoice-line-items-header {
+                  color: #94a3b8;
+                  border-bottom-color: #475569;
+                }
+                .invoice-line-item {
+                  grid-template-columns: 2fr 100px 140px 160px auto;
+                  gap: 12px;
+                  padding: 0;
+                  border: none;
+                  background: transparent;
+                }
+                .dark .invoice-line-item {
+                  background: transparent;
+                }
+                .invoice-line-item-label {
+                  display: none;
+                }
+              }
+              @media (min-width: 768px) {
+                .invoice-line-items-header {
+                  grid-template-columns: 2fr 100px 150px 180px auto;
+                }
+                .invoice-line-item {
+                  grid-template-columns: 2fr 100px 150px 180px auto;
+                }
+              }
+            `}</style>
+
+            <div className="invoice-line-items-container">
+              {/* Desktop Header */}
+              <div className="invoice-line-items-header hidden sm:grid">
+                <div>Description</div>
+                <div>Quantity</div>
+                <div>Unit Price</div>
+                <div>Amount</div>
+                <div></div>
+              </div>
+
               {items.map((item) => (
-                <div key={item.id} className="flex gap-3 items-start">
+                <div key={item.id} className="invoice-line-item">
+                  <div>
+                    <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
+                      Description
+                    </label>
                   <input
                     type="text"
                     value={item.description}
@@ -483,8 +558,13 @@ export default function InvoiceForm({
                       updateItem(item.id, "description", e.target.value)
                     }
                     placeholder="Description"
-                    className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   />
+                  </div>
+                  <div>
+                    <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
+                      Quantity
+                    </label>
                   <input
                     type="number"
                     step="0.01"
@@ -503,8 +583,13 @@ export default function InvoiceForm({
                       }
                     }}
                     placeholder="Qty"
-                    className="w-24 px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   />
+                  </div>
+                  <div>
+                    <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
+                      Unit Price
+                    </label>
                   <input
                     type="number"
                     step="0.01"
@@ -523,20 +608,28 @@ export default function InvoiceForm({
                       }
                     }}
                     placeholder="Price"
-                    className="w-32 px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
                   />
-                  <div className="w-32 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-slate-700 dark:text-slate-300">
+                  </div>
+                  <div>
+                    <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
+                      Amount
+                    </label>
+                    <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-slate-700 dark:text-slate-300 flex items-center justify-end min-h-[42px]">
                     {getCurrencySymbol(formData.currency)}{" "}
                     {item.amount.toFixed(2)}
+                    </div>
                   </div>
+                  <div className="flex items-start justify-end">
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
                     disabled={items.length === 1}
-                    className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
+                  </div>
                 </div>
               ))}
             </div>

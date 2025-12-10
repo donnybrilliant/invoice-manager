@@ -79,3 +79,12 @@ export interface CompanyProfile {
   created_at: string;
   updated_at: string;
 }
+
+export interface InvoiceShare {
+  id: string;
+  invoice_id: string;
+  token: string;
+  expires_at: string;
+  created_at: string;
+  viewed_at: string | null;
+}

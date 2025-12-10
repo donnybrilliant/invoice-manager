@@ -361,6 +361,16 @@ deno_version = 2
 
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
+# 
+# SMTP Configuration for send-invoice-email function
+# Uncomment and set these for local development:
+# SMTP_HOST = "env(SMTP_HOST)"
+# SMTP_PORT = "env(SMTP_PORT)"
+# SMTP_SECURE = "env(SMTP_SECURE)"
+# SMTP_USER = "env(SMTP_USER)"
+# SMTP_PASSWORD = "env(SMTP_PASSWORD)"
+# SMTP_FROM_EMAIL = "env(SMTP_FROM_EMAIL)"
+# SMTP_FROM_NAME = "env(SMTP_FROM_NAME)"
 
 [analytics]
 enabled = true

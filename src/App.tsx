@@ -7,16 +7,36 @@ import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard";
 import ResetPassword from "./components/ResetPassword";
 import CompanyProfile from "./components/CompanyProfile";
+import PublicInvoiceView from "./components/PublicInvoiceView";
 import { CheckCircle, X } from "lucide-react";
 
-type Route = "dashboard" | "company-profile" | "reset-password";
+type Route =
+  | "dashboard"
+  | "company-profile"
+  | "reset-password"
+  | "public-invoice";
 
 function AppContent() {
   const { user, loading, signupEmail, clearSignupEmail } = useAuth();
   const [currentRoute, setCurrentRoute] = useState<Route>("dashboard");
+  const [publicInvoiceToken, setPublicInvoiceToken] = useState<string | null>(
+    null
+  );
   const hasPushedStateRef = useRef(false);
 
   useEffect(() => {
+    // Check for public invoice route: /invoice/[token]
+    const path = window.location.pathname;
+    const invoiceMatch = path.match(/^\/invoice\/(.+)$/);
+    if (invoiceMatch) {
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setPublicInvoiceToken(invoiceMatch[1]);
+        setCurrentRoute("public-invoice");
+      }, 0);
+      return;
+    }
+
     // Check for password recovery token in hash fragment
     // Supabase sends type=recovery in hash fragment when password reset link is clicked
     const checkHash = () => {
@@ -71,18 +91,25 @@ function AppContent() {
     }
   }, [currentRoute]);
 
+  // Show public invoice view (no auth required) - check BEFORE loading/auth checks
+  if (currentRoute === "public-invoice" && publicInvoiceToken) {
+    return <PublicInvoiceView token={publicInvoiceToken} />;
+  }
+
+  // Show reset password page if in recovery mode (even if user not logged in yet)
+  // The recovery session will be established after Supabase processes the hash fragment
+  // Check BEFORE loading/auth checks since it doesn't require authentication
+  if (currentRoute === "reset-password") {
+    return <ResetPassword onSuccess={() => setCurrentRoute("dashboard")} />;
+  }
+
+  // Only show loading screen for authenticated routes
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-slate-600">Loading...</div>
       </div>
     );
-  }
-
-  // Show reset password page if in recovery mode (even if user not logged in yet)
-  // The recovery session will be established after Supabase processes the hash fragment
-  if (currentRoute === "reset-password") {
-    return <ResetPassword onSuccess={() => setCurrentRoute("dashboard")} />;
   }
 
   if (!user) {

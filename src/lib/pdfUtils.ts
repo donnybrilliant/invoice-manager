@@ -320,6 +320,166 @@ export async function generatePDFFromElement(
 }
 
 /**
+ * Generates a PDF from an HTML element and returns it as base64 string
+ * Useful for email attachments or API uploads
+ *
+ * @param element - The HTML element to convert to PDF
+ * @param options - PDF generation options (filename is ignored)
+ * @returns Promise that resolves with base64 PDF string
+ */
+export async function generatePDFBase64(
+  element: HTMLElement,
+  options: Omit<PDFOptions, "filename"> = {}
+): Promise<string> {
+  const config = { ...DEFAULT_PDF_OPTIONS, ...options };
+
+  // Ensure element is visible and has dimensions for proper rendering
+  element.style.display = "block";
+  element.style.visibility = "visible";
+  if (!element.style.position || element.style.position === "absolute") {
+    element.style.position = "relative";
+  }
+
+  // Force layout recalculation for flexbox/grid
+  void element.offsetHeight; // Force reflow
+
+  // Wait for any pending renders and images to load
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          void element.offsetHeight;
+          resolve(undefined);
+        }, 200);
+      });
+    });
+  });
+
+  // Wait for images to load
+  const images = element.querySelectorAll("img");
+  await Promise.all(
+    Array.from(images).map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = () => resolve(undefined);
+        img.onerror = () => resolve(undefined);
+        setTimeout(resolve, 1000);
+      });
+    })
+  );
+
+  // Capture the HTML element as a canvas
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: "#ffffff",
+    allowTaint: false,
+    foreignObjectRendering: false,
+    windowWidth: element.scrollWidth,
+    windowHeight: element.scrollHeight,
+    onclone: (clonedDoc) => {
+      const clonedElement =
+        clonedDoc.querySelector(".pdf-generation-temp") ||
+        clonedDoc.body.querySelector("div");
+      if (clonedElement && clonedElement instanceof HTMLElement) {
+        void clonedElement.offsetHeight;
+        const allElements = clonedElement.querySelectorAll("*");
+        allElements.forEach((el) => {
+          if (el instanceof HTMLElement) {
+            el.style.fontFeatureSettings = '"liga" 0, "kern" 1';
+            el.style.fontVariantLigatures = "none";
+            el.style.textRendering = "geometricPrecision";
+          }
+        });
+
+        const brutalistTemplate = clonedElement.querySelector(
+          ".brutalist-template"
+        );
+        if (brutalistTemplate) {
+          const brutalistElements = brutalistTemplate.querySelectorAll("*");
+          brutalistElements.forEach((el) => {
+            if (el instanceof HTMLElement) {
+              const styleAttr = el.getAttribute("style") || "";
+              const computedStyle = clonedDoc.defaultView?.getComputedStyle(el);
+              const bgColor = computedStyle?.backgroundColor || "";
+
+              const hasBlackBackground =
+                styleAttr.includes("background: #000") ||
+                styleAttr.includes("background:#000") ||
+                styleAttr.includes("background: #000000") ||
+                styleAttr.includes("background:#000000") ||
+                styleAttr.includes("background-color: #000") ||
+                styleAttr.includes("background-color:#000") ||
+                styleAttr.includes("background-color: #000000") ||
+                styleAttr.includes("background-color:#000000") ||
+                bgColor === "rgb(0, 0, 0)" ||
+                bgColor === "#000" ||
+                bgColor === "#000000";
+
+              if (hasBlackBackground) {
+                el.style.color = "#ffffff";
+                const children = el.querySelectorAll("*");
+                children.forEach((child) => {
+                  if (child instanceof HTMLElement) {
+                    child.style.color = "#ffffff";
+                  }
+                });
+              }
+            }
+          });
+        }
+      }
+    },
+  });
+
+  // Create PDF from canvas
+  const pdf = new jsPDF({
+    orientation: config.orientation,
+    unit: "mm",
+    format: config.format,
+    compress: true,
+  });
+
+  const imgData = canvas.toDataURL("image/png", 1.0);
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+  const imgWidth = pdfWidth - config.margins.left - config.margins.right;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const pageHeight = pdfHeight - config.margins.top - config.margins.bottom;
+
+  let heightLeft = imgHeight;
+  let position = config.margins.top;
+
+  pdf.addImage(
+    imgData,
+    "PNG",
+    config.margins.left,
+    position,
+    imgWidth,
+    imgHeight
+  );
+  heightLeft -= pageHeight;
+
+  while (heightLeft >= 0) {
+    position = heightLeft - imgHeight + config.margins.top;
+    pdf.addPage();
+    pdf.addImage(
+      imgData,
+      "PNG",
+      config.margins.left,
+      position,
+      imgWidth,
+      imgHeight
+    );
+    heightLeft -= pageHeight;
+  }
+
+  // Return base64 string (without data URL prefix)
+  return pdf.output("datauristring").split(",")[1];
+}
+
+/**
  * Opens the browser's print dialog for an HTML element
  *
  * @param element - The HTML element to print

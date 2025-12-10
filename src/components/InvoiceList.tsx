@@ -221,66 +221,8 @@ export default function InvoiceList({
       tempDiv.style.display = "block";
       tempDiv.style.visibility = "visible";
       tempDiv.style.opacity = "1";
+      // Centralized styles in invoice.css handle dark mode isolation
       tempDiv.className = "pdf-generation-temp invoice-light-mode";
-      // Add PDF-specific styles for better rendering and force light mode
-      const pdfStyle = document.createElement("style");
-      pdfStyle.id = "pdf-generation-styles";
-      pdfStyle.textContent = `
-        .pdf-generation-temp .brutalist-invoice-number {
-          margin-top: 20px !important;
-        }
-        /* Force light mode for PDF generation */
-        @media (prefers-color-scheme: dark) {
-          .pdf-generation-temp {
-            color-scheme: light !important;
-            background-color: #ffffff !important;
-            color: #1f2937 !important;
-          }
-          .pdf-generation-temp .dark\\:text-white,
-          .pdf-generation-temp .dark\\:text-slate-50,
-          .pdf-generation-temp .dark\\:text-slate-100,
-          .pdf-generation-temp .dark\\:text-slate-200,
-          .pdf-generation-temp .dark\\:text-slate-300,
-          .pdf-generation-temp .dark\\:text-slate-400 {
-            color: #1f2937 !important;
-          }
-          .pdf-generation-temp .dark\\:bg-slate-800,
-          .pdf-generation-temp .dark\\:bg-slate-700,
-          .pdf-generation-temp .dark\\:bg-slate-900 {
-            background-color: #ffffff !important;
-          }
-          /* Override dark mode for elements without explicit color - but exclude black backgrounds */
-          .pdf-generation-temp *:not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="color"]) {
-            color: #1f2937 !important;
-          }
-          /* Preserve black background + white text for Brutalist template - must come after general rule */
-          /* Use maximum specificity to override dark mode */
-          .pdf-generation-temp .brutalist-template [style*="background: #000"],
-          .pdf-generation-temp .brutalist-template [style*="background:#000"],
-          .pdf-generation-temp .brutalist-template [style*="background: #000000"],
-          .pdf-generation-temp .brutalist-template [style*="background:#000000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000000"],
-          .pdf-generation-temp .brutalist-template [style*="background: rgb(0, 0, 0)"],
-          .pdf-generation-temp .brutalist-template [style*="background:rgb(0, 0, 0)"] {
-            color: #ffffff !important;
-          }
-          /* Also target all children and text nodes of black background elements */
-          .pdf-generation-temp .brutalist-template [style*="background: #000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background:#000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background: #000"] span,
-          .pdf-generation-temp .brutalist-template [style*="background:#000"] span,
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000"] span,
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000"] span {
-            color: #ffffff !important;
-          }
-        }
-      `;
-      document.head.appendChild(pdfStyle);
       document.body.appendChild(tempDiv);
 
       // Render invoice React component
@@ -331,11 +273,6 @@ export default function InvoiceList({
       }
       if (tempDiv && tempDiv.parentNode) {
         document.body.removeChild(tempDiv);
-      }
-      // Remove PDF-specific styles
-      const pdfStyle = document.getElementById("pdf-generation-styles");
-      if (pdfStyle) {
-        document.head.removeChild(pdfStyle);
       }
       setDownloadingId(null);
     }

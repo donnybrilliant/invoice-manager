@@ -121,65 +121,8 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       tempDiv.style.visibility = "visible";
       tempDiv.style.opacity = "1";
       // Ensure print CSS doesn't affect this element
+      // Centralized styles in invoice.css handle dark mode isolation
       tempDiv.className = "pdf-generation-temp invoice-light-mode";
-      // Add PDF-specific styles for better rendering and force light mode
-      const pdfStyle = document.createElement("style");
-      pdfStyle.id = "pdf-generation-styles";
-      pdfStyle.textContent = `
-        .pdf-generation-temp .brutalist-invoice-number {
-          margin-top: 20px !important;
-        }
-        /* Force light mode for PDF generation - only override Tailwind classes */
-        @media (prefers-color-scheme: dark) {
-          .pdf-generation-temp {
-            color-scheme: light !important;
-            background-color: #ffffff !important;
-          }
-          .pdf-generation-temp .dark\\:text-white,
-          .pdf-generation-temp .dark\\:text-slate-50,
-          .pdf-generation-temp .dark\\:text-slate-100,
-          .pdf-generation-temp .dark\\:text-slate-200,
-          .pdf-generation-temp .dark\\:text-slate-300,
-          .pdf-generation-temp .dark\\:text-slate-400 {
-            color: #1f2937 !important;
-          }
-          .pdf-generation-temp .dark\\:bg-slate-800,
-          .pdf-generation-temp .dark\\:bg-slate-700,
-          .pdf-generation-temp .dark\\:bg-slate-900 {
-            background-color: #ffffff !important;
-          }
-          /* Override dark mode for elements without explicit color - but exclude black backgrounds */
-          .pdf-generation-temp *:not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="color"]) {
-            color: #1f2937 !important;
-          }
-          /* Preserve black background + white text for Brutalist template - must come after general rule */
-          /* Use maximum specificity to override dark mode */
-          .pdf-generation-temp .brutalist-template [style*="background: #000"],
-          .pdf-generation-temp .brutalist-template [style*="background:#000"],
-          .pdf-generation-temp .brutalist-template [style*="background: #000000"],
-          .pdf-generation-temp .brutalist-template [style*="background:#000000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000000"],
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000000"],
-          .pdf-generation-temp .brutalist-template [style*="background: rgb(0, 0, 0)"],
-          .pdf-generation-temp .brutalist-template [style*="background:rgb(0, 0, 0)"] {
-            color: #ffffff !important;
-          }
-          /* Also target all children and text nodes of black background elements */
-          .pdf-generation-temp .brutalist-template [style*="background: #000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background:#000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000"] *,
-          .pdf-generation-temp .brutalist-template [style*="background: #000"] span,
-          .pdf-generation-temp .brutalist-template [style*="background:#000"] span,
-          .pdf-generation-temp .brutalist-template [style*="background-color: #000"] span,
-          .pdf-generation-temp .brutalist-template [style*="background-color:#000"] span {
-            color: #ffffff !important;
-          }
-        }
-      `;
-      document.head.appendChild(pdfStyle);
       document.body.appendChild(tempDiv);
 
       // Render invoice React component
@@ -230,11 +173,6 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       }
       if (tempDiv && tempDiv.parentNode) {
         document.body.removeChild(tempDiv);
-      }
-      // Remove PDF-specific styles
-      const pdfStyle = document.getElementById("pdf-generation-styles");
-      if (pdfStyle) {
-        document.head.removeChild(pdfStyle);
       }
       setDownloading(false);
     }
@@ -365,135 +303,6 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
           </button>
         </div>
       </div>
-
-      <style>{`
-        /* Force light mode for invoice content - prevent dark mode inheritance */
-        /* Only override Tailwind classes, preserve template inline styles */
-        @media (prefers-color-scheme: dark) {
-          .invoice-light-mode {
-            color-scheme: light !important;
-            background-color: #ffffff !important;
-          }
-          /* Override Tailwind dark mode text classes */
-          .invoice-light-mode .dark\\:text-white,
-          .invoice-light-mode .dark\\:text-slate-50,
-          .invoice-light-mode .dark\\:text-slate-100,
-          .invoice-light-mode .dark\\:text-slate-200,
-          .invoice-light-mode .dark\\:text-slate-300,
-          .invoice-light-mode .dark\\:text-slate-400 {
-            color: #1f2937 !important;
-          }
-          .invoice-light-mode .dark\\:bg-slate-800,
-          .invoice-light-mode .dark\\:bg-slate-700,
-          .invoice-light-mode .dark\\:bg-slate-900 {
-            background-color: #ffffff !important;
-          }
-        }
-
-        @media print {
-          @page {
-            margin: 0;
-            size: A4;
-          }
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-scheme: light !important;
-          }
-          html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: 100vh !important;
-            overflow: hidden !important;
-            color-scheme: light !important;
-          }
-          /* Hide everything by default */
-          body * {
-            visibility: hidden;
-          }
-          /* Show only invoice print container and its invoice content */
-          .invoice-print-container,
-          .invoice-print-container .invoice-content-print,
-          .invoice-print-container .invoice-content-print * {
-            visibility: visible !important;
-            color-scheme: light !important;
-          }
-          .invoice-print-container {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            z-index: 99999 !important;
-            color-scheme: light !important;
-          }
-          /* Remove modal styling */
-          .invoice-print-container > div {
-            position: static !important;
-            background: white !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: visible !important;
-            color-scheme: light !important;
-          }
-          /* Hide header and footer */
-          .invoice-print-container > div > div:first-child,
-          .invoice-print-container > div > div:last-child {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          /* Position and size invoice content */
-          .invoice-content-print {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 210mm !important;
-            height: auto !important;
-            min-height: 297mm !important;
-            margin: 0 !important;
-            padding: 10mm !important;
-            border: 0 !important;
-            box-sizing: border-box !important;
-            overflow: visible !important;
-            background: white !important;
-            page-break-after: avoid !important;
-            page-break-inside: avoid !important;
-            color-scheme: light !important;
-          }
-          /* Scale the invoice content to fit - ensure all content is visible */
-          .invoice-content-print > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            transform-origin: top left !important;
-            page-break-after: avoid !important;
-            page-break-inside: avoid !important;
-            overflow: visible !important;
-            color-scheme: light !important;
-          }
-          /* Ensure PDF generation temp element is not affected by print CSS */
-          .pdf-generation-temp,
-          .pdf-generation-temp * {
-            visibility: hidden !important;
-          }
-          .print\\:hidden {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          .print\\:border-0 {
-            border: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

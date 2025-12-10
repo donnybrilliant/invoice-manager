@@ -1,0 +1,571 @@
+/**
+ * Centralized Invoice Styling System
+ *
+ * This file contains all invoice-specific styles that ensure:
+ * 1. Invoices are ALWAYS in light mode (dark mode never affects them)
+ * 2. Consistent styling across preview, template selector, PDF, and print
+ * 3. Template-specific styles remain untouched (templates use their own classes)
+ *
+ * Usage: Wrap invoice content with class "invoice-light-mode"
+ */
+
+/* ============================================================================
+   BASE: Invoice Light Mode Isolation
+   ============================================================================ */
+
+/**
+ * Core isolation class - creates a light mode context for invoices
+ * This completely isolates invoices from dark mode using CSS isolation
+ */
+.invoice-light-mode {
+  color-scheme: light !important;
+  isolation: isolate;
+  /* Creates a new stacking context */
+  background-color: #ffffff !important;
+}
+
+/* ============================================================================
+   DARK MODE OVERRIDES: Complete isolation from dark mode
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+
+  /* Force light mode container */
+  .invoice-light-mode {
+    color-scheme: light !important;
+    background-color: #ffffff !important;
+  }
+
+  /**
+   * AGGRESSIVE DARK MODE ISOLATION
+   * Set default text color for ALL elements that don't have explicit inline styles
+   * This ensures no element inherits dark mode colors
+   * 
+   * Note: We exclude elements with black backgrounds (they should have white text)
+   * and elements that already have explicit color styles
+   */
+  .invoice-light-mode *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]) {
+    color: #1f2937 !important;
+  }
+
+  /**
+   * CRITICAL: Preserve color inheritance for children of elements with explicit colors
+   * This ensures templates can set colors on parents and children inherit correctly
+   * This MUST come BEFORE black background rules so it can be overridden when needed
+   * Higher specificity ensures this overrides the general dark color rule
+   */
+  .invoice-light-mode [style*="color"] *:not([style*="color"]),
+  .invoice-light-mode [style*="color"] *:not([style*="color"]) * {
+    color: inherit !important;
+  }
+
+  /**
+   * Handle dark backgrounds (not just black) - ensure children inherit parent colors
+   * This fixes Typewriter template where parent has dark background + light text
+   * Must come after color inheritance rule to work correctly
+   * More specific selectors for elements with both dark background AND color
+   */
+  .invoice-light-mode [style*="background: #3"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background: #4"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background: #5"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #3"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #4"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #5"] *:not([style*="color"]),
+  /* More specific: elements with dark background AND color - children should inherit */
+  .invoice-light-mode [style*="background: #3"][style*="color"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background: #4"][style*="color"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background: #5"][style*="color"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #3"][style*="color"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #4"][style*="color"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #5"][style*="color"] *:not([style*="color"]) {
+    color: inherit !important;
+  }
+
+  /**
+   * CRITICAL: Black background + white text (MUST come LAST to override everything)
+   * This ensures elements with black backgrounds get white text, overriding ALL other rules
+   * Higher specificity with multiple attribute selectors ensures this overrides inheritance rules
+   */
+  .invoice-light-mode [style*="background: #000"],
+  .invoice-light-mode [style*="background:#000"],
+  .invoice-light-mode [style*="background: #000000"],
+  .invoice-light-mode [style*="background:#000000"],
+  .invoice-light-mode [style*="background-color: #000"],
+  .invoice-light-mode [style*="background-color:#000"],
+  .invoice-light-mode [style*="background-color: #000000"],
+  .invoice-light-mode [style*="background-color:#000000"],
+  .invoice-light-mode [style*="background: rgb(0, 0, 0)"],
+  .invoice-light-mode [style*="background:rgb(0, 0, 0)"] {
+    color: #ffffff !important;
+  }
+
+  /* Also target all children of black background elements - MUST override everything including inheritance */
+  /* Higher specificity: matches children of elements with black background, regardless of parent color */
+  /* CRITICAL: Prevent dark text rule from applying to descendants of black backgrounds */
+  .invoice-light-mode [style*="background: #000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background:#000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color:#000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background: #000000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background:#000000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color: #000000"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background-color:#000000"] *:not([style*="color"]) {
+    color: #ffffff !important;
+  }
+
+  .invoice-light-mode [style*="background: #000"] *,
+  .invoice-light-mode [style*="background:#000"] *,
+  .invoice-light-mode [style*="background-color: #000"] *,
+  .invoice-light-mode [style*="background-color:#000"] *,
+  .invoice-light-mode [style*="background: #000000"] *,
+  .invoice-light-mode [style*="background:#000000"] *,
+  .invoice-light-mode [style*="background-color: #000000"] *,
+  .invoice-light-mode [style*="background-color:#000000"] *,
+  /* Even more specific: children of black background elements, even if parent has color */
+  .invoice-light-mode [style*="background: #000"][style*="color"] *,
+  .invoice-light-mode [style*="background:#000"][style*="color"] *,
+  .invoice-light-mode [style*="background-color: #000"][style*="color"] *,
+  .invoice-light-mode [style*="background-color:#000"][style*="color"] * {
+    color: #ffffff !important;
+  }
+
+  /* Override Tailwind dark mode text classes - must come after general rule */
+  .invoice-light-mode .dark\:text-white,
+  .invoice-light-mode .dark\:text-slate-50,
+  .invoice-light-mode .dark\:text-slate-100,
+  .invoice-light-mode .dark\:text-slate-200,
+  .invoice-light-mode .dark\:text-slate-300,
+  .invoice-light-mode .dark\:text-slate-400 {
+    color: #1f2937 !important;
+  }
+
+  /* Force light backgrounds - override dark mode background classes */
+  .invoice-light-mode .dark\:bg-slate-800,
+  .invoice-light-mode .dark\:bg-slate-700,
+  .invoice-light-mode .dark\:bg-slate-900,
+  .invoice-light-mode .dark\:bg-slate-950,
+  .invoice-light-mode .dark\:bg-black {
+    background-color: #ffffff !important;
+  }
+
+  /* Override border colors to light mode equivalents */
+  .invoice-light-mode .dark\:border-slate-700,
+  .invoice-light-mode .dark\:border-slate-600,
+  .invoice-light-mode .dark\:border-slate-800 {
+    border-color: #e5e7eb !important;
+  }
+
+  /* ========================================================================
+     PDF GENERATION: Same aggressive isolation for PDF temp element
+     ======================================================================== */
+
+  .pdf-generation-temp {
+    color-scheme: light !important;
+    background-color: #ffffff !important;
+  }
+
+  /**
+   * Set default text color for elements in PDF generation that don't have explicit colors
+   * BUT: Preserve color inheritance for children of elements with explicit colors
+   * 
+   * Strategy: Apply dark color only to elements that:
+   * 1. Don't have explicit color styles
+   * 2. Are NOT inside elements with explicit colors (to preserve inheritance)
+   * 3. Are NOT inside elements with black/dark backgrounds (those need special handling)
+   */
+  .pdf-generation-temp *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]):not([style*="background: rgb(0"]):not([style*="background:rgb(0"]):not([style*="background-color: rgb(0"]):not([style*="background-color:rgb(0"]) {
+    color: #1f2937 !important;
+  }
+
+  /**
+   * CRITICAL FIX: Preserve color inheritance for children of elements with explicit colors
+   * This ensures that when a template sets color on a parent (like Typewriter's TOTAL DUE),
+   * children inherit that color instead of being overridden to dark
+   * This MUST come BEFORE black background rules so inheritance works first
+   */
+  .pdf-generation-temp [style*="color"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="color"] *:not([style*="color"]) * {
+    color: inherit !important;
+  }
+
+  /**
+   * Handle dark backgrounds (not just black) - ensure children inherit parent colors
+   * This fixes Typewriter template where parent has dark background + light text
+   * Must come after color inheritance rule to work correctly
+   * More specific selectors for elements with both dark background AND color
+   */
+  .pdf-generation-temp [style*="background: #3"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background: #4"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background: #5"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #3"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #4"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #5"] *:not([style*="color"]),
+  /* More specific: elements with dark background AND color - children should inherit */
+  .pdf-generation-temp [style*="background: #3"][style*="color"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background: #4"][style*="color"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background: #5"][style*="color"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #3"][style*="color"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #4"][style*="color"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #5"][style*="color"] *:not([style*="color"]) {
+    color: inherit !important;
+  }
+
+  /**
+   * CRITICAL: Black background + white text (MUST come LAST to override everything)
+   * This ensures elements with black backgrounds get white text, overriding ALL other rules
+   * Higher specificity with multiple attribute selectors ensures this overrides inheritance rules
+   */
+  .pdf-generation-temp [style*="background: #000"],
+  .pdf-generation-temp [style*="background:#000"],
+  .pdf-generation-temp [style*="background: #000000"],
+  .pdf-generation-temp [style*="background:#000000"],
+  .pdf-generation-temp [style*="background-color: #000"],
+  .pdf-generation-temp [style*="background-color:#000"],
+  .pdf-generation-temp [style*="background-color: #000000"],
+  .pdf-generation-temp [style*="background-color:#000000"],
+  .pdf-generation-temp [style*="background: rgb(0, 0, 0)"],
+  .pdf-generation-temp [style*="background:rgb(0, 0, 0)"] {
+    color: #ffffff !important;
+  }
+
+  /* CRITICAL: Prevent dark text rule from applying to descendants of black backgrounds */
+  .pdf-generation-temp [style*="background: #000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background:#000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color:#000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background: #000000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background:#000000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color: #000000"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background-color:#000000"] *:not([style*="color"]) {
+    color: #ffffff !important;
+  }
+
+  /* Also target all children of black background elements - MUST override everything including inheritance */
+  .pdf-generation-temp [style*="background: #000"] *,
+  .pdf-generation-temp [style*="background:#000"] *,
+  .pdf-generation-temp [style*="background-color: #000"] *,
+  .pdf-generation-temp [style*="background-color:#000"] *,
+  .pdf-generation-temp [style*="background: #000000"] *,
+  .pdf-generation-temp [style*="background:#000000"] *,
+  .pdf-generation-temp [style*="background-color: #000000"] *,
+  .pdf-generation-temp [style*="background-color:#000000"] *,
+  /* Even more specific: children of black background elements, even if parent has color */
+  .pdf-generation-temp [style*="background: #000"][style*="color"] *,
+  .pdf-generation-temp [style*="background:#000"][style*="color"] *,
+  .pdf-generation-temp [style*="background-color: #000"][style*="color"] *,
+  .pdf-generation-temp [style*="background-color:#000"][style*="color"] * {
+    color: #ffffff !important;
+  }
+
+  /* Override Tailwind dark mode classes in PDF */
+  .pdf-generation-temp .dark\:text-white,
+  .pdf-generation-temp .dark\:text-slate-50,
+  .pdf-generation-temp .dark\:text-slate-100,
+  .pdf-generation-temp .dark\:text-slate-200,
+  .pdf-generation-temp .dark\:text-slate-300,
+  .pdf-generation-temp .dark\:text-slate-400 {
+    color: #1f2937 !important;
+  }
+
+  .pdf-generation-temp .dark\:bg-slate-800,
+  .pdf-generation-temp .dark\:bg-slate-700,
+  .pdf-generation-temp .dark\:bg-slate-900 {
+    background-color: #ffffff !important;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES: Ensure invoices print correctly
+   ============================================================================ */
+
+@media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+
+  /* Force light mode for all print content */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-scheme: light !important;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    color-scheme: light !important;
+  }
+
+  /**
+   * CRITICAL: Print mode dark mode isolation
+   * Print mode doesn't respect prefers-color-scheme, so we need to override
+   * ALL dark mode styles directly in print media query
+   */
+
+  /* Override ALL Tailwind dark mode classes in print - they should never apply */
+  .dark\:text-white,
+  .dark\:text-slate-50,
+  .dark\:text-slate-100,
+  .dark\:text-slate-200,
+  .dark\:text-slate-300,
+  .dark\:text-slate-400,
+  .dark\:text-slate-500,
+  .dark\:text-slate-600,
+  .dark\:text-slate-700,
+  .dark\:text-slate-800,
+  .dark\:text-slate-900 {
+    color: #1f2937 !important;
+  }
+
+  .dark\:bg-slate-800,
+  .dark\:bg-slate-700,
+  .dark\:bg-slate-900,
+  .dark\:bg-slate-950,
+  .dark\:bg-black {
+    background-color: #ffffff !important;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only invoice print container and its invoice content */
+  .invoice-print-container,
+  .invoice-print-container .invoice-content-print,
+  .invoice-print-container .invoice-content-print * {
+    visibility: visible !important;
+    color-scheme: light !important;
+  }
+
+  .invoice-print-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    z-index: 99999 !important;
+    color-scheme: light !important;
+  }
+
+  /* Remove modal styling */
+  .invoice-print-container>div {
+    position: static !important;
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    color-scheme: light !important;
+  }
+
+  /* Hide header and footer */
+  .invoice-print-container>div>div:first-child,
+  .invoice-print-container>div>div:last-child {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Position and size invoice content */
+  .invoice-content-print {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    border: 0 !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    background: white !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    color-scheme: light !important;
+    /* Force print color adjustment to preserve colors */
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    /* Don't force color here - let children inherit or use their own styles */
+  }
+
+  /* Scale the invoice content to fit - ensure all content is visible */
+  .invoice-content-print>div {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    transform-origin: top left !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    overflow: visible !important;
+    color-scheme: light !important;
+  }
+
+  /**
+   * PRINT MODE: Complete dark mode isolation
+   * Override ALL dark mode styles - print should ALWAYS be light mode
+   * This applies regardless of system dark mode preference
+   */
+
+  /* CRITICAL: Force light mode on invoice content container */
+  .invoice-content-print,
+  .invoice-content-print * {
+    color-scheme: light !important;
+  }
+
+  /* Override Tailwind dark mode classes in print - MUST come first */
+  .invoice-content-print .dark\:text-white,
+  .invoice-content-print .dark\:text-slate-50,
+  .invoice-content-print .dark\:text-slate-100,
+  .invoice-content-print .dark\:text-slate-200,
+  .invoice-content-print .dark\:text-slate-300,
+  .invoice-content-print .dark\:text-slate-400,
+  .invoice-content-print .dark\:text-slate-500,
+  .invoice-content-print .dark\:text-slate-600,
+  .invoice-content-print .dark\:text-slate-700,
+  .invoice-content-print .dark\:text-slate-800,
+  .invoice-content-print .dark\:text-slate-900 {
+    color: #1f2937 !important;
+  }
+
+  .invoice-content-print .dark\:bg-slate-800,
+  .invoice-content-print .dark\:bg-slate-700,
+  .invoice-content-print .dark\:bg-slate-900,
+  .invoice-content-print .dark\:bg-slate-950,
+  .invoice-content-print .dark\:bg-black {
+    background-color: #ffffff !important;
+  }
+
+  /**
+   * PRINT MODE: Preserve original template colors
+   * We should NOT override inline styles - templates already have correct colors
+   * Only override Tailwind dark mode classes and ensure print-color-adjust
+   */
+
+  /* Only override Tailwind dark mode classes - don't touch inline styles */
+  /* Templates use inline styles which should be preserved */
+
+  /* Handle dark backgrounds in print mode - more specific selectors */
+  /* BUT exclude black backgrounds - they're handled separately below */
+  .invoice-content-print [style*="background: #3"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #4"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #5"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #3"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #4"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #5"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  /* More specific: elements with dark background AND color - children should inherit */
+  .invoice-content-print [style*="background: #3"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #4"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #5"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #3"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #4"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #5"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]) {
+    color: inherit !important;
+  }
+
+  /* Override Tailwind dark mode classes - templates use inline styles which are preserved */
+  /* Only override Tailwind classes, not inline styles */
+  .invoice-content-print .dark\:text-white,
+  .invoice-content-print .dark\:text-slate-50,
+  .invoice-content-print .dark\:text-slate-100,
+  .invoice-content-print .dark\:text-slate-200,
+  .invoice-content-print .dark\:text-slate-300,
+  .invoice-content-print .dark\:text-slate-400,
+  .invoice-content-print .dark\:text-slate-500,
+  .invoice-content-print .dark\:text-slate-600,
+  .invoice-content-print .dark\:text-slate-700,
+  .invoice-content-print .dark\:text-slate-800,
+  .invoice-content-print .dark\:text-slate-900 {
+    color: #1f2937 !important;
+  }
+
+  /* Ensure PDF generation temp element is not affected by print CSS */
+  .pdf-generation-temp,
+  .pdf-generation-temp * {
+    visibility: hidden !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .print\:border-0 {
+    border: 0 !important;
+  }
+}
+
+/* ============================================================================
+   TEMPLATE THUMBNAIL STYLES: For template selector previews
+   ============================================================================ */
+
+/**
+ * General styles for all templates in thumbnail view
+ * Uses attribute selectors to target any template class pattern
+ * This works for all current and future templates without modification
+ */
+
+/* Target any element with a class ending in "-template" inside thumbnail wrapper */
+.template-thumbnail-wrapper [class*="-template"] {
+  padding: 40px !important;
+  max-width: 896px !important;
+  width: 896px !important;
+}
+
+/* Target any element with a class ending in "-header" inside thumbnail wrapper */
+.template-thumbnail-wrapper [class*="-header"] {
+  flex-direction: row !important;
+}
+
+/* Target any element with a class containing "grid" or "info-grid" */
+.template-thumbnail-wrapper [class*="grid"],
+.template-thumbnail-wrapper [class*="info-grid"],
+.template-thumbnail-wrapper [class*="client-dates"],
+.template-thumbnail-wrapper [class*="payment-notes"] {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* Target any element with a class containing "details" or "totals" */
+.template-thumbnail-wrapper [class*="details"],
+.template-thumbnail-wrapper [class*="totals"] {
+  flex-direction: row !important;
+}
+
+/* Target any element with a class containing "company" or "profile" */
+.template-thumbnail-wrapper [class*="company"],
+.template-thumbnail-wrapper [class*="profile"] {
+  margin-top: 0 !important;
+}
+
+/* Target any table inside thumbnail wrapper - ensure desktop layout */
+.template-thumbnail-wrapper table {
+  display: table !important;
+}
+
+.template-thumbnail-wrapper table thead,
+.template-thumbnail-wrapper table tbody,
+.template-thumbnail-wrapper table tr {
+  display: table-row !important;
+}
+
+.template-thumbnail-wrapper table th,
+.template-thumbnail-wrapper table td {
+  display: table-cell !important;
+}
+
+/* PDF-specific adjustments - general template adjustments */
+.pdf-generation-temp [class*="-invoice-number"] {
+  margin-top: 20px !important;
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Printer, Download, FileCode } from "lucide-react";
+import { createRoot, Root } from "react-dom/client";
 import { Invoice } from "../types";
 import { getTemplate } from "../templates";
 import { generatePDFFromElement } from "../lib/pdfUtils";
@@ -85,9 +86,14 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
 
       // Clean up after print
       const cleanup = () => {
-        const styleEl = document.getElementById("invoice-print-scale");
-        if (styleEl) {
-          document.head.removeChild(styleEl);
+        try {
+          const styleEl = document.getElementById("invoice-print-scale");
+          if (styleEl && styleEl.parentNode) {
+            document.head.removeChild(styleEl);
+          }
+        } catch {
+          // Silently handle errors from browser extensions or disconnected ports
+          // This is often caused by browser extensions trying to communicate after print mode
         }
       };
       window.addEventListener("afterprint", cleanup, { once: true });
@@ -99,31 +105,50 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
     if (downloading || loading || !client) return;
 
     setDownloading(true);
+    let tempDiv: HTMLDivElement | null = null;
+    let root: Root | null = null;
+
     try {
       // Create a temporary container for rendering
       // This ensures clean PDF generation without modal styling or print CSS interference
-      const tempDiv = document.createElement("div");
+      tempDiv = document.createElement("div");
       tempDiv.style.position = "absolute";
       tempDiv.style.left = "-9999px";
       tempDiv.style.top = "0";
       tempDiv.style.width = "800px";
       tempDiv.style.background = "white";
+      tempDiv.style.display = "block";
+      tempDiv.style.visibility = "visible";
+      tempDiv.style.opacity = "1";
       // Ensure print CSS doesn't affect this element
-      tempDiv.className = "pdf-generation-temp";
+      // Centralized styles in invoice.css handle dark mode isolation
+      tempDiv.className = "pdf-generation-temp invoice-light-mode";
       document.body.appendChild(tempDiv);
 
-      // Render invoice HTML directly into tempDiv
+      // Render invoice React component
       const template = getTemplate(invoice.template);
-      const html = template.render({
-        invoice,
-        items,
-        client: client,
-        profile,
-      });
-      tempDiv.innerHTML = html;
+      const TemplateComponent = template.Component;
+      root = createRoot(tempDiv);
+      root.render(
+        <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+          <TemplateComponent
+            invoice={invoice}
+            items={items}
+            client={client}
+            profile={profile}
+          />
+        </div>
+      );
 
-      // Wait for images and fonts to load
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Wait for React to render and images/fonts to load
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(resolve, 200);
+          });
+        });
+      });
 
       // Generate filename with .pdf extension
       const customerName = client.name || "";
@@ -134,17 +159,21 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
         invoice.issue_date
       );
 
-      // Generate PDF - use tempDiv directly since it contains the invoice HTML
-      // The template should render a single root element
+      // Generate PDF - use tempDiv directly since it contains the invoice React component
       await generatePDFFromElement(tempDiv, { filename });
 
-      // Cleanup
-      document.body.removeChild(tempDiv);
       showToast("PDF downloaded successfully", "success");
     } catch (error) {
       console.error("Error downloading PDF:", error);
       showToast("Failed to download PDF. Please try again.", "error");
     } finally {
+      // Cleanup: always execute to prevent memory leaks
+      if (root) {
+        root.unmount();
+      }
+      if (tempDiv && tempDiv.parentNode) {
+        document.body.removeChild(tempDiv);
+      }
       setDownloading(false);
     }
   };
@@ -204,14 +233,18 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
     }
 
     const template = getTemplate(invoice.template);
-    const html = template.render({
-      invoice,
-      items,
-      client: client,
-      profile,
-    });
+    const TemplateComponent = template.Component;
 
-    return <div dangerouslySetInnerHTML={{ __html: html }} />;
+    return (
+      <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+        <TemplateComponent
+          invoice={invoice}
+          items={items}
+          client={client}
+          profile={profile}
+        />
+      </div>
+    );
   };
 
   return (
@@ -257,7 +290,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
           </div>
         </div>
 
-        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print overflow-x-auto invoice-light-mode">
           {renderInvoice()}
         </div>
 
@@ -270,105 +303,6 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
           </button>
         </div>
       </div>
-
-      <style>{`
-        @media print {
-          @page {
-            margin: 0;
-            size: A4;
-          }
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: 100vh !important;
-            overflow: hidden !important;
-          }
-          /* Hide everything by default */
-          body * {
-            visibility: hidden;
-          }
-          /* Show only invoice print container and its invoice content */
-          .invoice-print-container,
-          .invoice-print-container .invoice-content-print,
-          .invoice-print-container .invoice-content-print * {
-            visibility: visible !important;
-          }
-          .invoice-print-container {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            z-index: 99999 !important;
-          }
-          /* Remove modal styling */
-          .invoice-print-container > div {
-            position: static !important;
-            background: white !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: visible !important;
-          }
-          /* Hide header and footer */
-          .invoice-print-container > div > div:first-child,
-          .invoice-print-container > div > div:last-child {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          /* Position and size invoice content */
-          .invoice-content-print {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 210mm !important;
-            height: auto !important;
-            min-height: 297mm !important;
-            margin: 0 !important;
-            padding: 10mm !important;
-            border: 0 !important;
-            box-sizing: border-box !important;
-            overflow: visible !important;
-            background: white !important;
-            page-break-after: avoid !important;
-            page-break-inside: avoid !important;
-          }
-          /* Scale the invoice content to fit - ensure all content is visible */
-          .invoice-content-print > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            transform-origin: top left !important;
-            page-break-after: avoid !important;
-            page-break-inside: avoid !important;
-            overflow: visible !important;
-          }
-          /* Ensure PDF generation temp element is not affected by print CSS */
-          .pdf-generation-temp,
-          .pdf-generation-temp * {
-            visibility: hidden !important;
-          }
-          .print\\:hidden {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          .print\\:border-0 {
-            border: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

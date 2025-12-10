@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -14,6 +14,7 @@ type Route = "dashboard" | "company-profile" | "reset-password";
 function AppContent() {
   const { user, loading, signupEmail, clearSignupEmail } = useAuth();
   const [currentRoute, setCurrentRoute] = useState<Route>("dashboard");
+  const hasPushedStateRef = useRef(false);
 
   useEffect(() => {
     // Check for password recovery token in hash fragment
@@ -39,6 +40,36 @@ function AppContent() {
       window.removeEventListener("hashchange", checkHash);
     };
   }, []);
+
+  // Handle browser back button for company profile
+  useEffect(() => {
+    const handlePopState = () => {
+      // When back button is pressed on company profile, go back to dashboard
+      if (currentRoute === "company-profile") {
+        setCurrentRoute("dashboard");
+        hasPushedStateRef.current = false;
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [currentRoute]);
+
+  // Push history state when navigating to company profile (only once per navigation)
+  useEffect(() => {
+    if (currentRoute === "company-profile" && !hasPushedStateRef.current) {
+      window.history.pushState(
+        { route: "company-profile" },
+        "",
+        window.location.href
+      );
+      hasPushedStateRef.current = true;
+    } else if (currentRoute !== "company-profile") {
+      hasPushedStateRef.current = false;
+    }
+  }, [currentRoute]);
 
   if (loading) {
     return (

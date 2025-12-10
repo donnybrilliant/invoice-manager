@@ -12,6 +12,7 @@ import {
 import { Client, Invoice } from "../types";
 import { useClientInvoices } from "../hooks/useClientInvoices";
 import { getCurrencySymbol } from "../lib/utils";
+import { formatDate } from "../templates/utils";
 
 interface ClientDetailViewProps {
   client: Client;
@@ -221,12 +222,12 @@ export default function ClientDetailView({
                     <div className="text-slate-600 dark:text-slate-400">
                       <span>Issue: </span>
                       <span className="text-slate-900 dark:text-white">
-                        {new Date(invoice.issue_date).toLocaleDateString()}
+                        {formatDate(invoice.issue_date)}
                       </span>
                       <span className="mx-2">•</span>
                       <span>Due: </span>
                       <span className="text-slate-900 dark:text-white">
-                        {new Date(invoice.due_date).toLocaleDateString()}
+                        {formatDate(invoice.due_date)}
                       </span>
                     </div>
                     <div className="font-semibold text-slate-900 dark:text-white">

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { templates, getTemplate } from "../templates";
+import { templates } from "../templates";
 import { InvoiceTemplateData } from "../templates/types";
 import { Client, CompanyProfile } from "../types";
 
@@ -31,17 +31,17 @@ interface TemplateSelectorProps {
   };
 }
 
-// Helper to render template HTML
-const renderTemplateHtml = (
+// Helper to create template data
+const createTemplateData = (
   templateId: string,
   previewData: TemplateSelectorProps["previewData"]
-): string => {
-  if (!previewData) return "";
+): InvoiceTemplateData | null => {
+  if (!previewData) return null;
 
   const { formData, items, clients, profile } = previewData;
   const selectedClient = clients.find((c) => c.id === formData.client_id);
 
-  if (!selectedClient) return "";
+  if (!selectedClient) return null;
 
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
@@ -85,15 +85,12 @@ const renderTemplateHtml = (
     created_at: "",
   }));
 
-  const template = getTemplate(templateId);
-  const templateData: InvoiceTemplateData = {
+  return {
     invoice: mockInvoice,
     items: mockItems,
     client: selectedClient,
     profile,
   };
-
-  return template.render(templateData);
 };
 
 export default function TemplateSelector({
@@ -105,29 +102,30 @@ export default function TemplateSelector({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Generate HTML for all templates (for thumbnails)
-  const templateHtmls = useMemo(() => {
-    const htmls: Record<string, string> = {};
+  // Generate template data for all templates (for thumbnails)
+  const templateDataMap = useMemo(() => {
+    const dataMap: Record<string, InvoiceTemplateData | null> = {};
     if (previewData) {
       templates.forEach((template) => {
-        htmls[template.id] = renderTemplateHtml(template.id, previewData);
+        dataMap[template.id] = createTemplateData(template.id, previewData);
       });
     }
-    return htmls;
+    return dataMap;
   }, [previewData]);
 
   const hasClient =
     previewData?.formData.client_id && previewData.clients.length > 0;
 
-  // Check scroll position
-  const checkScroll = () => {
-    if (!scrollContainerRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-  };
-
   useEffect(() => {
+    // Check scroll position; defined inside effect so cleanup removes same reference
+    const checkScroll = () => {
+      if (!scrollContainerRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    };
+
     checkScroll();
     const container = scrollContainerRef.current;
     if (container) {
@@ -138,7 +136,7 @@ export default function TemplateSelector({
         window.removeEventListener("resize", checkScroll);
       };
     }
-  }, [templateHtmls]);
+  }, [templateDataMap]);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return;
@@ -182,7 +180,8 @@ export default function TemplateSelector({
           }}
         >
           {templates.map((template) => {
-            const thumbnailHtml = templateHtmls[template.id] || "";
+            const templateData = templateDataMap[template.id];
+            const TemplateComponent = template.Component;
             return (
               <button
                 key={template.id}
@@ -200,12 +199,33 @@ export default function TemplateSelector({
                 </div>
 
                 {/* Actual Template Preview (scaled down, showing full length) */}
-                <div className="aspect-[8.5/11] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden">
-                  {thumbnailHtml ? (
-                    <div
-                      className="transform scale-[0.35] origin-top-left w-[285%] h-[285%]"
-                      dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
-                    />
+                <div
+                  className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative invoice-light-mode"
+                  style={{ aspectRatio: "8.5/11" }}
+                >
+                  {templateData ? (
+                    <>
+                      <div
+                        className="absolute inset-0 flex items-start justify-center overflow-hidden template-thumbnail-wrapper"
+                        style={{
+                          transformOrigin: "top center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "896px",
+                            minWidth: "896px",
+                            transform: "scale(0.1875)",
+                            transformOrigin: "top center",
+                            height: "auto",
+                            backgroundColor: "#ffffff",
+                            color: "#1f2937",
+                          }}
+                        >
+                          <TemplateComponent {...templateData} />
+                        </div>
+                      </div>
+                    </>
                   ) : (
                     <div className="h-full flex items-center justify-center text-slate-400 text-[8px] p-1">
                       {hasClient ? "Loading..." : "Select client"}

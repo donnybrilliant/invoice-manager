@@ -63,8 +63,11 @@ export default function ClientList({
               onClick={() => onViewClient(client)}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                <div className="flex-1 min-w-0">
+                  <h3
+                    className="text-lg font-semibold text-slate-900 dark:text-white mb-1 truncate"
+                    title={client.name}
+                  >
                     {client.name}
                   </h3>
                   {client.email && (

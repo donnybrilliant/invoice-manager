@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FileText,
   Users,
@@ -42,6 +42,7 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const hasPushedStateRef = useRef(false);
 
   // Calculate statistics
   const totalInvoices = invoices.length;
@@ -56,10 +57,6 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   // Calculate unpaid amount (sent + overdue invoices)
   const unpaidInvoices = invoices.filter(
     (inv) => inv.status === "sent" || inv.status === "overdue"
-  );
-  const unpaidAmount = unpaidInvoices.reduce(
-    (sum, invoice) => sum + invoice.total,
-    0
   );
 
   // Group unpaid amounts by currency for display
@@ -104,6 +101,45 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
     setEditingInvoice(invoice);
     setShowInvoiceForm(true);
   };
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = () => {
+      // When back button is pressed, close any open views and return to dashboard
+      if (viewingInvoice) {
+        setViewingInvoice(null);
+      }
+      if (viewingClient) {
+        setViewingClient(null);
+      }
+      if (showInvoiceForm) {
+        setShowInvoiceForm(false);
+        setEditingInvoice(null);
+      }
+      if (showClientForm) {
+        setShowClientForm(false);
+        setEditingClient(null);
+      }
+      hasPushedStateRef.current = false;
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [viewingInvoice, viewingClient, showInvoiceForm, showClientForm]);
+
+  // Push history state when opening views (only once per view)
+  useEffect(() => {
+    const hasOpenView =
+      viewingInvoice || viewingClient || showInvoiceForm || showClientForm;
+    if (hasOpenView && !hasPushedStateRef.current) {
+      window.history.pushState({ view: "detail" }, "", window.location.href);
+      hasPushedStateRef.current = true;
+    } else if (!hasOpenView) {
+      hasPushedStateRef.current = false;
+    }
+  }, [viewingInvoice, viewingClient, showInvoiceForm, showClientForm]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">

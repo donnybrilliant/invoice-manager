@@ -1,4 +1,5 @@
 import { Invoice, InvoiceItem, CompanyProfile, Client } from "../types";
+import { ComponentType } from "react";
 
 export interface InvoiceTemplateData {
   invoice: Invoice;
@@ -20,5 +21,5 @@ export interface InvoiceTemplate {
     | "typewriter";
   name: string;
   description: string;
-  render: (data: InvoiceTemplateData) => string;
+  Component: ComponentType<InvoiceTemplateData>;
 }

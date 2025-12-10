@@ -22,6 +22,7 @@ This document outlines potential improvements and features for the Invoice Manag
 - ✅ Secure authentication
 - ✅ Modal scrolling fixes
 - ✅ Company profile as dedicated page
+- ✅ EHF (Elektronisk Handelsformat) export for Norwegian e-invoicing
 
 ## 🎯 High Priority Features
 
@@ -355,13 +356,20 @@ This document outlines potential improvements and features for the Invoice Manag
 - European address format (Postal Code + City)
 - IBAN and SWIFT/BIC for international banking
 - EUR as default currency
+- EHF (Elektronisk Handelsformat) export - PEPPOL BIS Billing 3.0 compliant
+  - UBL 2.1 XML format
+  - Proper namespace handling
+  - ISO alpha-2 country codes
+  - Sanitized IBAN (no spaces)
+  - Payment due dates
+  - Tax category support (including 0% MVA)
+  - Norwegian organization number scheme (0192)
 
 ### Future Enhancements
 
 - Vipps payment integration (Norwegian mobile payment)
 - Fiken accounting integration (popular in Norway)
 - Automatic MVA reporting
-- Support for Norwegian e-invoicing (EHF format)
 - Integration with Altinn (Norwegian government portal)
 - Support for Swedish Bankgiro/Plusgiro
 - Danish NemKonto support

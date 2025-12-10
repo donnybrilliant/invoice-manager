@@ -81,9 +81,28 @@ export async function generatePDFFromElement(
       Array.from(images).map((img) => {
         if (img.complete) return Promise.resolve();
         return new Promise((resolve) => {
-          img.onload = () => resolve(undefined);
-          img.onerror = () => resolve(undefined); // Continue even if image fails
-          setTimeout(resolve, 1000); // Timeout after 1 second
+          let timeoutId: ReturnType<typeof setTimeout> | null = null;
+          const cleanup = () => {
+            if (timeoutId !== null) {
+              clearTimeout(timeoutId);
+              timeoutId = null;
+            }
+          };
+
+          img.onload = () => {
+            cleanup();
+            resolve(undefined);
+          };
+          img.onerror = () => {
+            cleanup();
+            resolve(undefined); // Continue even if image fails
+          };
+
+          // Timeout as fallback for slow/failed images
+          timeoutId = setTimeout(() => {
+            timeoutId = null;
+            resolve(undefined);
+          }, 1000);
         });
       })
     );

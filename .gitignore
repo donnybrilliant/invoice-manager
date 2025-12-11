@@ -22,3 +22,9 @@ dist-ssr
 *.sw?
 .env
 .vscode
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+supabase/.secrets
+supabase/functions/

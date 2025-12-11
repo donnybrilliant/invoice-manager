@@ -211,12 +211,20 @@ const handler = async (req: Request) => {
       );
     }
 
-    // Update invoice status to "sent" if it's currently "draft"
-    if (invoice.status === "draft") {
-      await supabaseClient
-        .from("invoices")
-        .update({ status: "sent" })
-        .eq("id", invoiceId);
+    // Update invoice status to "sent" and set sent_date to today
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+    const { error: updateError } = await supabaseClient
+      .from("invoices")
+      .update({
+        status: "sent",
+        sent_date: today,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", invoiceId);
+
+    if (updateError) {
+      console.error("Error updating invoice status:", updateError);
+      // Don't fail the request if status update fails - email was sent successfully
     }
 
     return new Response(JSON.stringify(data), {

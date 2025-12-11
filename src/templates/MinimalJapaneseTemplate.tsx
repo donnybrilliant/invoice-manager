@@ -232,6 +232,24 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {formatDate(invoice.due_date)}
               </div>
             </div>
+            {invoice.status === "sent" && invoice.sent_date && (
+              <div style={{ marginTop: "20px" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#8B7355",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  送信日
+                </div>
+                <div style={{ fontSize: "14px", color: "#B85C38" }}>
+                  {formatDate(invoice.sent_date)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

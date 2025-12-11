@@ -279,6 +279,30 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     {formatDate(invoice.due_date)}
                   </td>
                 </tr>
+                {invoice.status === "sent" && invoice.sent_date && (
+                  <tr>
+                    <td
+                      style={{
+                        padding: "6px 16px 6px 0",
+                        color: "#6b7280",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Sent Date
+                    </td>
+                    <td
+                      style={{
+                        padding: "6px 0",
+                        color: "#111827",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {formatDate(invoice.sent_date)}
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <td
                     style={{

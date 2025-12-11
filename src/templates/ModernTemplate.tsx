@@ -409,6 +409,11 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div>
                 <strong>Due Date:</strong> {formatDate(invoice.due_date)}
               </div>
+              {invoice.status === "sent" && invoice.sent_date && (
+                <div>
+                  <strong>Sent Date:</strong> {formatDate(invoice.sent_date)}
+                </div>
+              )}
               <div>
                 <strong>Status:</strong>{" "}
                 <span

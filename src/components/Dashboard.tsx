@@ -483,6 +483,9 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
         <InvoiceView
           invoice={viewingInvoice}
           onClose={() => setViewingInvoice(null)}
+          onInvoiceUpdate={(updatedInvoice) =>
+            setViewingInvoice(updatedInvoice)
+          }
         />
       )}
 

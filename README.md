@@ -7,14 +7,16 @@ A modern, full-featured invoice management system built with React, TypeScript, 
 ### Invoice Management
 
 - ✅ Create, edit, and manage invoices
-- ✅ Multiple professional PDF templates (Classic, Modern, Professional)
+- ✅ 16 professional PDF templates (Classic, Modern, Professional, Brutalist, Dark Mode, Minimal Japanese, Neo Brutalist, Swiss, Typewriter, Cutout Brutalist, Constructivist, Color Pop Stacked/Minimal/Grid/Diagonal/Brutalist)
 - ✅ Automatic invoice numbering
 - ✅ Tax/VAT/MVA calculations
 - ✅ Discount support
 - ✅ Multi-currency support (EUR, NOK, USD, etc.)
 - ✅ Invoice status tracking (Draft, Sent, Paid, Overdue)
+- ✅ Sent date tracking
 - ✅ PDF export with company branding
 - ✅ EHF (Elektronisk Handelsformat) export for Norwegian e-invoicing
+- ✅ Email invoices directly to clients via Resend API
 
 ### Client Management
 
@@ -53,7 +55,7 @@ A modern, full-featured invoice management system built with React, TypeScript, 
 
 ## Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 22.12+ (required by Vite 7 and React plugin)
 - Supabase account (free tier works great)
 - Modern web browser
 
@@ -187,18 +189,26 @@ invoice-manager/
 │   │   ├── InvoiceForm.tsx
 │   │   ├── InvoiceList.tsx
 │   │   ├── InvoiceView.tsx
-│   │   └── TemplateSelector.tsx
+│   │   ├── TemplateSelector.tsx
+│   │   ├── PublicInvoiceView.tsx  # Public invoice sharing
+│   │   └── EmailTemplateSection.tsx  # Email template customization
 │   ├── contexts/            # React contexts
-│   │   └── AuthContext.tsx
+│   │   ├── AuthContext.tsx
+│   │   └── ToastContext.tsx
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useClients.ts
+│   │   ├── useInvoices.ts
+│   │   ├── useInvoiceShare.ts
+│   │   └── useCompanyProfile.ts
 │   ├── lib/                 # Utilities
 │   │   ├── supabase.ts      # Supabase client
 │   │   ├── pdfUtils.ts      # PDF generation
 │   │   ├── ehfGenerator.ts  # EHF XML generation
+│   │   ├── emailTemplateUtils.ts  # Email template rendering
 │   │   └── utils.ts         # Shared utilities
 │   ├── templates/           # Invoice PDF templates
-│   │   ├── ClassicTemplate.ts
-│   │   ├── ModernTemplate.ts
-│   │   ├── ProfessionalTemplate.ts
+│   │   ├── *.tsx            # 16 invoice templates
+│   │   ├── email/           # Email templates (matching invoice templates)
 │   │   ├── types.ts
 │   │   ├── utils.ts
 │   │   └── index.ts
@@ -300,6 +310,16 @@ invoice-manager/
 3. The PDF will be generated with your selected template
 4. Includes your company logo and branding
 
+### Sending Invoices via Email
+
+1. Open an invoice
+2. Click **Send Email** button
+3. Enter recipient email address
+4. Optionally add a custom message
+5. Click **Send** - the invoice PDF will be attached automatically
+6. Email templates match your selected invoice template style
+7. Invoices are automatically marked as "sent" with the current date
+
 ### Exporting EHF (Electronic Invoice Format)
 
 1. Open an invoice
@@ -312,17 +332,37 @@ invoice-manager/
 
 ## Invoice Templates
 
-### Classic Template
+The app includes 16 professional invoice templates to match different business styles:
 
-Traditional invoice design with a yellow footer section. Professional and widely recognized format.
+### Classic Templates
 
-### Modern Template
+- **Classic**: Traditional invoice design with a yellow footer section. Professional and widely recognized format.
+- **Modern**: Contemporary design with gradient colored accents and card-based layout. Perfect for creative businesses.
+- **Professional**: Minimalist black and white design with clean lines. Ideal for corporate and professional services.
+- **Minimal Japanese**: Clean, minimalist design inspired by Japanese aesthetics with subtle typography.
 
-Contemporary design with gradient colored accents and card-based layout. Perfect for creative businesses.
+### Brutalist Templates
 
-### Professional Template
+- **Brutalist**: Bold, raw design with strong typography and geometric shapes.
+- **Neo Brutalist**: Modern take on brutalist design with clean lines and bold colors.
+- **Cutout Brutalist**: Brutalist design with cutout effects and layered elements.
 
-Minimalist black and white design with clean lines. Ideal for corporate and professional services.
+### Color Pop Templates
+
+- **Color Pop Stacked**: Vibrant color blocks in a stacked layout.
+- **Color Pop Minimal**: Minimal design with strategic color accents.
+- **Color Pop Grid**: Grid-based layout with colorful sections.
+- **Color Pop Diagonal**: Dynamic diagonal color sections.
+- **Color Pop Brutalist**: Bold brutalist design with vibrant colors.
+
+### Design System Templates
+
+- **Dark Mode**: Dark-themed template perfect for modern, tech-forward businesses.
+- **Swiss**: Clean, grid-based design inspired by Swiss design principles.
+- **Typewriter**: Retro-inspired design with typewriter aesthetics.
+- **Constructivist**: Geometric, avant-garde design inspired by constructivist art.
+
+Each template includes a matching email template for sending invoices to clients.
 
 ## Currency Support
 
@@ -484,16 +524,14 @@ Validates invoice share tokens for public invoice viewing (no authentication req
 **Testing Locally:**
 
 ```bash
-# For local testing with Supabase CLI, use --no-verify-jwt
-supabase functions serve validate-share-token --no-verify-jwt
+# Serve the function locally
+supabase functions serve validate-share-token
 
-# Note: Self-hosted setups don't require --no-verify-jwt flag
-# The function works without authentication in production
+# Note: JWT verification is disabled in config.toml for this function
+# No --no-verify-jwt flag needed - it's configured automatically
 ```
 
-**Why `--no-verify-jwt`?**
-
-When testing locally with Supabase CLI, Edge Functions require JWT verification by default. Since `validate-share-token` is designed for public access (no authentication), you need `--no-verify-jwt` for local testing. In self-hosted production environments, this is typically configured differently and doesn't require the flag.
+**Configuration**: The `validate-share-token` function has JWT verification disabled in `supabase/config.toml` via the `[functions.validate-share-token] verify_jwt = false` setting, so no additional flags are needed when serving locally.
 
 ## Development
 
@@ -515,7 +553,7 @@ supabase start
 
 # Serve individual functions
 supabase functions serve send-invoice-email --env-file supabase/functions/send-invoice-email/.env.local
-supabase functions serve validate-share-token --no-verify-jwt
+supabase functions serve validate-share-token
 
 # Or serve all functions
 supabase functions serve
@@ -550,7 +588,7 @@ supabase functions serve
 ### Edge Function Issues
 
 - **Email sending fails**: Verify `RESEND_API_KEY` is set and domain is verified in Resend
-- **Share token validation fails locally**: Use `--no-verify-jwt` flag when serving `validate-share-token` function locally
+- **Share token validation fails locally**: JWT verification is disabled in `config.toml` - no flags needed when serving locally
 - **Environment variables not found**: Ensure variables are set on the Edge Functions container (not the main Supabase instance) for self-hosted setups
 
 ## Contributing

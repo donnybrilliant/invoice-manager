@@ -371,6 +371,10 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       borderBottom: "1px solid rgba(255,255,255,0.1)",
                       color: "#E0E0E0",
                       fontSize: "14px",
+                      wordWrap: "break-word",
+                      overflowWrap: "break-word",
+                      whiteSpace: "normal",
+                      maxWidth: 0,
                     }}
                   >
                     {item.description}

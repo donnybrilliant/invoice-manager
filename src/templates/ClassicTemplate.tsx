@@ -76,6 +76,7 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
     width: "100%",
     borderCollapse: "collapse",
     marginBottom: "30px",
+    tableLayout: "fixed", // Ensures consistent column widths
   };
 
   const thStyle: React.CSSProperties = {
@@ -90,6 +91,14 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
   const tdStyle: React.CSSProperties = {
     padding: "12px",
     borderBottom: "1px solid #e5e7eb",
+  };
+
+  const descriptionCellStyle: React.CSSProperties = {
+    ...tdStyle,
+    wordWrap: "break-word",
+    overflowWrap: "break-word",
+    whiteSpace: "normal",
+    width: "auto", // Will take remaining space
   };
 
   const totalsContainerStyle: React.CSSProperties = {
@@ -381,14 +390,14 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <table className="classic-table" style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>Description</th>
-              <th style={{ ...thStyle, textAlign: "center", width: "100px" }}>
+              <th style={{ ...thStyle, width: "50%" }}>Description</th>
+              <th style={{ ...thStyle, textAlign: "center", width: "15%" }}>
                 Qty
               </th>
-              <th style={{ ...thStyle, textAlign: "right", width: "120px" }}>
+              <th style={{ ...thStyle, textAlign: "right", width: "20%" }}>
                 Unit Price
               </th>
-              <th style={{ ...thStyle, textAlign: "right", width: "120px" }}>
+              <th style={{ ...thStyle, textAlign: "right", width: "15%" }}>
                 Amount
               </th>
             </tr>
@@ -396,14 +405,14 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
           <tbody>
             {items.map((item, index) => (
               <tr key={item.id || index}>
-                <td style={tdStyle}>{item.description}</td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>
+                <td style={descriptionCellStyle}>{item.description}</td>
+                <td style={{ ...tdStyle, textAlign: "center", width: "15%" }}>
                   {item.quantity}
                 </td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>
+                <td style={{ ...tdStyle, textAlign: "right", width: "20%" }}>
                   {formatCurrencyWithCode(item.unit_price, invoice.currency)}
                 </td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>
+                <td style={{ ...tdStyle, textAlign: "right", width: "15%" }}>
                   {formatCurrencyWithCode(item.amount, invoice.currency)}
                 </td>
               </tr>

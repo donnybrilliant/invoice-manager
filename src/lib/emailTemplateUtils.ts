@@ -3,10 +3,7 @@
  * Single source of truth: templates are in src/templates/email/
  */
 
-import {
-  getEmailTemplateByInvoiceTemplate,
-  getDefaultEmailTemplate,
-} from "../templates/email";
+import { getEmailTemplateByInvoiceTemplate } from "../templates/email";
 import { formatDate } from "../templates/utils";
 
 /**

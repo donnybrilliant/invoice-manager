@@ -30,13 +30,19 @@ import { supabase } from "../lib/supabase";
 import { formatDate } from "../templates/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { renderEmailTemplate } from "../lib/emailTemplateUtils";
+import { useAuth } from "../contexts/AuthContext";
 
 interface InvoiceViewProps {
   invoice: Invoice;
   onClose: () => void;
+  onInvoiceUpdate?: (invoice: Invoice) => void;
 }
 
-export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
+export default function InvoiceView({
+  invoice,
+  onClose,
+  onInvoiceUpdate,
+}: InvoiceViewProps) {
   const client = invoice.client || null;
   const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(
     invoice.id
@@ -58,6 +64,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   const { data: shareData } = useShareLink(invoice.id);
   const generateToken = useGenerateShareToken();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const loading = itemsLoading || profileLoading;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -426,6 +433,54 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
         );
       }
 
+      // Invalidate and refetch invoices query to refresh the list with updated status
+      await queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
+
+      // Refetch invoices to get the updated invoice data (matching useInvoices query)
+      const updatedInvoices = await queryClient.fetchQuery({
+        queryKey: ["invoices", user?.id],
+        queryFn: async () => {
+          if (!user) throw new Error("No user");
+
+          // First, mark any overdue invoices automatically
+          try {
+            const { error: overdueError } = await supabase.rpc(
+              "mark_overdue_invoices_for_user",
+              { user_uuid: user.id }
+            );
+            // Don't throw on error - just log it, as this is a background operation
+            if (overdueError) {
+              console.warn("Error marking overdue invoices:", overdueError);
+            }
+          } catch (err) {
+            // Function might not exist yet if migration hasn't run
+            console.warn("Could not mark overdue invoices:", err);
+          }
+
+          const { data, error } = await supabase
+            .from("invoices")
+            .select(
+              `
+              *,
+              client:clients(*)
+            `
+            )
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          return (data || []) as Invoice[];
+        },
+      });
+
+      // Find the updated invoice and notify parent component
+      const updatedInvoice = updatedInvoices?.find(
+        (inv) => inv.id === invoice.id
+      );
+      if (updatedInvoice && onInvoiceUpdate) {
+        onInvoiceUpdate(updatedInvoice);
+      }
+
       showToast("Email sent successfully", "success");
       setShowEmailDialog(false);
       setEmailMessage("");
@@ -779,7 +834,8 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
           .invoice-content-print {
             position: fixed !important;
             top: 0 !important;
-            left: 0 !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             width: 210mm !important;
             height: auto !important;
             min-height: 297mm !important;
@@ -798,7 +854,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
             width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
-            transform-origin: top left !important;
+            transform-origin: top center !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             overflow: visible !important;

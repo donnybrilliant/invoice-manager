@@ -442,7 +442,17 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   backgroundColor: index % 2 === 0 ? "#f9fafb" : "white",
                 }}
               >
-                <td style={tdStyle}>{item.description}</td>
+                <td
+                  style={{
+                    ...tdStyle,
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
+                  }}
+                >
+                  {item.description}
+                </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
                   {item.quantity}
                 </td>

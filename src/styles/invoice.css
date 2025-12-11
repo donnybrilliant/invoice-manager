@@ -403,7 +403,8 @@
   .invoice-content-print {
     position: fixed !important;
     top: 0 !important;
-    left: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     width: 210mm !important;
     height: auto !important;
     min-height: 297mm !important;
@@ -427,7 +428,7 @@
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
-    transform-origin: top left !important;
+    transform-origin: top center !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
     overflow: visible !important;
@@ -543,8 +544,8 @@
 /* Target any element with a class ending in "-template" inside thumbnail wrapper */
 .template-thumbnail-wrapper [class*="-template"] {
   padding: 40px !important;
-  max-width: 896px !important;
-  width: 896px !important;
+  max-width: 800px !important;
+  width: 800px !important;
 }
 
 /* Target any element with a class ending in "-header" inside thumbnail wrapper */
@@ -573,19 +574,403 @@
 }
 
 /* Target any table inside thumbnail wrapper - ensure desktop layout */
+/* CRITICAL: Override ALL responsive styles from template media queries */
 .template-thumbnail-wrapper table {
   display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: inherit !important;
 }
 
-.template-thumbnail-wrapper table thead,
-.template-thumbnail-wrapper table tbody,
+.template-thumbnail-wrapper table thead {
+  display: table-header-group !important;
+}
+
+.template-thumbnail-wrapper table tbody {
+  display: table-row-group !important;
+}
+
+.template-thumbnail-wrapper table thead tr,
+.template-thumbnail-wrapper table tbody tr,
 .template-thumbnail-wrapper table tr {
   display: table-row !important;
+  width: 100% !important;
 }
 
 .template-thumbnail-wrapper table th,
 .template-thumbnail-wrapper table td {
   display: table-cell !important;
+}
+
+/* Prevent vertical character stacking in scaled previews - force horizontal text */
+.template-thumbnail-wrapper * {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  direction: ltr !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* CRITICAL: Override responsive table styles from template media queries */
+/* Force desktop table layout regardless of viewport size */
+.template-thumbnail-wrapper table[class*="-table"],
+.template-thumbnail-wrapper .brutalist-table,
+.template-thumbnail-wrapper .classic-table,
+.template-thumbnail-wrapper .modern-table,
+.template-thumbnail-wrapper .typewriter-table,
+.template-thumbnail-wrapper .swiss-table,
+.template-thumbnail-wrapper .professional-table,
+.template-thumbnail-wrapper .minimal-japanese-table,
+.template-thumbnail-wrapper .dark-mode-table,
+.template-thumbnail-wrapper .neo-brutalist-table {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  font-size: inherit !important;
+}
+
+.template-thumbnail-wrapper table[class*="-table"] thead,
+.template-thumbnail-wrapper .brutalist-table thead,
+.template-thumbnail-wrapper .classic-table thead,
+.template-thumbnail-wrapper .modern-table thead,
+.template-thumbnail-wrapper .typewriter-table thead,
+.template-thumbnail-wrapper .swiss-table thead,
+.template-thumbnail-wrapper .professional-table thead,
+.template-thumbnail-wrapper .minimal-japanese-table thead,
+.template-thumbnail-wrapper .dark-mode-table thead,
+.template-thumbnail-wrapper .neo-brutalist-table thead {
+  display: table-header-group !important;
+}
+
+.template-thumbnail-wrapper table[class*="-table"] tbody,
+.template-thumbnail-wrapper .brutalist-table tbody,
+.template-thumbnail-wrapper .classic-table tbody,
+.template-thumbnail-wrapper .modern-table tbody,
+.template-thumbnail-wrapper .typewriter-table tbody,
+.template-thumbnail-wrapper .swiss-table tbody,
+.template-thumbnail-wrapper .professional-table tbody,
+.template-thumbnail-wrapper .minimal-japanese-table tbody,
+.template-thumbnail-wrapper .dark-mode-table tbody,
+.template-thumbnail-wrapper .neo-brutalist-table tbody {
+  display: table-row-group !important;
+}
+
+.template-thumbnail-wrapper table[class*="-table"] tr,
+.template-thumbnail-wrapper .brutalist-table tr,
+.template-thumbnail-wrapper .classic-table tr,
+.template-thumbnail-wrapper .modern-table tr,
+.template-thumbnail-wrapper .typewriter-table tr,
+.template-thumbnail-wrapper .swiss-table tr,
+.template-thumbnail-wrapper .professional-table tr,
+.template-thumbnail-wrapper .minimal-japanese-table tr,
+.template-thumbnail-wrapper .dark-mode-table tr,
+.template-thumbnail-wrapper .neo-brutalist-table tr {
+  display: table-row !important;
+  width: 100% !important;
+}
+
+.template-thumbnail-wrapper table[class*="-table"] th,
+.template-thumbnail-wrapper table[class*="-table"] td,
+.template-thumbnail-wrapper .brutalist-table th,
+.template-thumbnail-wrapper .brutalist-table td,
+.template-thumbnail-wrapper .classic-table th,
+.template-thumbnail-wrapper .classic-table td,
+.template-thumbnail-wrapper .modern-table th,
+.template-thumbnail-wrapper .modern-table td,
+.template-thumbnail-wrapper .typewriter-table th,
+.template-thumbnail-wrapper .typewriter-table td,
+.template-thumbnail-wrapper .swiss-table th,
+.template-thumbnail-wrapper .swiss-table td,
+.template-thumbnail-wrapper .professional-table th,
+.template-thumbnail-wrapper .professional-table td,
+.template-thumbnail-wrapper .minimal-japanese-table th,
+.template-thumbnail-wrapper .minimal-japanese-table td,
+.template-thumbnail-wrapper .dark-mode-table th,
+.template-thumbnail-wrapper .dark-mode-table td,
+.template-thumbnail-wrapper .neo-brutalist-table th,
+.template-thumbnail-wrapper .neo-brutalist-table td {
+  display: table-cell !important;
+  padding: inherit !important;
+  font-size: inherit !important;
+}
+
+/* CRITICAL: Force thead to respect column widths - prevent it from stretching full width */
+.template-thumbnail-wrapper table thead {
+  display: table-header-group !important;
+  width: 100% !important;
+}
+
+.template-thumbnail-wrapper table thead tr {
+  display: table-row !important;
+  width: 100% !important;
+}
+
+/* CRITICAL: Set column widths on the first row (thead) to ensure table-layout: fixed works correctly */
+/* With table-layout: fixed, column widths are determined by the first row */
+/* These MUST be set on thead th to establish the column structure */
+/* Use highly specific selectors to override template inline styles */
+.template-thumbnail-wrapper table thead th:first-child,
+.template-thumbnail-wrapper .brutalist-table thead th:first-child,
+.template-thumbnail-wrapper .classic-table thead th:first-child,
+.template-thumbnail-wrapper .modern-table thead th:first-child,
+.template-thumbnail-wrapper .typewriter-table thead th:first-child,
+.template-thumbnail-wrapper .swiss-table thead th:first-child,
+.template-thumbnail-wrapper .professional-table thead th:first-child,
+.template-thumbnail-wrapper .minimal-japanese-table thead th:first-child,
+.template-thumbnail-wrapper .dark-mode-table thead th:first-child,
+.template-thumbnail-wrapper .neo-brutalist-table thead th:first-child {
+  width: 50% !important;
+  min-width: 0 !important;
+  max-width: 50% !important;
+}
+
+.template-thumbnail-wrapper table thead th:nth-child(2),
+.template-thumbnail-wrapper .brutalist-table thead th:nth-child(2),
+.template-thumbnail-wrapper .classic-table thead th:nth-child(2),
+.template-thumbnail-wrapper .modern-table thead th:nth-child(2),
+.template-thumbnail-wrapper .typewriter-table thead th:nth-child(2),
+.template-thumbnail-wrapper .swiss-table thead th:nth-child(2),
+.template-thumbnail-wrapper .professional-table thead th:nth-child(2),
+.template-thumbnail-wrapper .minimal-japanese-table thead th:nth-child(2),
+.template-thumbnail-wrapper .dark-mode-table thead th:nth-child(2),
+.template-thumbnail-wrapper .neo-brutalist-table thead th:nth-child(2) {
+  width: 15% !important;
+  min-width: 0 !important;
+  max-width: 15% !important;
+}
+
+.template-thumbnail-wrapper table thead th:nth-child(3),
+.template-thumbnail-wrapper .brutalist-table thead th:nth-child(3),
+.template-thumbnail-wrapper .classic-table thead th:nth-child(3),
+.template-thumbnail-wrapper .modern-table thead th:nth-child(3),
+.template-thumbnail-wrapper .typewriter-table thead th:nth-child(3),
+.template-thumbnail-wrapper .swiss-table thead th:nth-child(3),
+.template-thumbnail-wrapper .professional-table thead th:nth-child(3),
+.template-thumbnail-wrapper .minimal-japanese-table thead th:nth-child(3),
+.template-thumbnail-wrapper .dark-mode-table thead th:nth-child(3),
+.template-thumbnail-wrapper .neo-brutalist-table thead th:nth-child(3) {
+  width: 20% !important;
+  min-width: 0 !important;
+  max-width: 20% !important;
+}
+
+.template-thumbnail-wrapper table thead th:nth-child(4),
+.template-thumbnail-wrapper .brutalist-table thead th:nth-child(4),
+.template-thumbnail-wrapper .classic-table thead th:nth-child(4),
+.template-thumbnail-wrapper .modern-table thead th:nth-child(4),
+.template-thumbnail-wrapper .typewriter-table thead th:nth-child(4),
+.template-thumbnail-wrapper .swiss-table thead th:nth-child(4),
+.template-thumbnail-wrapper .professional-table thead th:nth-child(4),
+.template-thumbnail-wrapper .minimal-japanese-table thead th:nth-child(4),
+.template-thumbnail-wrapper .dark-mode-table thead th:nth-child(4),
+.template-thumbnail-wrapper .neo-brutalist-table thead th:nth-child(4) {
+  width: 15% !important;
+  min-width: 0 !important;
+  max-width: 15% !important;
+}
+
+/* Ensure description cells wrap properly in thumbnail preview */
+/* Apply width to BOTH th and td for first column to ensure alignment */
+/* Use specific selectors to override template responsive styles */
+.template-thumbnail-wrapper table th:first-child,
+.template-thumbnail-wrapper table td:first-child,
+.template-thumbnail-wrapper .brutalist-table th:first-child,
+.template-thumbnail-wrapper .brutalist-table td:first-child,
+.template-thumbnail-wrapper .classic-table th:first-child,
+.template-thumbnail-wrapper .classic-table td:first-child,
+.template-thumbnail-wrapper .modern-table th:first-child,
+.template-thumbnail-wrapper .modern-table td:first-child,
+.template-thumbnail-wrapper .typewriter-table th:first-child,
+.template-thumbnail-wrapper .typewriter-table td:first-child,
+.template-thumbnail-wrapper .swiss-table th:first-child,
+.template-thumbnail-wrapper .swiss-table td:first-child,
+.template-thumbnail-wrapper .professional-table th:first-child,
+.template-thumbnail-wrapper .professional-table td:first-child,
+.template-thumbnail-wrapper .minimal-japanese-table th:first-child,
+.template-thumbnail-wrapper .minimal-japanese-table td:first-child,
+.template-thumbnail-wrapper .dark-mode-table th:first-child,
+.template-thumbnail-wrapper .dark-mode-table td:first-child,
+.template-thumbnail-wrapper .neo-brutalist-table th:first-child,
+.template-thumbnail-wrapper .neo-brutalist-table td:first-child {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  display: table-cell !important;
+  vertical-align: top !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  /* Fixed width percentage to prevent character-by-character breaking */
+  width: 50% !important;
+  min-width: 0 !important;
+  max-width: 50% !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* Set widths for other columns to maintain table structure */
+/* Ensure both headers and cells have matching widths */
+.template-thumbnail-wrapper table th:nth-child(2),
+.template-thumbnail-wrapper table td:nth-child(2),
+.template-thumbnail-wrapper .brutalist-table th:nth-child(2),
+.template-thumbnail-wrapper .brutalist-table td:nth-child(2),
+.template-thumbnail-wrapper .classic-table th:nth-child(2),
+.template-thumbnail-wrapper .classic-table td:nth-child(2),
+.template-thumbnail-wrapper .modern-table th:nth-child(2),
+.template-thumbnail-wrapper .modern-table td:nth-child(2),
+.template-thumbnail-wrapper .typewriter-table th:nth-child(2),
+.template-thumbnail-wrapper .typewriter-table td:nth-child(2),
+.template-thumbnail-wrapper .swiss-table th:nth-child(2),
+.template-thumbnail-wrapper .swiss-table td:nth-child(2),
+.template-thumbnail-wrapper .professional-table th:nth-child(2),
+.template-thumbnail-wrapper .professional-table td:nth-child(2),
+.template-thumbnail-wrapper .minimal-japanese-table th:nth-child(2),
+.template-thumbnail-wrapper .minimal-japanese-table td:nth-child(2),
+.template-thumbnail-wrapper .dark-mode-table th:nth-child(2),
+.template-thumbnail-wrapper .dark-mode-table td:nth-child(2),
+.template-thumbnail-wrapper .neo-brutalist-table th:nth-child(2),
+.template-thumbnail-wrapper .neo-brutalist-table td:nth-child(2) {
+  width: 15% !important;
+  min-width: 0 !important;
+  max-width: 15% !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+}
+
+.template-thumbnail-wrapper table th:nth-child(3),
+.template-thumbnail-wrapper table td:nth-child(3),
+.template-thumbnail-wrapper .brutalist-table th:nth-child(3),
+.template-thumbnail-wrapper .brutalist-table td:nth-child(3),
+.template-thumbnail-wrapper .classic-table th:nth-child(3),
+.template-thumbnail-wrapper .classic-table td:nth-child(3),
+.template-thumbnail-wrapper .modern-table th:nth-child(3),
+.template-thumbnail-wrapper .modern-table td:nth-child(3),
+.template-thumbnail-wrapper .typewriter-table th:nth-child(3),
+.template-thumbnail-wrapper .typewriter-table td:nth-child(3),
+.template-thumbnail-wrapper .swiss-table th:nth-child(3),
+.template-thumbnail-wrapper .swiss-table td:nth-child(3),
+.template-thumbnail-wrapper .professional-table th:nth-child(3),
+.template-thumbnail-wrapper .professional-table td:nth-child(3),
+.template-thumbnail-wrapper .minimal-japanese-table th:nth-child(3),
+.template-thumbnail-wrapper .minimal-japanese-table td:nth-child(3),
+.template-thumbnail-wrapper .dark-mode-table th:nth-child(3),
+.template-thumbnail-wrapper .dark-mode-table td:nth-child(3),
+.template-thumbnail-wrapper .neo-brutalist-table th:nth-child(3),
+.template-thumbnail-wrapper .neo-brutalist-table td:nth-child(3) {
+  width: 20% !important;
+  min-width: 0 !important;
+  max-width: 20% !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+}
+
+.template-thumbnail-wrapper table th:nth-child(4),
+.template-thumbnail-wrapper table td:nth-child(4),
+.template-thumbnail-wrapper .brutalist-table th:nth-child(4),
+.template-thumbnail-wrapper .brutalist-table td:nth-child(4),
+.template-thumbnail-wrapper .classic-table th:nth-child(4),
+.template-thumbnail-wrapper .classic-table td:nth-child(4),
+.template-thumbnail-wrapper .modern-table th:nth-child(4),
+.template-thumbnail-wrapper .modern-table td:nth-child(4),
+.template-thumbnail-wrapper .typewriter-table th:nth-child(4),
+.template-thumbnail-wrapper .typewriter-table td:nth-child(4),
+.template-thumbnail-wrapper .swiss-table th:nth-child(4),
+.template-thumbnail-wrapper .swiss-table td:nth-child(4),
+.template-thumbnail-wrapper .professional-table th:nth-child(4),
+.template-thumbnail-wrapper .professional-table td:nth-child(4),
+.template-thumbnail-wrapper .minimal-japanese-table th:nth-child(4),
+.template-thumbnail-wrapper .minimal-japanese-table td:nth-child(4),
+.template-thumbnail-wrapper .dark-mode-table th:nth-child(4),
+.template-thumbnail-wrapper .dark-mode-table td:nth-child(4),
+.template-thumbnail-wrapper .neo-brutalist-table th:nth-child(4),
+.template-thumbnail-wrapper .neo-brutalist-table td:nth-child(4) {
+  width: 15% !important;
+  min-width: 0 !important;
+  max-width: 15% !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* Prevent vertical character stacking in scaled previews */
+.template-thumbnail-wrapper table td,
+.template-thumbnail-wrapper table th {
+  white-space: normal !important;
+  word-break: break-word !important;
+  display: table-cell !important;
+  vertical-align: top !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  /* Prevent responsive styles from making cells full width */
+  max-width: none !important;
+}
+
+/* CRITICAL: Prevent any responsive styles from overriding column structure */
+/* Override any width: 100% rules that might come from responsive media queries */
+.template-thumbnail-wrapper table th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(4)),
+.template-thumbnail-wrapper table td:not(:first-child):not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(4)) {
+  width: auto !important;
+}
+
+/* For templates using div-based layouts (like ColorPopGridTemplate) */
+.template-thumbnail-wrapper [style*="grid-template-columns"]>div:first-child,
+.template-thumbnail-wrapper [style*="display: grid"]>div:first-child {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+/* Professional template totals table - prevent squashing in thumbnail preview */
+.template-thumbnail-wrapper .professional-totals-table-container {
+  width: auto !important;
+  min-width: 200px !important;
+  max-width: none !important;
+}
+
+.template-thumbnail-wrapper .professional-totals-table-container table {
+  min-width: 200px !important;
+  width: auto !important;
+  table-layout: auto !important;
+}
+
+.template-thumbnail-wrapper .professional-currency-value {
+  white-space: nowrap !important;
+  min-width: 100px !important;
+}
+
+/* Classic template - prevent squashing of line item descriptions in thumbnail */
+/* Override media query styles that reduce padding/font-size when viewport < 768px */
+.template-thumbnail-wrapper .classic-table {
+  table-layout: fixed !important;
+  width: 100% !important;
+  font-size: inherit !important;
+}
+
+.template-thumbnail-wrapper .classic-table th,
+.template-thumbnail-wrapper .classic-table td {
+  padding: 12px !important;
+  font-size: inherit !important;
+}
+
+.template-thumbnail-wrapper .classic-table th:first-child,
+.template-thumbnail-wrapper .classic-table td:first-child {
+  width: 50% !important;
+  min-width: 200px !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+.template-thumbnail-wrapper .classic-info-section {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+.template-thumbnail-wrapper .classic-info-section>div:first-child {
+  max-width: 300px !important;
+  min-width: 200px !important;
 }
 
 /* PDF-specific adjustments - general template adjustments */

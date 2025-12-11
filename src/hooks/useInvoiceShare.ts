@@ -146,6 +146,7 @@ export function useValidateShareToken(token: string | null) {
         show_iban: result.invoice.show_iban,
         show_swift_bic: result.invoice.show_swift_bic,
         kid_number: result.invoice.kid_number,
+        sent_date: result.invoice.sent_date || null,
         created_at: result.invoice.created_at,
         updated_at: result.invoice.updated_at,
         client: result.client as Client,

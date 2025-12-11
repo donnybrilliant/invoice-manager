@@ -412,6 +412,10 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontFamily: "'Courier New', monospace",
                     fontSize: "13px",
                     textTransform: "uppercase",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}

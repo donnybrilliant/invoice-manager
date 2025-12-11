@@ -23,7 +23,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
   return (
     <>
       <style>{`
-        @media (max-width: 535px) {
+        @media (max-width: 634px) {
           .typewriter-template {
             padding: 20px !important;
             overflow-x: visible !important;
@@ -36,6 +36,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
             font-size: 11px !important;
             display: block !important;
             width: 100% !important;
+            overflow-x: visible !important;
           }
           .typewriter-table thead {
             display: none !important;
@@ -56,11 +57,15 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .typewriter-table td {
             display: block !important;
             width: 100% !important;
+            max-width: 100% !important;
             padding: 6px 0 !important;
             font-size: 11px !important;
             text-align: left !important;
             box-sizing: border-box !important;
             border: none !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
           }
           .typewriter-table td:before {
             content: attr(data-label) ": ";
@@ -438,6 +443,10 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   style={{
                     padding: "10px 12px",
                     borderBottom: "1px dashed #8B7355",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}

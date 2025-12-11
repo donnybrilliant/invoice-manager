@@ -370,6 +370,10 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       background: index % 2 === 0 ? "#fff" : "#FFEB3B",
                       fontFamily: "'Arial Black', sans-serif",
                       fontSize: "13px",
+                      wordWrap: "break-word",
+                      overflowWrap: "break-word",
+                      whiteSpace: "normal",
+                      maxWidth: 0,
                     }}
                   >
                     {item.description}

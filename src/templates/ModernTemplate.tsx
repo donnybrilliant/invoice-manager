@@ -414,23 +414,6 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   <strong>Sent Date:</strong> {formatDate(invoice.sent_date)}
                 </div>
               )}
-              <div>
-                <strong>Status:</strong>{" "}
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "2px 8px",
-                    background: "#dbeafe",
-                    color: "#1e40af",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {invoice.status}
-                </span>
-              </div>
             </div>
           </div>
         </div>

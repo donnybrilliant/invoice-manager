@@ -1,10 +1,1 @@
 providers = ["node"]
-
-[phases.install]
-cmds = ["npm ci"]
-
-[phases.build]
-cmds = ["npm run build"]
-
-[start]
-cmd = "echo 'Static site built. Files in dist/ directory.'"

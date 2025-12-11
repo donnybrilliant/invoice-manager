@@ -1,0 +1,14 @@
+[providers]
+node = true
+
+[phases.setup]
+nixPkgs = ["nodejs-22_x"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "echo 'Static site built. Files in dist/ directory.'"

@@ -149,10 +149,12 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
 
   const totalsBoxStyle: React.CSSProperties = {
     width: "350px",
+    maxWidth: "100%",
     padding: "24px",
     background: "linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)",
     borderRadius: "8px",
     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    boxSizing: "border-box",
   };
 
   const totalsTableStyle: React.CSSProperties = {
@@ -170,6 +172,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
     textAlign: "right",
     color: "#1f2937",
     fontSize: "16px",
+    whiteSpace: "nowrap",
   };
 
   const totalRowStyle: React.CSSProperties = {
@@ -189,6 +192,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
     color: "#3b82f6",
     fontWeight: 700,
     fontSize: "24px",
+    whiteSpace: "nowrap",
   };
 
   const notesBoxStyle: React.CSSProperties = {
@@ -287,6 +291,13 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             padding: 8px !important;
             font-size: 11px !important;
           }
+          .modern-totals-container {
+            justify-content: flex-start !important;
+          }
+          .modern-totals-box {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
         }
         @media (max-width: 480px) {
           .modern-template {
@@ -302,6 +313,20 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .modern-table td {
             padding: 6px 4px !important;
             font-size: 9px !important;
+          }
+          .modern-totals-container {
+            justify-content: flex-start !important;
+          }
+          .modern-totals-box {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 16px !important;
+          }
+          .modern-totals-value {
+            font-size: 14px !important;
+          }
+          .modern-total-value {
+            font-size: 20px !important;
           }
         }
       `}</style>
@@ -475,19 +500,19 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </table>
 
         {/* Totals */}
-        <div style={totalsContainerStyle}>
-          <div style={totalsBoxStyle}>
+        <div className="modern-totals-container" style={totalsContainerStyle}>
+          <div className="modern-totals-box" style={totalsBoxStyle}>
             <table style={totalsTableStyle}>
               <tbody>
                 <tr>
                   <td style={totalsRowStyle}>Subtotal:</td>
-                  <td style={totalsValueStyle}>
+                  <td className="modern-totals-value" style={totalsValueStyle}>
                     {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
                   </td>
                 </tr>
                 <tr>
                   <td style={totalsRowStyle}>Tax ({invoice.tax_rate}%):</td>
-                  <td style={totalsValueStyle}>
+                  <td className="modern-totals-value" style={totalsValueStyle}>
                     {formatCurrencyWithCode(
                       invoice.tax_amount,
                       invoice.currency
@@ -496,7 +521,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </tr>
                 <tr style={totalRowStyle}>
                   <td style={totalLabelStyle}>Total Due:</td>
-                  <td style={totalValueStyle}>
+                  <td className="modern-total-value" style={totalValueStyle}>
                     {formatCurrencyWithCode(invoice.total, invoice.currency)}
                   </td>
                 </tr>

@@ -48,9 +48,68 @@ export default function InvoiceList({
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
+      // Check current invoice status
+      const currentInvoice = invoices.find((inv) => inv.id === id);
+
+      // Prevent any status changes for paid invoices
+      if (currentInvoice?.status === "paid") {
+        showToast(
+          "Cannot change status of a paid invoice. Paid invoices are locked.",
+          "error"
+        );
+        return;
+      }
+
+      // Warn if changing from sent to draft (but allow it)
+      if (currentInvoice?.status === "sent" && status === "draft") {
+        // Just show a toast warning, no blocking
+        showToast(
+          "Invoice status changed to draft. You can now edit this invoice.",
+          "warning"
+        );
+      }
+
+      // Prevent manually setting overdue if invoice is not actually overdue
+      if (status === "overdue") {
+        const dueDate = new Date(currentInvoice.due_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (dueDate >= today) {
+          showToast(
+            "Cannot manually set invoice as overdue. Overdue status is automatically applied when the due date has passed.",
+            "error"
+          );
+          return;
+        }
+      }
+
+      // Warn if changing from overdue to sent/draft (due date will be updated)
+      if (
+        currentInvoice?.status === "overdue" &&
+        (status === "sent" || status === "draft")
+      ) {
+        const dueDate = new Date(currentInvoice.due_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (dueDate < today) {
+          showToast(
+            "Due date will be updated to today to prevent immediate overdue marking.",
+            "info"
+          );
+        }
+      }
+
       await updateStatusMutation.mutateAsync({ id, status });
     } catch (error) {
       console.error("Error updating status:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to update invoice status",
+        "error"
+      );
     }
   };
 
@@ -431,9 +490,15 @@ export default function InvoiceList({
                         onChange={(e) =>
                           handleUpdateStatus(invoice.id, e.target.value)
                         }
+                        disabled={invoice.status === "paid"}
                         className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${getStatusColor(
                           invoice.status
-                        )}`}
+                        )} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={
+                          invoice.status === "paid"
+                            ? "Paid invoices cannot be changed"
+                            : undefined
+                        }
                       >
                         <option value="draft">Draft</option>
                         <option value="sent">Sent</option>
@@ -446,18 +511,20 @@ export default function InvoiceList({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center justify-end gap-2">
-                        {invoice.status === "draft" && onEditInvoice && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditInvoice(invoice);
-                            }}
-                            className="text-blue-600 hover:text-blue-800 transition p-2"
-                            title="Edit"
-                          >
-                            <Edit className="w-5 h-5" />
-                          </button>
-                        )}
+                        {(invoice.status === "draft" ||
+                          invoice.status === "sent") &&
+                          onEditInvoice && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditInvoice(invoice);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 transition p-2"
+                              title="Edit"
+                            >
+                              <Edit className="w-5 h-5" />
+                            </button>
+                          )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

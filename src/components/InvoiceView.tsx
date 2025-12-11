@@ -511,7 +511,13 @@ export default function InvoiceView({
     const TemplateComponent = template.Component;
 
     return (
-      <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+      <div
+        style={
+          template.id !== "dark-mode"
+            ? { backgroundColor: "#ffffff", color: "#1f2937" }
+            : {}
+        }
+      >
         <TemplateComponent
           invoice={invoice}
           items={items}

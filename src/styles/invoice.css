@@ -41,14 +41,26 @@
    * Set default text color for ALL elements that don't have explicit inline styles
    * This ensures no element inherits dark mode colors
    * 
-   * Note: We exclude elements with black backgrounds (they should have white text)
+   * Note: We exclude elements with black/dark backgrounds (they should have white/light text)
    * and elements that already have explicit color styles
    * 
    * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
    * not "color" which would incorrectly match "background-color"
+   * 
+   * Also exclude very dark backgrounds (#0, #1 ranges) for dark mode templates
+   * CRITICAL: Never apply dark text to dark mode template elements
    */
-  .invoice-light-mode *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]) {
+  .invoice-light-mode *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]):not([style*="background: #0"]):not([style*="background:#0"]):not([style*="background-color: #0"]):not([style*="background-color:#0"]):not([style*="background: #1"]):not([style*="background:#1"]):not([style*="background-color: #1"]):not([style*="background-color:#1"]) {
     color: #1f2937 !important;
+  }
+
+  /**
+   * CRITICAL: Protect dark mode template from any CSS overrides
+   * Dark mode template should NEVER have invoice-light-mode class applied
+   * This ensures dark mode template maintains its dark color scheme
+   */
+  .darkmode-template {
+    color-scheme: dark !important;
   }
 
   /**
@@ -73,17 +85,27 @@
    * 
    * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
    * not "color" which would incorrectly match "background-color"
+   * 
+   * Also handle very dark backgrounds (#0, #1 ranges) for dark mode templates
    */
+  .invoice-light-mode [style*="background: #0"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #1"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background: #3"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background: #4"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background: #5"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #0"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #1"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background-color: #3"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background-color: #4"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background-color: #5"] *:not([style*="color:"]),
   /* More specific: elements with dark background AND color - children should inherit */
+  .invoice-light-mode [style*="background: #0"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #1"][style*="color:"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background: #3"][style*="color:"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background: #4"][style*="color:"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background: #5"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #0"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #1"][style*="color:"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background-color: #3"][style*="color:"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background-color: #4"][style*="color:"] *:not([style*="color:"]),
   .invoice-light-mode [style*="background-color: #5"][style*="color:"] *:not([style*="color:"]) {
@@ -971,6 +993,42 @@
 .template-thumbnail-wrapper .classic-info-section>div:first-child {
   max-width: 300px !important;
   min-width: 200px !important;
+}
+
+/* Modern template - prevent vertical text breaking in total value */
+.template-thumbnail-wrapper .modern-totals-box {
+  min-width: 200px !important;
+  width: auto !important;
+}
+
+.template-thumbnail-wrapper .modern-totals-box table {
+  table-layout: auto !important;
+  width: 100% !important;
+}
+
+.template-thumbnail-wrapper .modern-totals-box td {
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.template-thumbnail-wrapper .modern-total-value {
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  direction: ltr !important;
+  min-width: 100px !important;
+}
+
+.template-thumbnail-wrapper .modern-totals-value {
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  direction: ltr !important;
 }
 
 /* PDF-specific adjustments - general template adjustments */

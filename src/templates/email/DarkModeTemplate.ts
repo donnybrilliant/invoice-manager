@@ -8,14 +8,27 @@ export const DarkModeEmailTemplate = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      background: #0D0D0D;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
       color: #fff;
+      padding: 0;
+    }
+    .email-wrapper {
+      width: 100%;
+      background: #0D0D0D;
+      padding: 20px 0;
+    }
+    .email-container {
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      background: linear-gradient(180deg, #0D0D0D 0%, #1A1A1A 100%);
     }
     .header {
       border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -50,47 +63,77 @@ export const DarkModeEmailTemplate = `<!DOCTYPE html>
       color: #fff;
     }
     h1 {
-      font-size: 32px;
+      font-size: 48px;
       font-weight: 200;
       margin: 0;
       color: #fff;
       letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+    .invoice-number {
+      font-size: 14px;
+      color: #00FFB2;
+      font-family: 'SF Mono', monospace;
+      margin-top: 8px;
+    }
+    .company-info {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #00FFB2;
+      margin-bottom: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>Invoice {{invoiceNumber}}</h1>
-    <p style="margin: 10px 0 0 0; opacity: 0.7; font-size: 14px;">from {{companyName}}</p>
-  </div>
-  <div class="content">
-    <p>Dear {{clientName}},</p>
-    {{#if message}}
-    <div style="background: rgba(255,255,255,0.08); padding: 15px; border-left: 3px solid rgba(255,255,255,0.3); margin: 20px 0; border-radius: 4px;">{{message}}</div>
-    {{/if}}
-    <p>Please find attached your invoice {{invoiceNumber}}.</p>
-    <div class="invoice-details">
-      <div class="detail-row">
-        <span style="opacity: 0.8;">Invoice Number:</span>
-        <span>{{invoiceNumber}}</span>
+  <div class="email-wrapper">
+    <div class="email-container">
+      <div class="header">
+        <h1>Invoice</h1>
+        <div class="invoice-number">#{{invoiceNumber}}</div>
+        <div class="company-info">
+          <div style="font-weight: 600; font-size: 16px; color: #fff; margin-bottom: 12px;">{{companyName}}</div>
+        </div>
       </div>
-      <div class="detail-row">
-        <span style="opacity: 0.8;">Issue Date:</span>
-        <span>{{issueDate}}</span>
-      </div>
-      <div class="detail-row">
-        <span style="opacity: 0.8;">Due Date:</span>
-        <span>{{dueDate}}</span>
-      </div>
-      <div class="detail-row total">
-        <span>Total Amount:</span>
-        <span>{{total}} {{currency}}</span>
+      <div class="content">
+        <p style="color: #E0E0E0; margin-bottom: 20px;">Dear {{clientName}},</p>
+        {{#if message}}
+        <div style="background: rgba(0,255,178,0.05); padding: 15px; border-left: 3px solid #00FFB2; margin: 20px 0; border-radius: 4px; color: #E0E0E0;">{{message}}</div>
+        {{/if}}
+        <p style="color: #E0E0E0; margin-bottom: 20px;">Please find attached your invoice {{invoiceNumber}}.</p>
+        <div class="invoice-details">
+          <div class="label" style="margin-bottom: 15px;">Invoice Details</div>
+          <div class="detail-row">
+            <span style="color: #B0B0B0; font-size: 13px;">Invoice Number:</span>
+            <span style="font-weight: 600; color: #E0E0E0;">{{invoiceNumber}}</span>
+          </div>
+          <div class="detail-row">
+            <span style="color: #B0B0B0; font-size: 13px;">Issue Date:</span>
+            <span style="color: #E0E0E0;">{{issueDate}}</span>
+          </div>
+          <div class="detail-row">
+            <span style="color: #B0B0B0; font-size: 13px;">Due Date:</span>
+            <span style="color: #E0E0E0;">{{dueDate}}</span>
+          </div>
+          <div class="detail-row total">
+            <span style="font-weight: 600;">Total Amount:</span>
+            <span>{{total}} {{currency}}</span>
+          </div>
+        </div>
+        <p style="color: #E0E0E0; margin-top: 20px;">If you have any questions about this invoice, please don't hesitate to contact us.</p>
+        {{#if companyEmail}}
+        <p style="margin-top: 30px; font-size: 0.875em; color: #B0B0B0;">Contact: {{companyEmail}}</p>
+        {{/if}}
       </div>
     </div>
-    <p style="opacity: 0.9;">If you have any questions about this invoice, please don't hesitate to contact us.</p>
-    {{#if companyEmail}}
-    <p style="margin-top: 30px; font-size: 0.875em; opacity: 0.7;">Contact: {{companyEmail}}</p>
-    {{/if}}
   </div>
 </body>
 </html>`;

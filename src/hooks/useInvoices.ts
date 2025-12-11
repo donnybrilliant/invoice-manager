@@ -90,7 +90,7 @@ export function useCreateInvoice() {
 
       const invoice_number = generateInvoiceNumber();
 
-      // Create invoice
+      // Create invoice (include client relationship to match cache structure)
       const { data: newInvoice, error: invoiceError } = await supabase
         .from("invoices")
         .insert({
@@ -112,7 +112,12 @@ export function useCreateInvoice() {
           show_swift_bic: data.show_swift_bic ?? false,
           kid_number: data.kid_number || null,
         })
-        .select()
+        .select(
+          `
+          *,
+          client:clients(*)
+        `
+        )
         .single();
 
       if (invoiceError) throw invoiceError;
@@ -137,7 +142,13 @@ export function useCreateInvoice() {
 
       return newInvoice as Invoice;
     },
-    onSuccess: () => {
+    onSuccess: (newInvoice) => {
+      // Optimistically add the new invoice to cache (at the beginning of the list)
+      queryClient.setQueryData<Invoice[]>(
+        ["invoices", user?.id],
+        (oldInvoices = []) => [newInvoice, ...oldInvoices]
+      );
+      // Still invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
     },
   });
@@ -173,6 +184,21 @@ export function useUpdateInvoice() {
       id: string;
       data: UpdateInvoiceData;
     }) => {
+      // Check if invoice is paid - prevent editing paid invoices
+      const { data: currentInvoice, error: fetchError } = await supabase
+        .from("invoices")
+        .select("status")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (currentInvoice?.status === "paid") {
+        throw new Error(
+          "Cannot edit a paid invoice. To make changes, create a new invoice or credit note."
+        );
+      }
+
       // Update invoice
       const { error: invoiceError } = await supabase
         .from("invoices")
@@ -243,6 +269,38 @@ export function useDeleteInvoice() {
       if (error) throw error;
       return id;
     },
+    // Optimistic update: remove invoice from cache immediately
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["invoices", user?.id] });
+
+      // Snapshot the previous value for rollback
+      const previousInvoices = queryClient.getQueryData<Invoice[]>([
+        "invoices",
+        user?.id,
+      ]);
+
+      // Optimistically remove the invoice from cache
+      if (previousInvoices) {
+        queryClient.setQueryData<Invoice[]>(
+          ["invoices", user?.id],
+          previousInvoices.filter((invoice) => invoice.id !== id)
+        );
+      }
+
+      // Return context with the snapshotted value for rollback
+      return { previousInvoices };
+    },
+    // If mutation fails, rollback to previous value
+    onError: (err, id, context) => {
+      if (context?.previousInvoices) {
+        queryClient.setQueryData(
+          ["invoices", user?.id],
+          context.previousInvoices
+        );
+      }
+    },
+    // Invalidate to ensure consistency (but UI already updated optimistically)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["invoiceItems"] });
@@ -256,11 +314,55 @@ export function useUpdateInvoiceStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      // If status is being set to "sent" and sent_date is not already set, set it to today
+      // Check current invoice status
+      const { data: currentInvoice, error: fetchError } = await supabase
+        .from("invoices")
+        .select("status")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Prevent ANY status changes for paid invoices (backend protection)
+      if (currentInvoice?.status === "paid") {
+        throw new Error(
+          "Cannot change status of a paid invoice. Paid invoices are locked to prevent accidental changes."
+        );
+      }
+
+      // Get full invoice data to check due_date
+      const { data: fullInvoice, error: fullInvoiceError } = await supabase
+        .from("invoices")
+        .select("due_date")
+        .eq("id", id)
+        .single();
+
+      if (fullInvoiceError) throw fullInvoiceError;
+
+      // Prevent manually setting overdue if invoice is not actually overdue (backend protection)
+      if (status === "overdue") {
+        const today = new Date().toISOString().split("T")[0];
+        const dueDate = new Date(fullInvoice.due_date);
+        const todayDate = new Date(today);
+
+        if (dueDate >= todayDate) {
+          throw new Error(
+            "Cannot manually set invoice as overdue. Overdue status is automatically applied when the due date has passed."
+          );
+        }
+      }
+
+      // If changing from overdue to sent/draft, update due_date to prevent immediate re-marking as overdue
+      // Update due_date to today if it's in the past (gives at least today as the new due date)
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+      const dueDate = new Date(fullInvoice.due_date);
+      const todayDate = new Date(today);
+
       const updateData: {
         status: string;
         updated_at: string;
         sent_date?: string;
+        due_date?: string;
       } = {
         status,
         updated_at: new Date().toISOString(),
@@ -268,8 +370,18 @@ export function useUpdateInvoiceStatus() {
 
       if (status === "sent") {
         // Set sent_date to today if not already set
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
         updateData.sent_date = today;
+      }
+
+      // If changing from overdue to sent/draft, and due_date is in the past, update it to today
+      // This prevents the invoice from being immediately marked as overdue again
+      if (
+        currentInvoice?.status === "overdue" &&
+        (status === "sent" || status === "draft")
+      ) {
+        if (dueDate < todayDate) {
+          updateData.due_date = today;
+        }
       }
 
       const { error } = await supabase
@@ -278,8 +390,71 @@ export function useUpdateInvoiceStatus() {
         .eq("id", id);
 
       if (error) throw error;
-      return { id, status };
+      return { id, status, updateData };
     },
+    // Optimistic update: update cache immediately before server responds
+    onMutate: async ({ id, status }) => {
+      // Cancel any outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["invoices", user?.id] });
+
+      // Snapshot the previous value for rollback
+      const previousInvoices = queryClient.getQueryData<Invoice[]>([
+        "invoices",
+        user?.id,
+      ]);
+
+      // Optimistically update the cache
+      if (previousInvoices) {
+        const today = new Date().toISOString().split("T")[0];
+        const invoiceToUpdate = previousInvoices.find((inv) => inv.id === id);
+        const dueDate = invoiceToUpdate
+          ? new Date(invoiceToUpdate.due_date)
+          : null;
+        const todayDate = new Date(today);
+
+        queryClient.setQueryData<Invoice[]>(
+          ["invoices", user?.id],
+          previousInvoices.map((invoice) => {
+            if (invoice.id !== id) return invoice;
+
+            const updates: Partial<Invoice> = {
+              status: status as Invoice["status"],
+              updated_at: new Date().toISOString(),
+            };
+
+            // Set sent_date if changing to sent
+            if (status === "sent" && !invoice.sent_date) {
+              updates.sent_date = today;
+            }
+
+            // Update due_date if changing from overdue to sent/draft
+            if (
+              invoice.status === "overdue" &&
+              (status === "sent" || status === "draft") &&
+              dueDate &&
+              dueDate < todayDate
+            ) {
+              updates.due_date = today;
+            }
+
+            return { ...invoice, ...updates };
+          })
+        );
+      }
+
+      // Return context with the snapshotted value for rollback
+      return { previousInvoices };
+    },
+    // If mutation fails, rollback to previous value
+    onError: (err, variables, context) => {
+      if (context?.previousInvoices) {
+        queryClient.setQueryData(
+          ["invoices", user?.id],
+          context.previousInvoices
+        );
+      }
+    },
+    // Always refetch after success to ensure consistency (but UI already updated optimistically)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
     },

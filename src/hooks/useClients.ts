@@ -56,7 +56,16 @@ export function useCreateClient() {
       if (error) throw error;
       return result as Client;
     },
-    onSuccess: () => {
+    onSuccess: (newClient) => {
+      // Optimistically add the new client to cache (maintain alphabetical order)
+      queryClient.setQueryData<Client[]>(
+        ["clients", user?.id],
+        (oldClients = []) => {
+          const updated = [...oldClients, newClient];
+          return updated.sort((a, b) => a.name.localeCompare(b.name));
+        }
+      );
+      // Still invalidate to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
     },
   });
@@ -115,6 +124,38 @@ export function useDeleteClient() {
       if (error) throw error;
       return id;
     },
+    // Optimistic update: remove client from cache immediately
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["clients", user?.id] });
+
+      // Snapshot the previous value for rollback
+      const previousClients = queryClient.getQueryData<Client[]>([
+        "clients",
+        user?.id,
+      ]);
+
+      // Optimistically remove the client from cache
+      if (previousClients) {
+        queryClient.setQueryData<Client[]>(
+          ["clients", user?.id],
+          previousClients.filter((client) => client.id !== id)
+        );
+      }
+
+      // Return context with the snapshotted value for rollback
+      return { previousClients };
+    },
+    // If mutation fails, rollback to previous value
+    onError: (err, id, context) => {
+      if (context?.previousClients) {
+        queryClient.setQueryData(
+          ["clients", user?.id],
+          context.previousClients
+        );
+      }
+    },
+    // Invalidate to ensure consistency (but UI already updated optimistically)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
       // Also invalidate invoices since they reference clients

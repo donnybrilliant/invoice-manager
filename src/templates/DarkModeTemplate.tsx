@@ -18,6 +18,14 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
   return (
     <>
       <style>{`
+        /* Ensure all text in dark mode template maintains proper contrast */
+        .darkmode-template * {
+          color: inherit;
+        }
+        .darkmode-template strong {
+          color: inherit;
+          font-weight: 600;
+        }
         @media (max-width: 768px) {
           .darkmode-template {
             padding: 25px !important;
@@ -134,7 +142,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
               {getCompanyInfo(profile, "company_name")}
             </div>
             <div
-              style={{ fontSize: "13px", color: "#808080", lineHeight: 1.8 }}
+              style={{ fontSize: "13px", color: "#D0D0D0", lineHeight: 1.8 }}
             >
               {formatCompanyAddress(profile)
                 .split("\n")
@@ -196,7 +204,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
               {client.name}
             </div>
             <div
-              style={{ fontSize: "13px", color: "#808080", lineHeight: 1.8 }}
+              style={{ fontSize: "13px", color: "#D0D0D0", lineHeight: 1.8 }}
             >
               {formatClientAddress(client)
                 .split("\n")
@@ -231,7 +239,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
-                    color: "#606060",
+                    color: "#D0D0D0",
                     marginBottom: "8px",
                   }}
                 >
@@ -248,7 +256,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
-                    color: "#606060",
+                    color: "#D0D0D0",
                     marginBottom: "8px",
                   }}
                 >
@@ -263,7 +271,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   <div
                     style={{
                       fontSize: "11px",
-                      color: "#9CA3AF",
+                      color: "#D0D0D0",
                       textTransform: "uppercase",
                       letterSpacing: "1px",
                       marginBottom: "4px",
@@ -305,7 +313,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
-                    color: "#606060",
+                    color: "#D0D0D0",
                   }}
                 >
                   Description
@@ -319,7 +327,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
-                    color: "#606060",
+                    color: "#D0D0D0",
                   }}
                 >
                   Qty
@@ -333,7 +341,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
-                    color: "#606060",
+                    color: "#D0D0D0",
                   }}
                 >
                   Rate
@@ -347,7 +355,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
-                    color: "#606060",
+                    color: "#D0D0D0",
                   }}
                 >
                   Amount
@@ -384,7 +392,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       padding: "16px 20px",
                       borderBottom: "1px solid rgba(255,255,255,0.1)",
                       textAlign: "center",
-                      color: "#A0A0A0",
+                      color: "#D0D0D0",
                     }}
                   >
                     {item.quantity}
@@ -394,7 +402,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       padding: "16px 20px",
                       borderBottom: "1px solid rgba(255,255,255,0.1)",
                       textAlign: "right",
-                      color: "#A0A0A0",
+                      color: "#D0D0D0",
                     }}
                   >
                     {formatCurrencyWithCode(item.unit_price, invoice.currency)}
@@ -441,7 +449,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 borderBottom: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <span style={{ fontSize: "13px", color: "#808080" }}>
+              <span style={{ fontSize: "13px", color: "#D0D0D0" }}>
                 Subtotal
               </span>
               <span style={{ fontSize: "14px", color: "#E0E0E0" }}>
@@ -456,7 +464,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 borderBottom: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <span style={{ fontSize: "13px", color: "#808080" }}>Tax</span>
+              <span style={{ fontSize: "13px", color: "#D0D0D0" }}>Tax</span>
               <span style={{ fontSize: "14px", color: "#E0E0E0" }}>
                 {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
               </span>
@@ -504,7 +512,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "2px",
-              color: "#606060",
+              color: "#D0D0D0",
               marginBottom: "15px",
             }}
           >
@@ -513,7 +521,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
           <div
             style={{
               fontSize: "13px",
-              color: "#A0A0A0",
+              color: "#D0D0D0",
               lineHeight: 1.9,
               fontFamily: "'SF Mono', monospace",
             }}
@@ -522,8 +530,8 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
               profile={profile}
               invoice={invoice}
               style={{
-                item: { marginBottom: "4px", color: "#A0A0A0" },
-                empty: { color: "#606060" },
+                item: { marginBottom: "4px", color: "#D0D0D0" },
+                empty: { color: "#D0D0D0" },
               }}
             />
           </div>
@@ -552,7 +560,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
               Notes
             </div>
             <div
-              style={{ fontSize: "13px", color: "#A0A0A0", lineHeight: 1.8 }}
+              style={{ fontSize: "13px", color: "#D0D0D0", lineHeight: 1.8 }}
             >
               {invoice.notes}
             </div>

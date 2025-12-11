@@ -205,7 +205,9 @@ export default function TemplateSelector({
 
                 {/* Actual Template Preview (scaled down, showing full length) */}
                 <div
-                  className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative invoice-light-mode"
+                  className={`bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative ${
+                    template.id !== "dark-mode" ? "invoice-light-mode" : ""
+                  }`}
                   style={{ aspectRatio: "8.5/11" }}
                 >
                   {templateData ? (
@@ -225,10 +227,14 @@ export default function TemplateSelector({
                           }}
                         >
                           <div
-                            style={{
-                              backgroundColor: "#ffffff",
-                              color: "#1f2937",
-                            }}
+                            style={
+                              template.id !== "dark-mode"
+                                ? {
+                                    backgroundColor: "#ffffff",
+                                    color: "#1f2937",
+                                  }
+                                : {}
+                            }
                           >
                             <TemplateComponent
                               invoice={templateData.invoice}

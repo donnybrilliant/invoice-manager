@@ -258,6 +258,24 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   {formatDate(invoice.due_date)}
                 </div>
               </div>
+              {invoice.status === "sent" && invoice.sent_date && (
+                <div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#9CA3AF",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Sent Date
+                  </div>
+                  <div style={{ fontSize: "15px", color: "#60A5FA" }}>
+                    {formatDate(invoice.sent_date)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

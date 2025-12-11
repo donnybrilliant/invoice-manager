@@ -1,11 +1,12 @@
 import { useState, useEffect, useActionState, useRef } from "react";
-import { ArrowLeft, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, Eye } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import {
   useCompanyProfile,
   useUpdateCompanyProfile,
 } from "../hooks/useCompanyProfile";
+import EmailTemplateSection from "./EmailTemplateSection";
 
 interface CompanyProfileProps {
   onBack: () => void;
@@ -38,6 +39,8 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
     currency: "EUR",
     payment_instructions: "",
     logo_url: "",
+    use_custom_email_template: false,
+    email_template: "",
   });
 
   useEffect(() => {
@@ -60,6 +63,8 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
         currency: profile.currency || "EUR",
         payment_instructions: profile.payment_instructions || "",
         logo_url: profile.logo_url || "",
+        use_custom_email_template: profile.use_custom_email_template || false,
+        email_template: profile.email_template || "",
       });
       if (profile.logo_url) {
         setLogoPreview(profile.logo_url);
@@ -189,6 +194,11 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
           currency: currentFormData.currency || "EUR",
           payment_instructions: currentFormData.payment_instructions || null,
           logo_url: logoUrl || null,
+          use_custom_email_template:
+            currentFormData.use_custom_email_template || false,
+          email_template: currentFormData.use_custom_email_template
+            ? currentFormData.email_template || null
+            : null,
         });
 
         setSuccessMessage("Company profile saved successfully!");
@@ -644,6 +654,23 @@ export default function CompanyProfile({ onBack }: CompanyProfileProps) {
                 </div>
               </div>
             </div>
+
+            {/* Email Template Section */}
+            <EmailTemplateSection
+              useCustomTemplate={formData.use_custom_email_template}
+              customTemplate={formData.email_template}
+              onUseCustomChange={(useCustom) =>
+                setFormData({
+                  ...formData,
+                  use_custom_email_template: useCustom,
+                })
+              }
+              onCustomTemplateChange={(template) =>
+                setFormData({ ...formData, email_template: template })
+              }
+              companyName={formData.company_name}
+              companyEmail={formData.email}
+            />
 
             {(state?.error || logoError) && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">

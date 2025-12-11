@@ -23,6 +23,7 @@ export interface Invoice {
   user_id: string;
   issue_date: string;
   due_date: string;
+  sent_date: string | null;
   status: "draft" | "sent" | "paid" | "overdue";
   subtotal: number;
   discount_percentage: number;
@@ -76,6 +77,8 @@ export interface CompanyProfile {
   currency: string;
   payment_instructions: string | null;
   logo_url: string | null;
+  use_custom_email_template: boolean;
+  email_template: string | null;
   created_at: string;
   updated_at: string;
 }

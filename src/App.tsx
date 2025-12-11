@@ -25,8 +25,19 @@ function AppContent() {
   const hasPushedStateRef = useRef(false);
 
   useEffect(() => {
-    // Check for public invoice route: /invoice/[token]
+    // Check for health check route: /health
     const path = window.location.pathname;
+    if (path === "/health") {
+      // Health check endpoint - return simple response
+      // Note: This is handled by nginx first, but we include it here
+      // in case nginx isn't configured or for development
+      document.body.innerHTML = "healthy\n";
+      document.body.style.fontFamily = "monospace";
+      document.body.style.padding = "20px";
+      return;
+    }
+
+    // Check for public invoice route: /invoice/[token]
     const invoiceMatch = path.match(/^\/invoice\/(.+)$/);
     if (invoiceMatch) {
       // Use setTimeout to avoid synchronous setState in effect

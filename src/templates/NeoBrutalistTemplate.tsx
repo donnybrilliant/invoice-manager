@@ -263,6 +263,29 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {formatDate(invoice.due_date)}
               </div>
             </div>
+            {invoice.status === "sent" && invoice.sent_date && (
+              <div style={{ marginTop: "15px" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 900,
+                    textTransform: "uppercase",
+                    letterSpacing: "2px",
+                  }}
+                >
+                  SENT
+                </div>
+                <div
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 900,
+                    marginTop: "4px",
+                  }}
+                >
+                  {formatDate(invoice.sent_date)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -332,6 +332,30 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {formatDate(invoice.due_date)}
               </div>
             </div>
+            {invoice.status === "sent" && invoice.sent_date && (
+              <div style={{ marginTop: "18px" }}>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#8B7355",
+                    textTransform: "uppercase",
+                    letterSpacing: "2px",
+                  }}
+                >
+                  Date Sent
+                </div>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#3D2914",
+                    marginTop: "4px",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {formatDate(invoice.sent_date)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

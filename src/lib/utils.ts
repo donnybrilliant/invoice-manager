@@ -72,7 +72,7 @@ export function generateInvoiceFilename(
   // Sanitize invoice number for filename
   const sanitizedInvoiceNumber = sanitizeFilename(invoiceNumber);
 
-  let filename = `invoice-${sanitizedInvoiceNumber}`;
+  let filename = sanitizedInvoiceNumber;
 
   if (customerName) {
     // Sanitize customer name for filename
@@ -92,4 +92,38 @@ export function generateInvoiceFilename(
     : extension;
 
   return `${filename}.${cleanExtension}`;
+}
+
+/**
+ * Generates filename for downloaded invoice PDFs
+ * Format: {invoice-number}-{client-name}-{issue-date}.pdf
+ *
+ * @param invoiceNumber - The invoice number
+ * @param clientName - The client name
+ * @param issueDate - The invoice issue date
+ * @returns Formatted filename
+ */
+export function generateInvoiceFilenameForDownload(
+  invoiceNumber: string,
+  clientName: string,
+  issueDate: string
+): string {
+  return generateInvoiceFilename(invoiceNumber, "pdf", clientName, issueDate);
+}
+
+/**
+ * Generates filename for email invoice PDFs
+ * Format: {invoice-number}-{company-name}-{due-date}.pdf
+ *
+ * @param invoiceNumber - The invoice number
+ * @param companyName - The company name
+ * @param dueDate - The invoice due date
+ * @returns Formatted filename
+ */
+export function generateInvoiceFilenameForEmail(
+  invoiceNumber: string,
+  companyName: string,
+  dueDate: string
+): string {
+  return generateInvoiceFilename(invoiceNumber, "pdf", companyName, dueDate);
 }

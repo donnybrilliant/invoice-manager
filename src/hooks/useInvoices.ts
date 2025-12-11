@@ -256,9 +256,25 @@ export function useUpdateInvoiceStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      // If status is being set to "sent" and sent_date is not already set, set it to today
+      const updateData: {
+        status: string;
+        updated_at: string;
+        sent_date?: string;
+      } = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (status === "sent") {
+        // Set sent_date to today if not already set
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        updateData.sent_date = today;
+      }
+
       const { error } = await supabase
         .from("invoices")
-        .update({ status, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq("id", id);
 
       if (error) throw error;

@@ -355,6 +355,7 @@ BEGIN
         user_id,
         issue_date,
         due_date,
+        sent_date,
         status,
         subtotal,
         discount_percentage,
@@ -377,6 +378,10 @@ BEGIN
         test_user_id,
         issue_date_var,
         due_date_var,
+        CASE 
+          WHEN status_var = 'sent' THEN issue_date_var + (1 + floor(random() * 7)::int) -- sent_date is 1-7 days after issue_date
+          ELSE NULL
+        END,
         status_var,
         0, -- subtotal (will be calculated from items)
         discount_pct_var,

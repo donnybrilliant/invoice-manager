@@ -15,7 +15,7 @@ import { supabase } from "../lib/supabase";
 import { Invoice, InvoiceItem, CompanyProfile } from "../types";
 import { getTemplate } from "../templates";
 import { generatePDFFromElement } from "../lib/pdfUtils";
-import { generateInvoiceFilename } from "../lib/utils";
+import { generateInvoiceFilenameForDownload } from "../lib/utils";
 import { useInvoices, useUpdateInvoiceStatus } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
@@ -250,12 +250,10 @@ export default function InvoiceList({
         });
       });
 
-      // Generate filename
-      const customerName = invoice.client?.name || "";
-      const filename = generateInvoiceFilename(
+      // Generate filename for download: invoiceid-client-name-date-of-creation
+      const filename = generateInvoiceFilenameForDownload(
         invoice.invoice_number,
-        "pdf",
-        customerName,
+        invoice.client?.name || "",
         invoice.issue_date
       );
 

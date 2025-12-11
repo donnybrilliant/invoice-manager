@@ -245,6 +245,25 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {formatDate(invoice.due_date)}
               </div>
             </div>
+            {invoice.status === "sent" && invoice.sent_date && (
+              <div style={{ marginTop: "25px" }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 500,
+                    textTransform: "uppercase",
+                    letterSpacing: "3px",
+                    color: "#999",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Sent Date
+                </div>
+                <div style={{ fontSize: "15px", color: "#000" }}>
+                  {formatDate(invoice.sent_date)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

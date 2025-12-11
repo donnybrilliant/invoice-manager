@@ -305,6 +305,30 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   {formatDate(invoice.due_date)}
                 </div>
               </div>
+              {invoice.status === "sent" && invoice.sent_date && (
+                <div>
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                      letterSpacing: "2px",
+                      color: "#666",
+                    }}
+                  >
+                    SENT
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 900,
+                      marginTop: "4px",
+                    }}
+                  >
+                    {formatDate(invoice.sent_date)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -126,19 +126,19 @@ export const MinimalJapaneseEmailTemplate = `<!DOCTYPE html>
     <p style="margin-bottom: 25px; font-size: 14px; line-height: 1.8;">Please find attached your invoice {{invoiceNumber}}.</p>
     <div class="invoice-details">
       <div class="detail-row">
-        <span class="detail-label">Invoice Number:</span>
+        <span class="detail-label">Invoice Number: </span>
         <span>{{invoiceNumber}}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Issue Date:</span>
+        <span class="detail-label">Issue Date: </span>
         <span>{{issueDate}}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Due Date:</span>
+        <span class="detail-label">Due Date: </span>
         <span>{{dueDate}}</span>
       </div>
       <div class="detail-row total">
-        <span>Total:</span>
+        <span>Total: </span>
         <span>{{total}} {{currency}}</span>
       </div>
     </div>

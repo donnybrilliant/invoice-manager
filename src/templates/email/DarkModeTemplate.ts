@@ -112,19 +112,19 @@ export const DarkModeEmailTemplate = `<!DOCTYPE html>
         <div class="invoice-details">
           <div class="label" style="margin-bottom: 15px;">Invoice Details</div>
           <div class="detail-row">
-            <span style="color: #B0B0B0; font-size: 13px;">Invoice Number:</span>
+            <span style="color: #B0B0B0; font-size: 13px;">Invoice Number: </span>
             <span style="font-weight: 600; color: #E0E0E0;">{{invoiceNumber}}</span>
           </div>
           <div class="detail-row">
-            <span style="color: #B0B0B0; font-size: 13px;">Issue Date:</span>
+            <span style="color: #B0B0B0; font-size: 13px;">Issue Date: </span>
             <span style="color: #E0E0E0;">{{issueDate}}</span>
           </div>
           <div class="detail-row">
-            <span style="color: #B0B0B0; font-size: 13px;">Due Date:</span>
+            <span style="color: #B0B0B0; font-size: 13px;">Due Date: </span>
             <span style="color: #E0E0E0;">{{dueDate}}</span>
           </div>
           <div class="detail-row total">
-            <span style="font-weight: 600;">Total Amount:</span>
+            <span style="font-weight: 600;">Total Amount: </span>
             <span>{{total}} {{currency}}</span>
           </div>
         </div>

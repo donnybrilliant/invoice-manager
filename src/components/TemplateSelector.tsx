@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { templates } from "../templates";
 import { InvoiceTemplateData } from "../templates/types";
 import { Client, CompanyProfile } from "../types";
+import { InvoiceContainer } from "./InvoiceContainer";
 
 interface TemplateSelectorProps {
   selected: string;
@@ -205,9 +206,7 @@ export default function TemplateSelector({
 
                 {/* Actual Template Preview (scaled down, showing full length) */}
                 <div
-                  className={`bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative ${
-                    template.id !== "dark-mode" ? "invoice-light-mode" : ""
-                  }`}
+                  className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative"
                   style={{ aspectRatio: "8.5/11" }}
                 >
                   {templateData ? (
@@ -226,23 +225,14 @@ export default function TemplateSelector({
                             height: "auto",
                           }}
                         >
-                          <div
-                            style={
-                              template.id !== "dark-mode"
-                                ? {
-                                    backgroundColor: "#ffffff",
-                                    color: "#1f2937",
-                                  }
-                                : {}
-                            }
-                          >
+                          <InvoiceContainer>
                             <TemplateComponent
                               invoice={templateData.invoice}
                               items={templateData.items}
                               client={templateData.client}
                               profile={templateData.profile}
                             />
-                          </div>
+                          </InvoiceContainer>
                         </div>
                       </div>
                     </>

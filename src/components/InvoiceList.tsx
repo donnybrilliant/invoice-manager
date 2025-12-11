@@ -21,6 +21,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { getCurrencySymbol } from "../lib/utils";
 import { formatDate } from "../templates/utils";
+import { InvoiceContainer } from "./InvoiceContainer";
 
 interface InvoiceListProps {
   onViewInvoice: (invoice: Invoice) => void;
@@ -281,7 +282,7 @@ export default function InvoiceList({
       tempDiv.style.visibility = "visible";
       tempDiv.style.opacity = "1";
       // Centralized styles in invoice.css handle dark mode isolation
-      tempDiv.className = "pdf-generation-temp invoice-light-mode";
+      tempDiv.className = "pdf-generation-temp";
       document.body.appendChild(tempDiv);
 
       // Render invoice React component
@@ -289,14 +290,14 @@ export default function InvoiceList({
       const TemplateComponent = template.Component;
       root = createRoot(tempDiv);
       root.render(
-        <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+        <InvoiceContainer>
           <TemplateComponent
             invoice={invoice}
             items={items}
             client={invoice.client!}
             profile={profile}
           />
-        </div>
+        </InvoiceContainer>
       );
 
       // Wait for React to render and images to load
@@ -388,7 +389,7 @@ export default function InvoiceList({
               <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-48"
+                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-36"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("invoice");
@@ -454,7 +455,7 @@ export default function InvoiceList({
                     className="hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer border-b last:border-b-0 border-slate-200 dark:border-slate-700"
                     onClick={() => onViewInvoice(invoice)}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap w-48">
+                    <td className="px-6 py-4 whitespace-nowrap w-36">
                       <div className="text-sm font-medium text-slate-900 dark:text-white">
                         {invoice.invoice_number}
                       </div>

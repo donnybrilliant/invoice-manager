@@ -31,6 +31,7 @@ import { formatDate } from "../templates/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { renderEmailTemplate } from "../lib/emailTemplateUtils";
 import { useAuth } from "../contexts/AuthContext";
+import { InvoiceContainer } from "./InvoiceContainer";
 
 interface InvoiceViewProps {
   invoice: Invoice;
@@ -160,7 +161,7 @@ export default function InvoiceView({
       tempDiv.style.opacity = "1";
       // Ensure print CSS doesn't affect this element
       // Centralized styles in invoice.css handle dark mode isolation
-      tempDiv.className = "pdf-generation-temp invoice-light-mode";
+      tempDiv.className = "pdf-generation-temp";
       document.body.appendChild(tempDiv);
 
       // Render invoice React component
@@ -168,14 +169,14 @@ export default function InvoiceView({
       const TemplateComponent = template.Component;
       root = createRoot(tempDiv);
       root.render(
-        <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+        <InvoiceContainer>
           <TemplateComponent
             invoice={invoice}
             items={items}
             client={client}
             profile={profile}
           />
-        </div>
+        </InvoiceContainer>
       );
 
       // Wait for React to render and images/fonts to load
@@ -511,20 +512,14 @@ export default function InvoiceView({
     const TemplateComponent = template.Component;
 
     return (
-      <div
-        style={
-          template.id !== "dark-mode"
-            ? { backgroundColor: "#ffffff", color: "#1f2937" }
-            : {}
-        }
-      >
+      <InvoiceContainer>
         <TemplateComponent
           invoice={invoice}
           items={items}
           client={client}
           profile={profile}
         />
-      </div>
+      </InvoiceContainer>
     );
   };
 
@@ -587,7 +582,7 @@ export default function InvoiceView({
           </div>
         </div>
 
-        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print overflow-x-auto invoice-light-mode">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print overflow-x-auto">
           {renderInvoice()}
         </div>
 

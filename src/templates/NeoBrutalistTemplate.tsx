@@ -443,10 +443,16 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: "#fff",
               }}
             >
-              <span style={{ fontSize: "13px", textTransform: "uppercase" }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                }}
+              >
                 Subtotal
               </span>
-              <span style={{ fontWeight: 900 }}>
+              <span style={{ fontWeight: 900, color: "#fff" }}>
                 {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
               </span>
             </div>
@@ -459,10 +465,16 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: "#fff",
               }}
             >
-              <span style={{ fontSize: "13px", textTransform: "uppercase" }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                }}
+              >
                 Tax
               </span>
-              <span style={{ fontWeight: 900 }}>
+              <span style={{ fontWeight: 900, color: "#fff" }}>
                 {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
               </span>
             </div>
@@ -480,11 +492,14 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   fontSize: "16px",
                   textTransform: "uppercase",
                   fontWeight: 900,
+                  color: "#000",
                 }}
               >
                 TOTAL DUE
               </span>
-              <span style={{ fontSize: "28px", fontWeight: 900 }}>
+              <span
+                style={{ fontSize: "28px", fontWeight: 900, color: "#000" }}
+              >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
               </span>
             </div>

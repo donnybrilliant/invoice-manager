@@ -533,11 +533,14 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   textTransform: "uppercase",
                   letterSpacing: "3px",
                   fontWeight: 900,
+                  color: "#fff",
                 }}
               >
                 TOTAL
               </span>
-              <span style={{ fontSize: "24px", fontWeight: 900 }}>
+              <span
+                style={{ fontSize: "24px", fontWeight: 900, color: "#fff" }}
+              >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
               </span>
             </div>

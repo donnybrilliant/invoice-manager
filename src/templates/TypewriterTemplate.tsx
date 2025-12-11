@@ -561,11 +561,18 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   textTransform: "uppercase",
                   letterSpacing: "2px",
                   fontWeight: "bold",
+                  color: "#FDF6E3",
                 }}
               >
                 TOTAL DUE
               </span>
-              <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+              <span
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  color: "#FDF6E3",
+                }}
+              >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
               </span>
             </div>

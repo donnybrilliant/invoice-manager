@@ -286,25 +286,6 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       tempDiv.style.visibility = "visible";
       tempDiv.style.opacity = "1";
       tempDiv.className = "pdf-generation-temp invoice-light-mode";
-
-      const pdfStyle = document.createElement("style");
-      pdfStyle.id = "pdf-generation-styles";
-      pdfStyle.textContent = `
-        .pdf-generation-temp {
-          color-scheme: light !important;
-          background-color: #ffffff !important;
-        }
-        @media (prefers-color-scheme: dark) {
-          .pdf-generation-temp .dark\\:text-white,
-          .pdf-generation-temp .dark\\:text-slate-50 {
-            color: #1f2937 !important;
-          }
-          .pdf-generation-temp .dark\\:bg-slate-800 {
-            background-color: #ffffff !important;
-          }
-        }
-      `;
-      document.head.appendChild(pdfStyle);
       document.body.appendChild(tempDiv);
 
       const template = getTemplate(invoice.template);
@@ -382,10 +363,6 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       }
       if (tempDiv && tempDiv.parentNode) {
         document.body.removeChild(tempDiv);
-      }
-      const pdfStyle = document.getElementById("pdf-generation-styles");
-      if (pdfStyle) {
-        document.head.removeChild(pdfStyle);
       }
       setSendingEmail(false);
     }

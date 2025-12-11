@@ -193,7 +193,10 @@ invoice-manager/
 │   ├── main.tsx             # Entry point
 │   └── index.css            # Global styles
 ├── supabase/
-│   └── migrations/          # Database migrations
+│   ├── migrations/          # Database migrations
+│   └── functions/           # Edge Functions
+│       ├── send-invoice-email/  # Email sending function
+│       └── validate-share-token/  # Invoice sharing validation
 ├── public/                  # Static assets
 ├── .env                     # Environment variables (create this)
 ├── package.json
@@ -363,6 +366,65 @@ Dark mode is supported and can be enabled by adding the `dark` class to the `<ht
 - Private storage buckets with user-specific access
 - Environment variables for sensitive configuration
 
+## Edge Functions
+
+This project includes Supabase Edge Functions for extended functionality:
+
+### Send Invoice Email
+
+Sends invoices via email using the Resend API.
+
+**Configuration:**
+
+1. Get a Resend API key from [resend.com/api-keys](https://resend.com/api-keys)
+2. Verify your domain in Resend (e.g., `vierweb.no`)
+3. Set environment variables:
+
+```bash
+# For local testing - create .env.local in supabase/functions/send-invoice-email/
+RESEND_API_KEY=re_your_api_key_here
+RESEND_FROM_EMAIL=invoice@vierweb.no  # Must use verified domain
+RESEND_FROM_NAME=Invoice Manager
+
+# For production (self-hosted/Coolify) - set on Edge Functions container
+RESEND_API_KEY=re_your_api_key_here
+RESEND_FROM_EMAIL=invoice@vierweb.no
+RESEND_FROM_NAME=Invoice Manager
+```
+
+**Note**: The function automatically falls back to `SMTP_ADMIN_EMAIL` and `SMTP_SENDER_NAME` if Resend-specific variables aren't set.
+
+**PDF Attachments**: The function automatically includes the invoice PDF as an attachment when sent from the frontend. The PDF is generated client-side using jsPDF and sent as a base64-encoded string.
+
+**Testing Locally:**
+
+```bash
+# Start Supabase locally
+supabase start
+
+# Serve the function with environment variables
+supabase functions serve send-invoice-email \
+  --env-file supabase/functions/send-invoice-email/.env.local
+```
+
+### Validate Share Token
+
+Validates invoice share tokens for public invoice viewing (no authentication required).
+
+**Testing Locally:**
+
+```bash
+# For local testing with Supabase CLI, use --no-verify-jwt
+supabase functions serve validate-share-token --no-verify-jwt
+
+# Note: Self-hosted setups don't require --no-verify-jwt flag
+# The function works without authentication in production
+```
+
+**Why `--no-verify-jwt`?**
+
+When testing locally with Supabase CLI, Edge Functions require JWT verification by default. Since `validate-share-token` is designed for public access (no authentication), you need `--no-verify-jwt` for local testing. In self-hosted production environments, this is typically configured differently and doesn't require the flag.
+
 ## Development
 
 ### Available Scripts
@@ -373,6 +435,20 @@ npm run build      # Build for production
 npm run preview    # Preview production build
 npm run lint       # Run ESLint
 npm run typecheck  # Run TypeScript type checking
+```
+
+### Testing Edge Functions Locally
+
+```bash
+# Start Supabase locally
+supabase start
+
+# Serve individual functions
+supabase functions serve send-invoice-email --env-file supabase/functions/send-invoice-email/.env.local
+supabase functions serve validate-share-token --no-verify-jwt
+
+# Or serve all functions
+supabase functions serve
 ```
 
 ### Adding New Features
@@ -400,6 +476,12 @@ npm run typecheck  # Run TypeScript type checking
 - Verify storage bucket exists and is configured
 - Check RLS policies are in place
 - Ensure file size is under 5MB
+
+### Edge Function Issues
+
+- **Email sending fails**: Verify `RESEND_API_KEY` is set and domain is verified in Resend
+- **Share token validation fails locally**: Use `--no-verify-jwt` flag when serving `validate-share-token` function locally
+- **Environment variables not found**: Ensure variables are set on the Edge Functions container (not the main Supabase instance) for self-hosted setups
 
 ## Contributing
 

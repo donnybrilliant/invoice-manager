@@ -43,8 +43,11 @@
    * 
    * Note: We exclude elements with black backgrounds (they should have white text)
    * and elements that already have explicit color styles
+   * 
+   * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color"
    */
-  .invoice-light-mode *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]) {
+  .invoice-light-mode *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]) {
     color: #1f2937 !important;
   }
 
@@ -53,9 +56,12 @@
    * This ensures templates can set colors on parents and children inherit correctly
    * This MUST come BEFORE black background rules so it can be overridden when needed
    * Higher specificity ensures this overrides the general dark color rule
+   * 
+   * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color"
    */
-  .invoice-light-mode [style*="color"] *:not([style*="color"]),
-  .invoice-light-mode [style*="color"] *:not([style*="color"]) * {
+  .invoice-light-mode [style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="color:"] *:not([style*="color:"]) * {
     color: inherit !important;
   }
 
@@ -64,20 +70,23 @@
    * This fixes Typewriter template where parent has dark background + light text
    * Must come after color inheritance rule to work correctly
    * More specific selectors for elements with both dark background AND color
+   * 
+   * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color"
    */
-  .invoice-light-mode [style*="background: #3"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background: #4"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background: #5"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #3"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #4"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #5"] *:not([style*="color"]),
+  .invoice-light-mode [style*="background: #3"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #4"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #5"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #3"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #4"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #5"] *:not([style*="color:"]),
   /* More specific: elements with dark background AND color - children should inherit */
-  .invoice-light-mode [style*="background: #3"][style*="color"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background: #4"][style*="color"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background: #5"][style*="color"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #3"][style*="color"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #4"][style*="color"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #5"][style*="color"] *:not([style*="color"]) {
+  .invoice-light-mode [style*="background: #3"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #4"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #5"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #3"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #4"][style*="color:"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #5"][style*="color:"] *:not([style*="color:"]) {
     color: inherit !important;
   }
 
@@ -102,14 +111,15 @@
   /* Also target all children of black background elements - MUST override everything including inheritance */
   /* Higher specificity: matches children of elements with black background, regardless of parent color */
   /* CRITICAL: Prevent dark text rule from applying to descendants of black backgrounds */
-  .invoice-light-mode [style*="background: #000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background:#000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color:#000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background: #000000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background:#000000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color: #000000"] *:not([style*="color"]),
-  .invoice-light-mode [style*="background-color:#000000"] *:not([style*="color"]) {
+  /* IMPORTANT: Use "color:" (with colon) to specifically match the color property */
+  .invoice-light-mode [style*="background: #000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background:#000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color:#000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background: #000000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background:#000000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color: #000000"] *:not([style*="color:"]),
+  .invoice-light-mode [style*="background-color:#000000"] *:not([style*="color:"]) {
     color: #ffffff !important;
   }
 
@@ -122,10 +132,10 @@
   .invoice-light-mode [style*="background-color: #000000"] *,
   .invoice-light-mode [style*="background-color:#000000"] *,
   /* Even more specific: children of black background elements, even if parent has color */
-  .invoice-light-mode [style*="background: #000"][style*="color"] *,
-  .invoice-light-mode [style*="background:#000"][style*="color"] *,
-  .invoice-light-mode [style*="background-color: #000"][style*="color"] *,
-  .invoice-light-mode [style*="background-color:#000"][style*="color"] * {
+  .invoice-light-mode [style*="background: #000"][style*="color:"] *,
+  .invoice-light-mode [style*="background:#000"][style*="color:"] *,
+  .invoice-light-mode [style*="background-color: #000"][style*="color:"] *,
+  .invoice-light-mode [style*="background-color:#000"][style*="color:"] * {
     color: #ffffff !important;
   }
 
@@ -172,8 +182,11 @@
    * 1. Don't have explicit color styles
    * 2. Are NOT inside elements with explicit colors (to preserve inheritance)
    * 3. Are NOT inside elements with black/dark backgrounds (those need special handling)
+   * 
+   * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color"
    */
-  .pdf-generation-temp *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]):not([style*="background: rgb(0"]):not([style*="background:rgb(0"]):not([style*="background-color: rgb(0"]):not([style*="background-color:rgb(0"]) {
+  .pdf-generation-temp *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background: #000000"]):not([style*="background:#000000"]):not([style*="background-color: #000000"]):not([style*="background-color:#000000"]):not([style*="background: rgb(0"]):not([style*="background:rgb(0"]):not([style*="background-color: rgb(0"]):not([style*="background-color:rgb(0"]) {
     color: #1f2937 !important;
   }
 
@@ -182,9 +195,12 @@
    * This ensures that when a template sets color on a parent (like Typewriter's TOTAL DUE),
    * children inherit that color instead of being overridden to dark
    * This MUST come BEFORE black background rules so inheritance works first
+   * 
+   * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color"
    */
-  .pdf-generation-temp [style*="color"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="color"] *:not([style*="color"]) * {
+  .pdf-generation-temp [style*="color:"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="color:"] *:not([style*="color:"]) * {
     color: inherit !important;
   }
 
@@ -193,20 +209,23 @@
    * This fixes Typewriter template where parent has dark background + light text
    * Must come after color inheritance rule to work correctly
    * More specific selectors for elements with both dark background AND color
+   * 
+   * IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color"
    */
-  .pdf-generation-temp [style*="background: #3"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background: #4"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background: #5"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #3"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #4"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #5"] *:not([style*="color"]),
+  .pdf-generation-temp [style*="background: #3"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background: #4"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background: #5"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #3"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #4"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #5"] *:not([style*="color:"]),
   /* More specific: elements with dark background AND color - children should inherit */
-  .pdf-generation-temp [style*="background: #3"][style*="color"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background: #4"][style*="color"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background: #5"][style*="color"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #3"][style*="color"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #4"][style*="color"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #5"][style*="color"] *:not([style*="color"]) {
+  .pdf-generation-temp [style*="background: #3"][style*="color:"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background: #4"][style*="color:"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background: #5"][style*="color:"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #3"][style*="color:"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #4"][style*="color:"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #5"][style*="color:"] *:not([style*="color:"]) {
     color: inherit !important;
   }
 
@@ -229,14 +248,15 @@
   }
 
   /* CRITICAL: Prevent dark text rule from applying to descendants of black backgrounds */
-  .pdf-generation-temp [style*="background: #000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background:#000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color:#000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background: #000000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background:#000000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color: #000000"] *:not([style*="color"]),
-  .pdf-generation-temp [style*="background-color:#000000"] *:not([style*="color"]) {
+  /* IMPORTANT: Use "color:" (with colon) to specifically match the color property */
+  .pdf-generation-temp [style*="background: #000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background:#000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color:#000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background: #000000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background:#000000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color: #000000"] *:not([style*="color:"]),
+  .pdf-generation-temp [style*="background-color:#000000"] *:not([style*="color:"]) {
     color: #ffffff !important;
   }
 
@@ -250,10 +270,11 @@
   .pdf-generation-temp [style*="background-color: #000000"] *,
   .pdf-generation-temp [style*="background-color:#000000"] *,
   /* Even more specific: children of black background elements, even if parent has color */
-  .pdf-generation-temp [style*="background: #000"][style*="color"] *,
-  .pdf-generation-temp [style*="background:#000"][style*="color"] *,
-  .pdf-generation-temp [style*="background-color: #000"][style*="color"] *,
-  .pdf-generation-temp [style*="background-color:#000"][style*="color"] * {
+  /* IMPORTANT: Use "color:" (with colon) to specifically match the color property */
+  .pdf-generation-temp [style*="background: #000"][style*="color:"] *,
+  .pdf-generation-temp [style*="background:#000"][style*="color:"] *,
+  .pdf-generation-temp [style*="background-color: #000"][style*="color:"] *,
+  .pdf-generation-temp [style*="background-color:#000"][style*="color:"] * {
     color: #ffffff !important;
   }
 
@@ -459,19 +480,21 @@
 
   /* Handle dark backgrounds in print mode - more specific selectors */
   /* BUT exclude black backgrounds - they're handled separately below */
-  .invoice-content-print [style*="background: #3"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background: #4"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background: #5"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background-color: #3"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background-color: #4"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background-color: #5"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  /* IMPORTANT: Use "color:" (with colon) to specifically match the color property,
+   * not "color" which would incorrectly match "background-color" */
+  .invoice-content-print [style*="background: #3"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #4"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #5"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #3"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #4"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #5"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
   /* More specific: elements with dark background AND color - children should inherit */
-  .invoice-content-print [style*="background: #3"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background: #4"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background: #5"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background-color: #3"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background-color: #4"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
-  .invoice-content-print [style*="background-color: #5"][style*="color"] *:not([style*="color"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]) {
+  .invoice-content-print [style*="background: #3"][style*="color:"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #4"][style*="color:"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background: #5"][style*="color:"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #3"][style*="color:"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #4"][style*="color:"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]),
+  .invoice-content-print [style*="background-color: #5"][style*="color:"] *:not([style*="color:"]):not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]) {
     color: inherit !important;
   }
 

@@ -1,15 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendSMTPEmail } from "./smtp.ts";
+import { createInvoiceEmailTemplate } from "./email-template.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+const handler = async (req: Request) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -27,19 +27,7 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with service role for admin operations
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    // Create Supabase client for user operations
+    // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -66,11 +54,10 @@ serve(async (req) => {
     // Parse request body
     const { invoiceId, recipientEmail, message, pdfBase64 } = await req.json();
 
-    if (!invoiceId || !recipientEmail || !pdfBase64) {
+    if (!invoiceId || !recipientEmail) {
       return new Response(
         JSON.stringify({
-          error:
-            "Missing required fields: invoiceId, recipientEmail, pdfBase64",
+          error: "Missing required fields: invoiceId, recipientEmail",
         }),
         {
           status: 400,
@@ -109,176 +96,54 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    // Prepare email content
-    const invoiceNumber = invoice.invoice_number;
-    const clientName = invoice.client?.name || "Client";
-    const total = invoice.total.toFixed(2);
-    const currency = invoice.currency || "EUR";
-    const companyName = companyProfile?.company_name || "Your Company";
-
-    const emailSubject = `Invoice ${invoiceNumber} from ${companyName}`;
-
-    const emailBody = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background-color: #1f2937;
-      color: white;
-      padding: 20px;
-      border-radius: 8px 8px 0 0;
-    }
-    .content {
-      background-color: #f9fafb;
-      padding: 30px;
-      border-radius: 0 0 8px 8px;
-    }
-    .invoice-details {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 20px 0;
-    }
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-    .label {
-      font-weight: 600;
-      color: #6b7280;
-    }
-    .value {
-      color: #111827;
-    }
-    .total {
-      font-size: 1.25em;
-      font-weight: 700;
-      color: #1f2937;
-    }
-    .footer {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      color: #6b7280;
-      font-size: 0.875em;
-    }
-    .message {
-      background-color: white;
-      padding: 15px;
-      border-left: 4px solid #3b82f6;
-      margin: 20px 0;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1 style="margin: 0;">Invoice ${invoiceNumber}</h1>
-    <p style="margin: 10px 0 0 0; opacity: 0.9;">from ${companyName}</p>
-  </div>
-  <div class="content">
-    <p>Dear ${clientName},</p>
-    ${
-      message
-        ? `<div class="message">${message.replace(/\n/g, "<br>")}</div>`
-        : ""
-    }
-    <p>Please find attached your invoice ${invoiceNumber}.</p>
-    <div class="invoice-details">
-      <div class="detail-row">
-        <span class="label">Invoice Number:</span>
-        <span class="value">${invoiceNumber}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Issue Date:</span>
-        <span class="value">${new Date(
-          invoice.issue_date
-        ).toLocaleDateString()}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Due Date:</span>
-        <span class="value">${new Date(
-          invoice.due_date
-        ).toLocaleDateString()}</span>
-      </div>
-      <div class="detail-row total">
-        <span>Total Amount:</span>
-        <span>${total} ${currency}</span>
-      </div>
-    </div>
-    <p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
-    <div class="footer">
-      <p>This is an automated email. Please do not reply directly to this message.</p>
-      ${companyProfile?.email ? `<p>Contact: ${companyProfile.email}</p>` : ""}
-    </div>
-  </div>
-</body>
-</html>
-`;
-
-    // Get SMTP configuration from environment variables
-    // These should be set in your Supabase project secrets or .env.local for local testing
-    // Debug: Log available env var names (without values) to help diagnose
-    const envVarNames = Array.from(Deno.env.toObject().keys()).filter(
-      (key) => key.includes("SMTP") || key.includes("SUPABASE")
-    );
-    console.log("Available SMTP/SUPABASE env vars:", envVarNames);
-
-    const smtpHost = Deno.env.get("SMTP_HOST");
-    const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
-    const smtpUser = Deno.env.get("SMTP_USER");
-    const smtpPassword = Deno.env.get("SMTP_PASS");
-    const smtpFromEmail =
-      companyProfile?.email ||
-      Deno.env.get("SMTP_ADMIN_EMAIL") ||
+    // Get Resend configuration (read at request time, not module load time)
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const resendFromEmail =
+      Deno.env.get("RESEND_FROM_EMAIL") ||
       Deno.env.get("SMTP_FROM_EMAIL") ||
-      `noreply@${
-        Deno.env.get("SUPABASE_URL")?.replace("https://", "").split(".")[0] ||
-        "invoice"
-      }.com`;
-    const smtpFromName =
-      Deno.env.get("SMTP_SENDER_NAME") ||
+      Deno.env.get("SMTP_ADMIN_EMAIL");
+    const resendFromName =
+      Deno.env.get("RESEND_FROM_NAME") ||
       Deno.env.get("SMTP_FROM_NAME") ||
-      companyName ||
+      Deno.env.get("SMTP_SENDER_NAME") ||
       "Invoice Manager";
-    const smtpSecure = Deno.env.get("SMTP_SECURE") === "true"; // Use TLS/SSL
 
-    if (!smtpHost || !smtpUser || !smtpPassword) {
-      const missingVars = [];
-      if (!smtpHost) missingVars.push("SMTP_HOST");
-      if (!smtpUser) missingVars.push("SMTP_USER");
-      if (!smtpPassword) missingVars.push("SMTP_PASS");
+    // Debug logging (remove in production if needed)
+    console.log("Resend config:", {
+      hasApiKey: !!resendApiKey,
+      fromEmail: resendFromEmail,
+      fromName: resendFromName,
+      envVars: {
+        RESEND_FROM_EMAIL: Deno.env.get("RESEND_FROM_EMAIL"),
+        SMTP_FROM_EMAIL: Deno.env.get("SMTP_FROM_EMAIL"),
+        SMTP_ADMIN_EMAIL: Deno.env.get("SMTP_ADMIN_EMAIL"),
+        SMTP_SENDER_NAME: Deno.env.get("SMTP_SENDER_NAME"),
+      },
+    });
 
-      console.error("Missing SMTP configuration:", {
-        SMTP_HOST: smtpHost ? "✓" : "✗",
-        SMTP_USER: smtpUser ? "✓" : "✗",
-        SMTP_PASS: smtpPassword ? "✓" : "✗",
-        SMTP_PORT: smtpPort,
-      });
+    // Check Resend configuration
+    if (!resendApiKey) {
+      return new Response(
+        JSON.stringify({
+          error: "Resend not configured. Please set RESEND_API_KEY.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
+    if (!resendFromEmail) {
       return new Response(
         JSON.stringify({
           error:
-            "SMTP not configured. Please set SMTP_HOST, SMTP_USER, and SMTP_PASS in Supabase project secrets.",
-          details: `Missing environment variables: ${missingVars.join(
-            ", "
-          )}. In Coolify, set these on the Edge Functions service container, not the main Supabase instance.`,
-          missing: missingVars,
+            "Resend from email not configured. Please set RESEND_FROM_EMAIL, SMTP_FROM_EMAIL, or SMTP_ADMIN_EMAIL to an email address using your verified domain (e.g., invoice@vierweb.no).",
+          debug: {
+            RESEND_FROM_EMAIL: Deno.env.get("RESEND_FROM_EMAIL"),
+            SMTP_FROM_EMAIL: Deno.env.get("SMTP_FROM_EMAIL"),
+            SMTP_ADMIN_EMAIL: Deno.env.get("SMTP_ADMIN_EMAIL"),
+          },
         }),
         {
           status: 500,
@@ -287,45 +152,76 @@ serve(async (req) => {
       );
     }
 
-    // Convert base64 PDF to buffer for attachment
-    const pdfBuffer = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0));
+    // Prepare email data
+    const invoiceNumber = invoice.invoice_number;
+    const clientName = invoice.client?.name || "Client";
+    const total = Number(invoice.total ?? 0).toFixed(2);
+    const currency = invoice.currency || "EUR";
+    const companyName = companyProfile?.company_name || "Your Company";
 
-    // Send email using SMTP
-    try {
-      await sendSMTPEmail({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpSecure,
-        auth: {
-          user: smtpUser,
-          password: smtpPassword,
+    // Create email HTML
+    const emailHtml = createInvoiceEmailTemplate({
+      invoiceNumber,
+      clientName,
+      companyName,
+      total,
+      currency,
+      issueDate: invoice.issue_date, // Pass raw date string, template will format it
+      dueDate: invoice.due_date, // Pass raw date string, template will format it
+      message,
+      companyEmail: companyProfile?.email,
+    });
+
+    // Prepare email payload
+    const emailPayload: {
+      from: string;
+      to: string[];
+      subject: string;
+      html: string;
+      reply_to: string;
+      attachments?: Array<{ filename: string; content: string }>;
+    } = {
+      from: `${resendFromName} <${resendFromEmail}>`,
+      to: [recipientEmail],
+      subject: `Invoice ${invoiceNumber} from ${companyName}`,
+      html: emailHtml,
+      reply_to: companyProfile?.email || resendFromEmail,
+    };
+
+    // Add PDF attachment if provided
+    if (pdfBase64 && typeof pdfBase64 === "string") {
+      emailPayload.attachments = [
+        {
+          filename: `invoice-${invoiceNumber}.pdf`,
+          content: pdfBase64, // Resend accepts base64 string directly
         },
-        from: `${smtpFromName} <${smtpFromEmail}>`,
-        to: recipientEmail,
-        subject: emailSubject,
-        html: emailBody,
-        attachments: [
-          {
-            filename: `Invoice-${invoiceNumber}.pdf`,
-            content: pdfBuffer,
-          },
-        ],
-      });
-    } catch (smtpError) {
-      console.error("SMTP error:", smtpError);
+      ];
+    }
+
+    // Send email using Resend API (straight from docs)
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendApiKey}`,
+      },
+      body: JSON.stringify(emailPayload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
       return new Response(
         JSON.stringify({
-          error: "Failed to send email via SMTP",
-          details: smtpError.message || String(smtpError),
+          error: "Failed to send email",
+          details: data.message || "Unknown error",
         }),
         {
-          status: 500,
+          status: res.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
-
-    const emailResult = { id: `smtp-${Date.now()}` };
 
     // Update invoice status to "sent" if it's currently "draft"
     if (invoice.status === "draft") {
@@ -335,19 +231,12 @@ serve(async (req) => {
         .eq("id", invoiceId);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Email sent successfully",
-        emailId: emailResult.id,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error:", error);
     return new Response(
       JSON.stringify({
         error: error.message || "Failed to send email",
@@ -358,4 +247,6 @@ serve(async (req) => {
       }
     );
   }
-});
+};
+
+Deno.serve(handler);

@@ -37,4 +37,121 @@
         scrollbar-width: none;
         /* Firefox */
     }
+
+    /* Force light mode for all invoice content - prevent dark mode from affecting invoices */
+    /* This completely isolates invoices from dark mode using a more aggressive approach */
+
+    /* Base light mode styling */
+    .invoice-light-mode {
+        color-scheme: light !important;
+        isolation: isolate;
+        /* Creates a new stacking context */
+        background-color: #ffffff !important;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        /* Force light mode container with white background */
+        .invoice-light-mode {
+            color-scheme: light !important;
+            background-color: #ffffff !important;
+        }
+
+        /* Only override Tailwind dark mode classes - preserve all template inline styles */
+        /* Override Tailwind dark mode text classes that would make text white/light */
+        .invoice-light-mode .dark\:text-white,
+        .invoice-light-mode .dark\:text-slate-50,
+        .invoice-light-mode .dark\:text-slate-100,
+        .invoice-light-mode .dark\:text-slate-200,
+        .invoice-light-mode .dark\:text-slate-300,
+        .invoice-light-mode .dark\:text-slate-400 {
+            color: #1f2937 !important;
+        }
+
+        /* Force light backgrounds - override dark mode background classes */
+        .invoice-light-mode .dark\:bg-slate-800,
+        .invoice-light-mode .dark\:bg-slate-700,
+        .invoice-light-mode .dark\:bg-slate-900,
+        .invoice-light-mode .dark\:bg-slate-950,
+        .invoice-light-mode .dark\:bg-black {
+            background-color: #ffffff !important;
+        }
+
+        /* Override border colors to light mode equivalents */
+        .invoice-light-mode .dark\:border-slate-700,
+        .invoice-light-mode .dark\:border-slate-600,
+        .invoice-light-mode .dark\:border-slate-800 {
+            border-color: #e5e7eb !important;
+        }
+
+        /* Ensure template elements with inline styles are not affected */
+        /* Templates use inline styles for colors, so they should work correctly */
+        /* Only elements without explicit styling that inherit from dark mode need fixing */
+    }
+
+    /* PDF generation styles - for temporary elements used during PDF/email generation */
+    .pdf-generation-temp {
+        color-scheme: light !important;
+        background-color: #ffffff !important;
+    }
+
+    .pdf-generation-temp .brutalist-invoice-number {
+        margin-top: 20px !important;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        /* Force light mode for PDF generation - only override Tailwind classes */
+        .pdf-generation-temp {
+            color-scheme: light !important;
+            background-color: #ffffff !important;
+        }
+
+        .pdf-generation-temp .dark\:text-white,
+        .pdf-generation-temp .dark\:text-slate-50,
+        .pdf-generation-temp .dark\:text-slate-100,
+        .pdf-generation-temp .dark\:text-slate-200,
+        .pdf-generation-temp .dark\:text-slate-300,
+        .pdf-generation-temp .dark\:text-slate-400 {
+            color: #1f2937 !important;
+        }
+
+        .pdf-generation-temp .dark\:bg-slate-800,
+        .pdf-generation-temp .dark\:bg-slate-700,
+        .pdf-generation-temp .dark\:bg-slate-900 {
+            background-color: #ffffff !important;
+        }
+
+        /* Override dark mode for elements without explicit color - but exclude black backgrounds */
+        /* Use "color:" (with colon) to specifically match the color property, not background-color */
+        .pdf-generation-temp *:not([style*="background: #000"]):not([style*="background:#000"]):not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="color:"]) {
+            color: #1f2937 !important;
+        }
+
+        /* Preserve black background + white text for Brutalist template - must come after general rule */
+        .pdf-generation-temp .brutalist-template [style*="background: #000"],
+        .pdf-generation-temp .brutalist-template [style*="background:#000"],
+        .pdf-generation-temp .brutalist-template [style*="background: #000000"],
+        .pdf-generation-temp .brutalist-template [style*="background:#000000"],
+        .pdf-generation-temp .brutalist-template [style*="background-color: #000"],
+        .pdf-generation-temp .brutalist-template [style*="background-color:#000"],
+        .pdf-generation-temp .brutalist-template [style*="background-color: #000000"],
+        .pdf-generation-temp .brutalist-template [style*="background-color:#000000"],
+        .pdf-generation-temp .brutalist-template [style*="background: rgb(0, 0, 0)"],
+        .pdf-generation-temp .brutalist-template [style*="background:rgb(0, 0, 0)"] {
+            color: #ffffff !important;
+        }
+
+        /* Also target all children and text nodes of black background elements */
+        .pdf-generation-temp .brutalist-template [style*="background: #000"] *,
+        .pdf-generation-temp .brutalist-template [style*="background:#000"] *,
+        .pdf-generation-temp .brutalist-template [style*="background-color: #000"] *,
+        .pdf-generation-temp .brutalist-template [style*="background-color:#000"] *,
+        .pdf-generation-temp .brutalist-template [style*="background: #000"] span,
+        .pdf-generation-temp .brutalist-template [style*="background:#000"] span,
+        .pdf-generation-temp .brutalist-template [style*="background-color: #000"] span,
+        .pdf-generation-temp .brutalist-template [style*="background-color:#000"] span {
+            color: #ffffff !important;
+        }
+    }
 }

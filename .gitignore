@@ -27,4 +27,3 @@ dist-ssr
 supabase/.branches/
 supabase/.temp/
 supabase/.secrets
-supabase/functions/

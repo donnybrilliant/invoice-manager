@@ -18,7 +18,10 @@ import {
   downloadEHFXML,
   generateEHFFilename,
 } from "../lib/ehfGenerator";
-import { generateInvoiceFilename } from "../lib/utils";
+import {
+  generateInvoiceFilenameForDownload,
+  generateInvoiceFilenameForEmail,
+} from "../lib/utils";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useToast } from "../contexts/ToastContext";
@@ -26,6 +29,7 @@ import { useShareLink, useGenerateShareToken } from "../hooks/useInvoiceShare";
 import { supabase } from "../lib/supabase";
 import { formatDate } from "../templates/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { renderEmailTemplate } from "../lib/emailTemplateUtils";
 
 interface InvoiceViewProps {
   invoice: Invoice;
@@ -90,10 +94,13 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
             overflow: visible !important;
             height: auto !important;
             max-height: none !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
           }
           .invoice-content-print > div {
             transform: scale(${scale}) !important;
-            transform-origin: top left !important;
+            transform-origin: top center !important;
             width: ${100 / scale}% !important;
             height: auto !important;
             max-height: none !important;
@@ -174,12 +181,10 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
         });
       });
 
-      // Generate filename with .pdf extension
-      const customerName = client.name || "";
-      const filename = generateInvoiceFilename(
+      // Generate filename for download: invoiceid-client-name-date-of-creation
+      const filename = generateInvoiceFilenameForDownload(
         invoice.invoice_number,
-        "pdf",
-        customerName,
+        client.name || "",
         invoice.issue_date
       );
 
@@ -348,6 +353,42 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       // Generate PDF as base64 using utility function
       const pdfBase64 = await generatePDFBase64(tempDiv);
 
+      // Generate filename for email: invoiceid-company-name-due-date
+      const emailFilename = generateInvoiceFilenameForEmail(
+        invoice.invoice_number,
+        profile?.company_name || "company",
+        invoice.due_date
+      );
+
+      // Render email template HTML
+      // Format total with currency symbol
+      const currencySymbol =
+        invoice.currency === "EUR"
+          ? "€"
+          : invoice.currency === "NOK"
+          ? "kr"
+          : invoice.currency === "USD"
+          ? "$"
+          : invoice.currency === "GBP"
+          ? "£"
+          : invoice.currency;
+      const formattedTotal = `${currencySymbol} ${invoice.total.toFixed(2)}`;
+
+      const emailHtml = renderEmailTemplate({
+        invoiceNumber: invoice.invoice_number,
+        clientName: client.name,
+        companyName: profile?.company_name || "Your Company",
+        total: formattedTotal,
+        currency: invoice.currency,
+        issueDate: invoice.issue_date,
+        dueDate: invoice.due_date,
+        message: emailMessage || undefined,
+        companyEmail: profile?.email || undefined,
+        useCustomTemplate: profile?.use_custom_email_template || false,
+        customTemplate: profile?.email_template || null,
+        invoiceTemplateId: invoice.template || "classic",
+      });
+
       // Get auth token
       const {
         data: { session },
@@ -371,7 +412,9 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
             invoiceId: invoice.id,
             recipientEmail: emailRecipient,
             message: emailMessage || undefined,
+            emailHtml, // Pre-rendered HTML template
             pdfBase64,
+            pdfFilename: emailFilename, // Filename for email attachment
           }),
         }
       );

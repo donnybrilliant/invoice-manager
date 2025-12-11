@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createInvoiceEmailTemplate } from "./email-template.ts";
+// Email template is now rendered in the frontend and sent as emailHtml
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,12 +52,20 @@ const handler = async (req: Request) => {
     }
 
     // Parse request body
-    const { invoiceId, recipientEmail, message, pdfBase64 } = await req.json();
+    const {
+      invoiceId,
+      recipientEmail,
+      message,
+      pdfBase64,
+      emailHtml,
+      pdfFilename,
+    } = await req.json();
 
-    if (!invoiceId || !recipientEmail) {
+    if (!invoiceId || !recipientEmail || !emailHtml) {
       return new Response(
         JSON.stringify({
-          error: "Missing required fields: invoiceId, recipientEmail",
+          error:
+            "Missing required fields: invoiceId, recipientEmail, emailHtml",
         }),
         {
           status: 400,
@@ -66,15 +74,10 @@ const handler = async (req: Request) => {
       );
     }
 
-    // Verify user owns the invoice
+    // Verify user owns the invoice (minimal check for security)
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
-      .select(
-        `
-        *,
-        client:clients(*)
-      `
-      )
+      .select("id, invoice_number, user_id")
       .eq("id", invoiceId)
       .eq("user_id", user.id)
       .single();
@@ -88,13 +91,6 @@ const handler = async (req: Request) => {
         }
       );
     }
-
-    // Get company profile
-    const { data: companyProfile } = await supabaseClient
-      .from("company_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
 
     // Get Resend configuration (read at request time, not module load time)
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -152,25 +148,15 @@ const handler = async (req: Request) => {
       );
     }
 
-    // Prepare email data
-    const invoiceNumber = invoice.invoice_number;
-    const clientName = invoice.client?.name || "Client";
-    const total = Number(invoice.total ?? 0).toFixed(2);
-    const currency = invoice.currency || "EUR";
-    const companyName = companyProfile?.company_name || "Your Company";
+    // Get company profile for reply-to email
+    const { data: companyProfile } = await supabaseClient
+      .from("company_profiles")
+      .select("email, company_name")
+      .eq("user_id", user.id)
+      .single();
 
-    // Create email HTML
-    const emailHtml = createInvoiceEmailTemplate({
-      invoiceNumber,
-      clientName,
-      companyName,
-      total,
-      currency,
-      issueDate: invoice.issue_date, // Pass raw date string, template will format it
-      dueDate: invoice.due_date, // Pass raw date string, template will format it
-      message,
-      companyEmail: companyProfile?.email,
-    });
+    // Email HTML is pre-rendered in the frontend
+    // No template processing needed here
 
     // Prepare email payload
     const emailPayload: {
@@ -183,7 +169,9 @@ const handler = async (req: Request) => {
     } = {
       from: `${resendFromName} <${resendFromEmail}>`,
       to: [recipientEmail],
-      subject: `Invoice ${invoiceNumber} from ${companyName}`,
+      subject: `Invoice ${invoice.invoice_number} from ${
+        companyProfile?.company_name || "Your Company"
+      }`,
       html: emailHtml,
       reply_to: companyProfile?.email || resendFromEmail,
     };
@@ -192,7 +180,7 @@ const handler = async (req: Request) => {
     if (pdfBase64 && typeof pdfBase64 === "string") {
       emailPayload.attachments = [
         {
-          filename: `invoice-${invoiceNumber}.pdf`,
+          filename: pdfFilename || `invoice-${invoice.invoice_number}.pdf`,
           content: pdfBase64, // Resend accepts base64 string directly
         },
       ];

@@ -46,6 +46,8 @@ interface UpdateCompanyProfileData {
   currency?: string;
   payment_instructions?: string | null;
   logo_url?: string | null;
+  use_custom_email_template?: boolean;
+  email_template?: string | null;
 }
 
 export function useUpdateCompanyProfile() {

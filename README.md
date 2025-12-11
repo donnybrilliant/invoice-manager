@@ -82,12 +82,27 @@ npm install
 
 #### Configure Environment Variables
 
-Create a `.env` file in the root directory:
+1. **Copy the example env file:**
 
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit `.env` with your Supabase credentials:**
+
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+   The `.env.example` file contains detailed comments explaining each variable.
+
+   **For local development** with Supabase CLI:
+
+   ```env
+   VITE_SUPABASE_URL=http://127.0.0.1:54321
+   VITE_SUPABASE_ANON_KEY=<get from `supabase status` output>
+   ```
 
 #### Run Database Migration
 
@@ -374,38 +389,93 @@ This project includes Supabase Edge Functions for extended functionality:
 
 Sends invoices via email using the Resend API.
 
+**Email Templates:**
+
+- **Single source of truth**: Email templates are stored in `src/templates/email/` (frontend codebase)
+- Templates match invoice template styles (classic, modern, professional, etc.)
+- Custom templates can be created per company in Company Profile settings
+- Templates are rendered in the frontend before sending to the Edge Function
+- The Edge Function receives pre-rendered HTML (no template processing needed)
+
+**How it works:**
+
+1. Frontend determines which template to use (custom or matching invoice template)
+2. Frontend renders the template with invoice data (replaces `{{variables}}`)
+3. Pre-rendered HTML is sent to the Edge Function along with the PDF
+4. Edge Function sends the email via Resend API
+
+**Updating Email Templates:**
+Simply modify templates in `src/templates/email/` - no migrations or database updates needed!
+
 **Configuration:**
 
-1. Get a Resend API key from [resend.com/api-keys](https://resend.com/api-keys)
-2. Verify your domain in Resend (e.g., `vierweb.no`)
-3. Set environment variables:
+### Local Development
+
+1. **Get a Resend API key** from [resend.com/api-keys](https://resend.com/api-keys)
+2. **Verify your domain** in Resend (e.g., `vierweb.no`)
+3. **Copy the example env file:**
+
+   ```bash
+   cp supabase/functions/send-invoice-email/.env.local.example \
+      supabase/functions/send-invoice-email/.env.local
+   ```
+
+4. **Edit `.env.local` with your Resend credentials:**
+
+   ```bash
+   RESEND_API_KEY=re_your_api_key_here
+   RESEND_FROM_EMAIL=invoice@vierweb.no  # Must use verified domain
+   RESEND_FROM_NAME=Invoice Manager
+   ```
+
+5. **When serving the function locally, use the `--env-file` flag:**
+
+   ```bash
+   supabase functions serve send-invoice-email \
+     --env-file supabase/functions/send-invoice-email/.env.local
+   ```
+
+   **Important**: The `--env-file` path must point to the `.env.local` file inside the Edge Function directory, not the root `.env` file. Each Edge Function has its own environment variables.
+
+**Note**: The `.env.local` file is gitignored (via `*.local` pattern) and won't be committed to the repository.
+
+### Production (Self-hosted/Coolify)
+
+Set environment variables on your Edge Functions container/deployment:
 
 ```bash
-# For local testing - create .env.local in supabase/functions/send-invoice-email/
-RESEND_API_KEY=re_your_api_key_here
-RESEND_FROM_EMAIL=invoice@vierweb.no  # Must use verified domain
-RESEND_FROM_NAME=Invoice Manager
-
-# For production (self-hosted/Coolify) - set on Edge Functions container
 RESEND_API_KEY=re_your_api_key_here
 RESEND_FROM_EMAIL=invoice@vierweb.no
 RESEND_FROM_NAME=Invoice Manager
 ```
 
-**Note**: The function automatically falls back to `SMTP_ADMIN_EMAIL` and `SMTP_SENDER_NAME` if Resend-specific variables aren't set.
+**Fallback**: The function automatically falls back to `SMTP_ADMIN_EMAIL` and `SMTP_SENDER_NAME` if Resend-specific variables aren't set.
 
 **PDF Attachments**: The function automatically includes the invoice PDF as an attachment when sent from the frontend. The PDF is generated client-side using jsPDF and sent as a base64-encoded string.
 
 **Testing Locally:**
 
 ```bash
-# Start Supabase locally
+# 1. Start Supabase locally
 supabase start
 
-# Serve the function with environment variables
+# 2. Make sure you have the Edge Function .env.local configured:
+#    - File location: supabase/functions/send-invoice-email/.env.local
+#    - See Configuration section above for setup instructions
+
+# 3. Serve the function with environment variables
+#    Note: The --env-file path must be relative to the project root
 supabase functions serve send-invoice-email \
   --env-file supabase/functions/send-invoice-email/.env.local
+
+# The function will be available at http://127.0.0.1:54321/functions/v1/send-invoice-email
 ```
+
+**Troubleshooting:**
+
+- If you get "no such file or directory", make sure the `.env.local` file exists in `supabase/functions/send-invoice-email/`
+- The `--env-file` path is relative to your project root, not the function directory
+- You can also use an absolute path: `--env-file /full/path/to/.env.local`
 
 ### Validate Share Token
 

@@ -22,9 +22,10 @@ import { generateInvoiceFilename } from "../lib/utils";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useToast } from "../contexts/ToastContext";
-import { useShareLink } from "../hooks/useInvoiceShare";
+import { useShareLink, useGenerateShareToken } from "../hooks/useInvoiceShare";
 import { supabase } from "../lib/supabase";
 import { formatDate } from "../templates/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface InvoiceViewProps {
   invoice: Invoice;
@@ -47,8 +48,12 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   const [emailMessage, setEmailMessage] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [expiresInDays, setExpiresInDays] = useState<number>(30);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const { data: shareData } = useShareLink(invoice.id);
+  const generateToken = useGenerateShareToken();
+  const queryClient = useQueryClient();
   const loading = itemsLoading || profileLoading;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -259,6 +264,36 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       showToast("Failed to copy link", "error");
+    }
+  };
+
+  const handleRegenerateLink = async () => {
+    if (isRegenerating) return;
+
+    setIsRegenerating(true);
+    try {
+      // Generate new token with selected expiration
+      await generateToken.mutateAsync({
+        invoiceId: invoice.id,
+        expiresInDays,
+      });
+
+      // Invalidate and refetch share link
+      await queryClient.invalidateQueries({
+        queryKey: ["invoice-share", invoice.id],
+      });
+
+      showToast("Share link regenerated successfully", "success");
+    } catch (error) {
+      console.error("Error regenerating share link:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to regenerate share link",
+        "error"
+      );
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -479,10 +514,28 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
             </div>
             {shareData ? (
               <>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                  Share this link with others. The link will expire on{" "}
-                  {formatDate(shareData.expiresAt)}.
-                </p>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Link Expiration
+                  </label>
+                  <select
+                    value={expiresInDays}
+                    onChange={(e) => setExpiresInDays(Number(e.target.value))}
+                    disabled={isRegenerating}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50"
+                  >
+                    <option value={1}>1 day</option>
+                    <option value={7}>7 days</option>
+                    <option value={30}>30 days</option>
+                    <option value={60}>60 days</option>
+                    <option value={90}>90 days</option>
+                    <option value={180}>180 days</option>
+                    <option value={365}>1 year</option>
+                  </select>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Current link expires on {formatDate(shareData.expiresAt)}
+                  </p>
+                </div>
                 <div className="flex items-center gap-2 mb-4">
                   <input
                     type="text"
@@ -502,6 +555,15 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
                     )}
                   </button>
                 </div>
+                <button
+                  onClick={handleRegenerateLink}
+                  disabled={isRegenerating}
+                  className="w-full mb-2 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRegenerating
+                    ? "Regenerating..."
+                    : "Regenerate Link with New Expiration"}
+                </button>
               </>
             ) : (
               <p className="text-slate-600 dark:text-slate-400">

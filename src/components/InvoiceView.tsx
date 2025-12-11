@@ -361,8 +361,10 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send email");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.details || errorData.error || "Failed to send email"
+        );
       }
 
       showToast("Email sent successfully", "success");

@@ -233,28 +233,52 @@ serve(async (req) => {
 
     // Get SMTP configuration from environment variables
     // These should be set in your Supabase project secrets or .env.local for local testing
+    // Debug: Log available env var names (without values) to help diagnose
+    const envVarNames = Array.from(Deno.env.toObject().keys()).filter(
+      (key) => key.includes("SMTP") || key.includes("SUPABASE")
+    );
+    console.log("Available SMTP/SUPABASE env vars:", envVarNames);
+
     const smtpHost = Deno.env.get("SMTP_HOST");
     const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
     const smtpUser = Deno.env.get("SMTP_USER");
-    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+    const smtpPassword = Deno.env.get("SMTP_PASS");
     const smtpFromEmail =
       companyProfile?.email ||
+      Deno.env.get("SMTP_ADMIN_EMAIL") ||
       Deno.env.get("SMTP_FROM_EMAIL") ||
       `noreply@${
         Deno.env.get("SUPABASE_URL")?.replace("https://", "").split(".")[0] ||
         "invoice"
       }.com`;
     const smtpFromName =
-      companyName || Deno.env.get("SMTP_FROM_NAME") || "Invoice Manager";
+      Deno.env.get("SMTP_SENDER_NAME") ||
+      Deno.env.get("SMTP_FROM_NAME") ||
+      companyName ||
+      "Invoice Manager";
     const smtpSecure = Deno.env.get("SMTP_SECURE") === "true"; // Use TLS/SSL
 
     if (!smtpHost || !smtpUser || !smtpPassword) {
+      const missingVars = [];
+      if (!smtpHost) missingVars.push("SMTP_HOST");
+      if (!smtpUser) missingVars.push("SMTP_USER");
+      if (!smtpPassword) missingVars.push("SMTP_PASS");
+
+      console.error("Missing SMTP configuration:", {
+        SMTP_HOST: smtpHost ? "✓" : "✗",
+        SMTP_USER: smtpUser ? "✓" : "✗",
+        SMTP_PASS: smtpPassword ? "✓" : "✗",
+        SMTP_PORT: smtpPort,
+      });
+
       return new Response(
         JSON.stringify({
           error:
-            "SMTP not configured. Please set SMTP_HOST, SMTP_USER, and SMTP_PASSWORD in Supabase project secrets.",
-          details:
-            "For local testing, create a .env.local file in supabase/functions/send-invoice-email/",
+            "SMTP not configured. Please set SMTP_HOST, SMTP_USER, and SMTP_PASS in Supabase project secrets.",
+          details: `Missing environment variables: ${missingVars.join(
+            ", "
+          )}. In Coolify, set these on the Edge Functions service container, not the main Supabase instance.`,
+          missing: missingVars,
         }),
         {
           status: 500,

@@ -363,7 +363,8 @@ deno_version = 2
 # secret_key = "env(SECRET_VALUE)"
 # 
 # SMTP Configuration for send-invoice-email function
-# Uncomment and set these for local development:
+# Note: In self-hosted/Coolify setups, set environment variables directly on the Edge Functions service
+# This section is mainly for local development with Supabase CLI
 # SMTP_HOST = "env(SMTP_HOST)"
 # SMTP_PORT = "env(SMTP_PORT)"
 # SMTP_SECURE = "env(SMTP_SECURE)"

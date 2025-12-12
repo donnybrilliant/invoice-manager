@@ -3,6 +3,7 @@ import { InvoiceTemplateData } from "./types";
 import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import { getCompanyInfo, formatClientAddress } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -73,7 +74,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="cutout-brutalist-template"
         style={{
           fontFamily: "'Georgia', serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "60px",
           background: "linear-gradient(135deg, #FAF8F5 0%, #F0EDE8 100%)",
@@ -381,123 +382,56 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             boxSizing: "border-box",
           }}
         >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              tableLayout: "auto",
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            headerLabels={{
+              description: "DESCRIPTION",
+              quantity: "QTY",
+              unitPrice: "RATE",
+              amount: "AMOUNT",
             }}
-          >
-            <thead>
-              <tr
-                style={{
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "14px",
+              headerPadding: "18px",
+              bodyPadding: "16px",
+              headerTextColor: "#fff",
+              headerBgColor: "transparent",
+              bodyTextColor: "#000",
+              borderColor: "#ddd",
+              headerBorderBottom: "none",
+              rowBorderBottom: "1px solid #ddd",
+              headerFontWeight: "normal",
+              headerLetterSpacing: "2px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 900,
+              headerStyle: {
                   background: "linear-gradient(90deg, #1A535C, #004E89)",
-                }}
-              >
-                <th
-                  style={{
-                    padding: "18px",
-                    color: "#fff",
-                    textAlign: "left",
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: "11px",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  DESCRIPTION
-                </th>
-                <th
-                  style={{
-                    padding: "18px",
-                    color: "#fff",
-                    textAlign: "center",
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: "11px",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  QTY
-                </th>
-                <th
-                  style={{
-                    padding: "18px",
-                    color: "#fff",
-                    textAlign: "right",
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: "11px",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  RATE
-                </th>
-                <th
-                  style={{
-                    padding: "18px",
-                    color: "#fff",
-                    textAlign: "right",
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: "11px",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  AMOUNT
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr key={item.id || index}>
-                  <td
-                    style={{
-                      padding: "16px",
+              },
+              descriptionCellStyle: {
                       fontFamily: "'Times New Roman', serif",
-                      fontSize: "14px",
-                      borderBottom: "1px solid #ddd",
                       wordWrap: "break-word",
                       overflowWrap: "break-word",
                       whiteSpace: "normal",
                       maxWidth: 0,
-                    }}
-                  >
-                    {item.description}
-                  </td>
-                  <td
-                    style={{
-                      padding: "16px",
-                      textAlign: "center",
+              },
+              quantityCellStyle: {
                       fontFamily: "'Courier New', monospace",
                       fontWeight: 900,
-                      borderBottom: "1px solid #ddd",
-                    }}
-                  >
-                    {item.quantity}
-                  </td>
-                  <td
-                    style={{
-                      padding: "16px",
-                      textAlign: "right",
+              },
+              unitPriceCellStyle: {
                       fontFamily: "'Courier New', monospace",
-                      borderBottom: "1px solid #ddd",
-                    }}
-                  >
-                    {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "16px",
-                      textAlign: "right",
+              },
+              amountCellStyle: {
                       fontFamily: "'Courier New', monospace",
-                      fontWeight: 900,
-                      borderBottom: "1px solid #ddd",
-                      background: index % 2 === 0 ? "#FFE4B5" : "#fff",
-                    }}
-                  >
-                    {formatCurrencyWithCode(item.amount, invoice.currency)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                background: "#FFE4B5",
+              },
+              bodyStyle: {
+                marginBottom: 0,
+              },
+            }}
+          />
         </div>
 
         {/* Totals */}

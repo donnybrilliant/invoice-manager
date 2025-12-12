@@ -27,12 +27,16 @@ export function PaymentInformation({
 }: PaymentInfoProps) {
   const details: React.ReactNode[] = [];
 
+  // Get the color from style.item to apply to strong tags
+  const textColor = style.item?.color || "inherit";
+
   // Banking details
   if (profile) {
     if (invoice.show_account_number && profile.account_number) {
       details.push(
         <div key="account" style={style.item}>
-          <strong>Account Number:</strong> {profile.account_number}
+          <strong style={{ color: textColor }}>Account Number:</strong>{" "}
+          {profile.account_number}
         </div>
       );
     }
@@ -40,7 +44,7 @@ export function PaymentInformation({
     if (invoice.show_iban && profile.iban) {
       details.push(
         <div key="iban" style={style.item}>
-          <strong>IBAN:</strong> {profile.iban}
+          <strong style={{ color: textColor }}>IBAN:</strong> {profile.iban}
         </div>
       );
     }
@@ -48,7 +52,8 @@ export function PaymentInformation({
     if (invoice.show_swift_bic && profile.swift_bic) {
       details.push(
         <div key="swift" style={style.item}>
-          <strong>SWIFT/BIC:</strong> {profile.swift_bic}
+          <strong style={{ color: textColor }}>SWIFT/BIC:</strong>{" "}
+          {profile.swift_bic}
         </div>
       );
     }
@@ -58,7 +63,7 @@ export function PaymentInformation({
   if (invoice.kid_number) {
     details.push(
       <div key="kid" style={style.item}>
-        <strong>KID:</strong> {invoice.kid_number}
+        <strong style={{ color: textColor }}>KID:</strong> {invoice.kid_number}
       </div>
     );
   }
@@ -66,7 +71,8 @@ export function PaymentInformation({
   // Due date
   details.push(
     <div key="due-date" style={style.item}>
-      <strong>Due Date:</strong> {formatDate(invoice.due_date)}
+      <strong style={{ color: textColor }}>Due Date:</strong>{" "}
+      {formatDate(invoice.due_date)}
     </div>
   );
 
@@ -77,7 +83,8 @@ export function PaymentInformation({
   );
   details.push(
     <div key="amount" style={style.item}>
-      <strong>Amount Due:</strong> {formattedAmount}
+      <strong style={{ color: textColor }}>Amount Due:</strong>{" "}
+      {formattedAmount}
     </div>
   );
 

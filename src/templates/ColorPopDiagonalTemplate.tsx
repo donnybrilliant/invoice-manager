@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -52,7 +53,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="color-pop-diagonal-template"
         style={{
           fontFamily: "'Arial Black', sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           background: colors.white,
           position: "relative",
@@ -350,106 +351,32 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
 
           {/* Items Table */}
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: colors.black, color: colors.white }}>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "left",
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  Description
-                </th>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "center",
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  Qty
-                </th>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "right",
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  Rate
-                </th>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "right",
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                  }}
-                >
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr
-                  key={item.id || index}
-                  style={{
-                    background:
-                      index % 2 === 0 ? colors.white : colors.quad + "20",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "18px 20px",
-                      fontWeight: 600,
-                      borderBottom: "2px solid " + colors.black,
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "14px",
+              headerPadding: "16px 20px",
+              bodyPadding: "18px 20px",
+              headerTextColor: colors.white,
+              headerBgColor: colors.black,
+              bodyTextColor: colors.black,
+              borderColor: colors.black,
+              headerBorderBottom: "none",
+              rowBorderBottom: "2px solid " + colors.black,
+              headerFontWeight: "normal",
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "2px",
+              bodyFontWeight: 600,
+              amountFontWeight: 900,
+              // Note: Component applies alternatingRowColor to even rows (0, 2, 4...)
+              // ColorPopDiagonal needs odd rows (1, 3, 5...) colored, so pattern is inverted
+              alternatingRowColor: colors.quad + "20",
+              quantityCellStyle: { fontWeight: 800 },
+              bodyStyle: { marginBottom: 0 },
                     }}
-                  >
-                    {item.description}
-                  </td>
-                  <td
-                    style={{
-                      padding: "18px 20px",
-                      textAlign: "center",
-                      fontWeight: 800,
-                      borderBottom: "2px solid " + colors.black,
-                    }}
-                  >
-                    {item.quantity}
-                  </td>
-                  <td
-                    style={{
-                      padding: "18px 20px",
-                      textAlign: "right",
-                      borderBottom: "2px solid " + colors.black,
-                    }}
-                  >
-                    {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "18px 20px",
-                      textAlign: "right",
-                      fontWeight: 900,
-                      borderBottom: "2px solid " + colors.black,
-                    }}
-                  >
-                    {formatCurrencyWithCode(item.amount, invoice.currency)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          />
 
           {/* Totals */}
           <div

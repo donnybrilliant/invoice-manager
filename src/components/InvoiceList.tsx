@@ -283,7 +283,7 @@ export default function InvoiceList({
       tempDiv.style.position = "absolute";
       tempDiv.style.left = "-9999px";
       tempDiv.style.top = "0";
-      tempDiv.style.width = "800px";
+      tempDiv.style.width = "794px";
       tempDiv.style.background = "white";
       tempDiv.style.display = "block";
       tempDiv.style.visibility = "visible";

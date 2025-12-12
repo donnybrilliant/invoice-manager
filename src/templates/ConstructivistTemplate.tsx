@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -33,7 +34,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="constructivist-template"
         style={{
           fontFamily: "'Impact', 'Arial Black', sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           background: "#F5F0E1",
           position: "relative",
@@ -244,7 +245,13 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
 
           {/* Items */}
-          <div style={{ marginBottom: "50px" }}>
+          <div
+            style={{
+              marginBottom: "50px",
+              marginLeft: "-30px",
+              marginRight: "-30px",
+            }}
+          >
             <div
               style={{
                 display: "flex",
@@ -267,120 +274,56 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </span>
               <div style={{ flex: 1, height: "4px", background: "#000" }} />
             </div>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                background: "#fff",
-                border: "3px solid #000",
+            <InvoiceItemList
+              items={items}
+              currency={invoice.currency}
+              headerLabels={{
+                description: "DESCRIPTION",
+                quantity: "QTY",
+                unitPrice: "RATE",
+                amount: "AMOUNT",
               }}
-            >
-              <thead>
-                <tr
-                  style={{
-                    background: "linear-gradient(90deg, #CC0000 0%, #000 100%)",
-                    color: "#fff",
-                  }}
-                >
-                  <th
-                    style={{
-                      padding: "16px",
-                      textAlign: "left",
-                      fontSize: "11px",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    DESCRIPTION
-                  </th>
-                  <th
-                    style={{
-                      padding: "16px",
-                      textAlign: "center",
-                      fontSize: "11px",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    QTY
-                  </th>
-                  <th
-                    style={{
-                      padding: "16px",
-                      textAlign: "right",
-                      fontSize: "11px",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    RATE
-                  </th>
-                  <th
-                    style={{
-                      padding: "16px",
-                      textAlign: "right",
-                      fontSize: "11px",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    AMOUNT
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td
-                      style={{
-                        padding: "14px",
-                        borderBottom: "2px solid #000",
-                        fontFamily: "'Impact', 'Arial Black', sans-serif",
-                        fontSize: "13px",
-                        textTransform: "uppercase",
-                        wordWrap: "break-word",
-                        overflowWrap: "break-word",
-                        whiteSpace: "normal",
-                        maxWidth: 0,
-                      }}
-                    >
-                      {item.description}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px",
-                        borderBottom: "2px solid #000",
-                        textAlign: "center",
-                        fontWeight: 900,
-                        fontSize: "16px",
-                      }}
-                    >
-                      {item.quantity}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px",
-                        borderBottom: "2px solid #000",
-                        textAlign: "right",
-                      }}
-                    >
-                      {formatCurrencyWithCode(
-                        item.unit_price,
-                        invoice.currency
-                      )}
-                    </td>
-                    <td
-                      style={{
-                        padding: "14px",
-                        borderBottom: "2px solid #000",
-                        textAlign: "right",
-                        fontWeight: 900,
-                        background: index % 2 === 0 ? "#CC0000" : "#000",
-                        color: "#fff",
-                      }}
-                    >
-                      {formatCurrencyWithCode(item.amount, invoice.currency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              styles={{
+                headerFontSize: "11px",
+                bodyFontSize: "13px",
+                headerPadding: "16px",
+                bodyPadding: "14px",
+                headerTextColor: "#fff",
+                headerBgColor: "transparent",
+                bodyTextColor: "#000",
+                borderColor: "#000",
+                headerBorderBottom: "none",
+                rowBorderBottom: "2px solid #000",
+                headerFontWeight: "normal",
+                headerLetterSpacing: "3px",
+                bodyFontWeight: "normal",
+                amountFontWeight: 900,
+                amountColor: "#fff",
+                fontFamily: "'Impact', 'Arial Black', sans-serif",
+                descriptionCellStyle: {
+                  textTransform: "uppercase",
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word",
+                  whiteSpace: "normal",
+                  maxWidth: 0,
+                },
+                quantityCellStyle: {
+                  fontWeight: 900,
+                  fontSize: "16px",
+                },
+                amountCellStyle: {
+                  background: "#CC0000",
+                },
+                headerStyle: {
+                  background: "linear-gradient(90deg, #CC0000 0%, #000 100%)",
+                },
+                bodyStyle: {
+                  marginBottom: 0,
+                  background: "#fff",
+                  border: "3px solid #000",
+                },
+              }}
+            />
           </div>
 
           {/* Totals */}

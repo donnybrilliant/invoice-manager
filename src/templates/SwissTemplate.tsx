@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -63,7 +64,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="swiss-template"
         style={{
           fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "60px",
           background: "#fff",
@@ -267,129 +268,30 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table
-          className="swiss-table"
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "50px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  padding: "16px 0",
-                  borderBottom: "2px solid #000",
-                  textAlign: "left",
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  color: "#999",
-                }}
-              >
-                Description
-              </th>
-              <th
-                style={{
-                  padding: "16px 0",
-                  borderBottom: "2px solid #000",
-                  textAlign: "center",
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  color: "#999",
-                }}
-              >
-                Qty
-              </th>
-              <th
-                style={{
-                  padding: "16px 0",
-                  borderBottom: "2px solid #000",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  color: "#999",
-                }}
-              >
-                Rate
-              </th>
-              <th
-                style={{
-                  padding: "16px 0",
-                  borderBottom: "2px solid #000",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  color: "#999",
-                }}
-              >
-                Amount
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    borderBottom: "1px solid #e0e0e0",
-                    fontSize: "14px",
-                    color: "#333",
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: 0,
-                  }}
-                >
-                  {item.description}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    borderBottom: "1px solid #e0e0e0",
-                    textAlign: "center",
-                    fontSize: "14px",
-                    color: "#333",
-                  }}
-                >
-                  {item.quantity}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    borderBottom: "1px solid #e0e0e0",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    color: "#333",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td
-                  style={{
-                    padding: "16px 0",
-                    borderBottom: "1px solid #e0e0e0",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    color: "#000",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="swiss-table" style={{ marginBottom: "50px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "14px",
+              headerPadding: "16px 0",
+              bodyPadding: "16px 0",
+              headerTextColor: "#999",
+              bodyTextColor: "#333",
+              borderColor: "#e0e0e0",
+              headerBorderBottom: "2px solid #000",
+              rowBorderBottom: "1px solid #e0e0e0",
+              headerFontWeight: 500,
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "3px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 600,
+              amountColor: "#000",
+              bodyStyle: { marginBottom: 0 },
+            }}
+          />
+        </div>
 
         {/* Totals */}
         <div

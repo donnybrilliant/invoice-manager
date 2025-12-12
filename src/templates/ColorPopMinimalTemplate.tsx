@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -30,6 +31,18 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .color-pop-minimal-template {
             padding: 30px !important;
           }
+          /* Make address section wrap on small screens */
+          .color-pop-minimal-template .address-section {
+            flex-direction: column !important;
+            gap: 30px !important;
+          }
+          /* Fix totals overflow on tiny screens */
+          .color-pop-minimal-template .totals-section {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
         }
         /* When container is narrow enough that items would overlap, make payment info full width and left-aligned */
         /* Totals: 260px + Payment: 320px + Gap: 20px = 600px minimum needed */
@@ -42,13 +55,20 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             width: 100% !important;
             text-align: left !important;
           }
+          .totals-container .totals-section {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            width: 100% !important;
+          }
         }
       `}</style>
       <div
         className="color-pop-minimal-template"
         style={{
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "50px",
           background: colors.white,
@@ -144,12 +164,14 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
 
         {/* Minimal Address Section */}
         <div
+          className="address-section"
           style={{
             display: "flex",
             gap: "60px",
             marginBottom: "50px",
             paddingBottom: "50px",
             borderBottom: "3px solid " + colors.black,
+            flexWrap: "wrap",
           }}
         >
           <div style={{ flex: 1 }}>
@@ -237,110 +259,29 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "40px",
-          }}
-        >
-          <thead>
-            <tr style={{ borderBottom: "3px solid " + colors.black }}>
-              <th
-                style={{
-                  padding: "15px 0",
-                  textAlign: "left",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: colors.black + "60",
-                }}
-              >
-                Description
-              </th>
-              <th
-                style={{
-                  padding: "15px 0",
-                  textAlign: "center",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: colors.black + "60",
-                }}
-              >
-                Qty
-              </th>
-              <th
-                style={{
-                  padding: "15px 0",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: colors.black + "60",
-                }}
-              >
-                Rate
-              </th>
-              <th
-                style={{
-                  padding: "15px 0",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: colors.black + "60",
-                }}
-              >
-                Amount
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid " + colors.black + "20",
-                    fontSize: "15px",
-                  }}
-                >
-                  {item.description}
-                </td>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid " + colors.black + "20",
-                    textAlign: "center",
-                    fontWeight: 700,
-                  }}
-                >
-                  {item.quantity}
-                </td>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid " + colors.black + "20",
-                    textAlign: "right",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid " + colors.black + "20",
-                    textAlign: "right",
-                    fontWeight: 800,
-                  }}
-                >
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ marginBottom: "40px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "15px",
+              headerPadding: "15px 0",
+              bodyPadding: "20px 0",
+              headerTextColor: colors.black + "60",
+              bodyTextColor: colors.black,
+              borderColor: colors.black + "20",
+              headerBorderBottom: "3px solid " + colors.black,
+              rowBorderBottom: "1px solid " + colors.black + "20",
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "2px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 800,
+              quantityCellStyle: { fontWeight: 700 },
+              bodyStyle: { marginBottom: 0 },
+            }}
+          />
+        </div>
 
         {/* Totals */}
         <div
@@ -355,17 +296,26 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             containerType: "inline-size",
           }}
         >
-          <div style={{ width: "260px", flex: "0 0 auto" }}>
+          <div
+            className="totals-section"
+            style={{ width: "260px", flex: "0 0 auto", minWidth: 0 }}
+          >
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                padding: "12px 0",
+                padding: "12px 20px",
                 borderBottom: "1px solid " + colors.black + "15",
+                gap: "10px",
+                boxSizing: "border-box",
               }}
             >
-              <span style={{ color: colors.black + "60" }}>Subtotal</span>
-              <span style={{ fontWeight: 600 }}>
+              <span
+                style={{ color: colors.black + "60", whiteSpace: "nowrap" }}
+              >
+                Subtotal
+              </span>
+              <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
                 {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
               </span>
             </div>
@@ -373,12 +323,18 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                padding: "12px 0",
+                padding: "12px 20px",
                 borderBottom: "1px solid " + colors.black + "15",
+                gap: "10px",
+                boxSizing: "border-box",
               }}
             >
-              <span style={{ color: colors.black + "60" }}>Tax</span>
-              <span style={{ fontWeight: 600 }}>
+              <span
+                style={{ color: colors.black + "60", whiteSpace: "nowrap" }}
+              >
+                Tax
+              </span>
+              <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
                 {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
               </span>
             </div>
@@ -386,13 +342,15 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                padding: "20px 0",
+                padding: "20px",
                 marginTop: "10px",
                 background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
                 marginLeft: "-20px",
                 marginRight: "-20px",
                 paddingLeft: "20px",
                 paddingRight: "20px",
+                gap: "10px",
+                boxSizing: "border-box",
               }}
             >
               <span
@@ -402,6 +360,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   color: colors.white,
                   textTransform: "uppercase",
                   letterSpacing: "2px",
+                  whiteSpace: "nowrap",
                 }}
               >
                 Total
@@ -411,6 +370,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   fontSize: "24px",
                   fontWeight: 900,
                   color: colors.white,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}

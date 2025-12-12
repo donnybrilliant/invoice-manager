@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -79,7 +80,7 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="brutalist-template"
         style={{
           fontFamily: "'Courier New', Courier, monospace",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "40px",
           background: "#fff",
@@ -333,130 +334,62 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table
-          className="brutalist-table"
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "40px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  padding: "16px",
-                  border: "3px solid #000",
-                  background: "#000",
-                  color: "#fff",
-                  textAlign: "left",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                }}
-              >
-                DESCRIPTION
-              </th>
-              <th
-                style={{
-                  padding: "16px",
-                  border: "3px solid #000",
-                  background: "#000",
-                  color: "#fff",
-                  textAlign: "center",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                }}
-              >
-                QTY
-              </th>
-              <th
-                style={{
-                  padding: "16px",
-                  border: "3px solid #000",
-                  background: "#000",
-                  color: "#fff",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                }}
-              >
-                RATE
-              </th>
-              <th
-                style={{
-                  padding: "16px",
-                  border: "3px solid #000",
-                  background: "#000",
-                  color: "#fff",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                }}
-              >
-                AMOUNT
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td
-                  style={{
-                    padding: "12px 16px",
+        <div className="brutalist-table" style={{ marginBottom: "40px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            headerLabels={{
+              description: "DESCRIPTION",
+              quantity: "QTY",
+              unitPrice: "RATE",
+              amount: "AMOUNT",
+            }}
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "13px",
+              headerPadding: "16px",
+              bodyPadding: "12px 16px",
+              headerTextColor: "#fff",
+              headerBgColor: "#000",
+              bodyTextColor: "#000",
+              borderColor: "#000",
+              headerBorderBottom: "none",
+              rowBorderBottom: "none",
+              headerFontWeight: "normal",
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "3px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 900,
+              amountColor: "#fff",
+              fontFamily: "'Courier New', monospace",
+              descriptionCellStyle: {
                     border: "3px solid #000",
-                    fontFamily: "'Courier New', monospace",
-                    fontSize: "13px",
                     textTransform: "uppercase",
                     wordWrap: "break-word",
                     overflowWrap: "break-word",
                     whiteSpace: "normal",
                     maxWidth: 0,
-                  }}
-                >
-                  {item.description}
-                </td>
-                <td
-                  style={{
-                    padding: "12px 16px",
+              },
+              quantityCellStyle: {
                     border: "3px solid #000",
-                    textAlign: "center",
-                    fontFamily: "'Courier New', monospace",
                     fontWeight: 900,
-                  }}
-                >
-                  {item.quantity}
-                </td>
-                <td
-                  style={{
-                    padding: "12px 16px",
+              },
+              unitPriceCellStyle: {
                     border: "3px solid #000",
-                    textAlign: "right",
-                    fontFamily: "'Courier New', monospace",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td
-                  style={{
-                    padding: "12px 16px",
+              },
+              amountCellStyle: {
                     border: "3px solid #000",
-                    textAlign: "right",
-                    fontFamily: "'Courier New', monospace",
-                    fontWeight: 900,
                     background: "#000",
-                    color: "#fff",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              },
+              headerStyle: {
+                border: "3px solid #000",
+              },
+              bodyStyle: {
+                marginBottom: 0,
+              },
+            }}
+          />
+        </div>
 
         {/* Totals */}
         <div

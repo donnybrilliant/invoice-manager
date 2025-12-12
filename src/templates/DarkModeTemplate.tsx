@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -65,7 +66,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
         style={{
           fontFamily:
             "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "50px",
           background: "linear-gradient(180deg, #0D0D0D 0%, #1A1A1A 100%)",
@@ -288,139 +289,40 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <div
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            borderRadius: "8px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            overflow: "hidden",
-            marginBottom: "40px",
-          }}
-        >
-          <table
+        <div style={{ marginBottom: "40px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
             className="darkmode-table"
-            style={{ width: "100%", borderCollapse: "collapse" }}
-          >
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    padding: "18px 20px",
-                    background: "rgba(255,255,255,0.05)",
-                    textAlign: "left",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                    color: "#D0D0D0",
-                  }}
-                >
-                  Description
-                </th>
-                <th
-                  style={{
-                    padding: "18px 20px",
-                    background: "rgba(255,255,255,0.05)",
-                    textAlign: "center",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                    color: "#D0D0D0",
-                  }}
-                >
-                  Qty
-                </th>
-                <th
-                  style={{
-                    padding: "18px 20px",
-                    background: "rgba(255,255,255,0.05)",
-                    textAlign: "right",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                    color: "#D0D0D0",
-                  }}
-                >
-                  Rate
-                </th>
-                <th
-                  style={{
-                    padding: "18px 20px",
-                    background: "rgba(255,255,255,0.05)",
-                    textAlign: "right",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                    color: "#D0D0D0",
-                  }}
-                >
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr
-                  key={item.id || index}
-                  style={{
-                    background:
-                      index % 2 === 0
-                        ? "rgba(255,255,255,0.02)"
-                        : "transparent",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "16px 20px",
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#E0E0E0",
-                      fontSize: "14px",
-                      wordWrap: "break-word",
-                      overflowWrap: "break-word",
-                      whiteSpace: "normal",
-                      maxWidth: 0,
-                    }}
-                  >
-                    {item.description}
-                  </td>
-                  <td
-                    style={{
-                      padding: "16px 20px",
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      textAlign: "center",
-                      color: "#D0D0D0",
-                    }}
-                  >
-                    {item.quantity}
-                  </td>
-                  <td
-                    style={{
-                      padding: "16px 20px",
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      textAlign: "right",
-                      color: "#D0D0D0",
-                    }}
-                  >
-                    {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "16px 20px",
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      textAlign: "right",
-                      color: "#00FFB2",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {formatCurrencyWithCode(item.amount, invoice.currency)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "14px",
+              headerPadding: "18px 20px",
+              bodyPadding: "16px 20px",
+              headerTextColor: "#D0D0D0",
+              headerBgColor: "rgba(255,255,255,0.05)",
+              bodyTextColor: "#E0E0E0",
+              borderColor: "rgba(255,255,255,0.1)",
+              headerBorderBottom: "none",
+              rowBorderBottom: "1px solid rgba(255,255,255,0.1)",
+              headerFontWeight: 600,
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "2px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 600,
+              amountColor: "#00FFB2",
+              alternatingRowColor: "rgba(255,255,255,0.02)",
+              quantityCellStyle: { color: "#D0D0D0" },
+              unitPriceCellStyle: { color: "#D0D0D0" },
+              descriptionCellStyle: {
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+                maxWidth: 0,
+              },
+              bodyStyle: { marginBottom: 0 },
+            }}
+          />
         </div>
 
         {/* Totals */}

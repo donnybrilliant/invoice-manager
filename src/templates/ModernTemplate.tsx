@@ -7,6 +7,7 @@ import {
   formatCompanyAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -16,7 +17,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
 }) => {
   const containerStyle: React.CSSProperties = {
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    maxWidth: "800px",
+    maxWidth: "794px",
     margin: "0 auto",
     padding: "40px",
     background: "white",
@@ -34,6 +35,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
     justifyContent: "space-between",
     alignItems: "start",
     marginBottom: "40px",
+    width: "100%",
   };
 
   const titleStyle: React.CSSProperties = {
@@ -273,8 +275,19 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             padding: 20px !important;
           }
           .modern-header {
-            flex-direction: column !important;
+            flex-wrap: wrap !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
             gap: 20px !important;
+          }
+          .modern-header > div:first-child {
+            margin-right: 0 !important;
+          }
+          .modern-header > div:last-child {
+            text-align: right !important;
+            margin-left: auto !important;
+            margin-right: 0 !important;
+            margin-top: 20px !important;
           }
           .modern-title {
             font-size: 28px !important;
@@ -285,8 +298,8 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .modern-table {
             font-size: 12px !important;
           }
-          .modern-table th,
-          .modern-table td {
+          .modern-table table th,
+          .modern-table table td {
             padding: 8px !important;
             font-size: 11px !important;
           }
@@ -308,8 +321,8 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .modern-table {
             font-size: 10px !important;
           }
-          .modern-table th,
-          .modern-table td {
+          .modern-table table th,
+          .modern-table table td {
             padding: 6px 4px !important;
             font-size: 9px !important;
           }
@@ -443,60 +456,51 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table className="modern-table" style={tableStyle}>
-          <thead>
-            <tr style={tableHeaderStyle}>
-              <th style={thStyle}>Description</th>
-              <th style={{ ...thStyle, textAlign: "center", width: "100px" }}>
-                Qty
-              </th>
-              <th style={{ ...thStyle, textAlign: "right", width: "120px" }}>
-                Unit Price
-              </th>
-              <th style={{ ...thStyle, textAlign: "right", width: "120px" }}>
-                Amount
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr
-                key={item.id || index}
-                style={{
-                  backgroundColor: index % 2 === 0 ? "#f9fafb" : "white",
-                }}
-              >
-                <td
-                  style={{
-                    ...tdStyle,
+        <div className="modern-table" style={{ marginBottom: "30px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            styles={{
+              headerFontSize: thStyle.fontSize || "13px",
+              bodyFontSize: tdStyle.fontSize || "14px",
+              headerPadding: thStyle.padding || "16px",
+              bodyPadding: tdStyle.padding || "16px",
+              headerTextColor: thStyle.color || "white",
+              headerBgColor: "#3b82f6",
+              bodyTextColor: "#374151",
+              borderColor: "#e5e7eb",
+              headerBorderBottom: "none",
+              rowBorderBottom: "none",
+              headerFontWeight: thStyle.fontWeight || 600,
+              headerTextTransform: thStyle.textTransform || "uppercase",
+              headerLetterSpacing: thStyle.letterSpacing || "0.5px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 600,
+              amountColor: "#1f2937",
+              alternatingRowColor: "#f9fafb",
+              columnWidths: {
+                quantity: "100px",
+                unitPrice: "120px",
+                amount: "120px",
+              },
+              descriptionCellStyle: {
                     wordWrap: "break-word",
                     overflowWrap: "break-word",
                     whiteSpace: "normal",
                     maxWidth: 0,
-                  }}
-                >
-                  {item.description}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {item.quantity}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td
-                  style={{
-                    ...tdStyle,
-                    textAlign: "right",
-                    fontWeight: 600,
-                    color: "#1f2937",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              },
+              bodyStyle: {
+                marginBottom: 0,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                borderRadius: "8px",
+                overflow: "hidden",
+              },
+              headerStyle: {
+                background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+              },
+            }}
+          />
+        </div>
 
         {/* Totals */}
         <div className="modern-totals-container" style={totalsContainerStyle}>

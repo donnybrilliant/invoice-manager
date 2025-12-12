@@ -3,6 +3,7 @@ import { InvoiceTemplateData } from "./types";
 import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import { getCompanyInfo, formatClientAddress } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -22,13 +23,203 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   return (
     <>
       <style>{`
+        /* Force card mode at 650px to allow more column shrinking before stacking */
+        @container (max-width: 650px) {
+          .color-pop-brutalist-template [class^="invoice-item-list-"] table {
+            border: none !important;
+            font-size: 13px !important;
+            box-shadow: none !important;
+            background: transparent !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] thead {
+            display: none !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody {
+            display: block !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tr {
+            display: block !important;
+            width: 100% !important;
+            border-left: 4px solid ${colors.black} !important;
+            border-right: 4px solid ${colors.black} !important;
+            border-top: 4px solid ${colors.black} !important;
+            border-bottom: 4px solid ${colors.black} !important;
+            margin-bottom: 0 !important;
+            padding: 12px !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tr:not(:first-child) {
+            border-top: 2px solid ${colors.black} !important;
+            margin-top: 0 !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 6px 12px !important;
+            border-bottom: 2px solid ${colors.black}40 !important;
+            text-align: right !important;
+            position: relative !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            font-size: 13px !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child {
+            border-bottom: 1px solid ${colors.black}40 !important;
+            font-weight: 900 !important;
+            font-size: 13px !important;
+            color: ${colors.black} !important;
+            background: transparent !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child * {
+            color: ${colors.black} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td:before {
+            content: attr(data-label) ":" !important;
+            position: absolute !important;
+            left: 12px !important;
+            font-weight: 600 !important;
+            color: ${colors.black} !important;
+            font-size: 13px !important;
+            text-transform: uppercase !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child {
+            display: block !important;
+            padding: 10px 12px !important;
+            text-align: left !important;
+            font-size: 14px !important;
+            color: ${colors.black} !important;
+            visibility: visible !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            border-bottom: 3px solid ${colors.black} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child:before {
+            display: none !important;
+            content: none !important;
+          }
+          /* Apply colorful backgrounds when in card mode */
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+1) {
+            background: ${colors.secondary} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+2) {
+            background: ${colors.white} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+3) {
+            background: ${colors.tertiary} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+4) {
+            background: ${colors.quad} !important;
+          }
+        }
+        @media (max-width: 650px) {
+          .color-pop-brutalist-template [class^="invoice-item-list-"] table {
+            border: none !important;
+            font-size: 13px !important;
+            box-shadow: none !important;
+            background: transparent !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] thead {
+            display: none !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody {
+            display: block !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tr {
+            display: block !important;
+            width: 100% !important;
+            border-left: 4px solid ${colors.black} !important;
+            border-right: 4px solid ${colors.black} !important;
+            border-top: 4px solid ${colors.black} !important;
+            border-bottom: 4px solid ${colors.black} !important;
+            margin-bottom: 0 !important;
+            padding: 12px !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tr:not(:first-child) {
+            border-top: 2px solid ${colors.black} !important;
+            margin-top: 0 !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 6px 12px !important;
+            border-bottom: 2px solid ${colors.black}40 !important;
+            text-align: right !important;
+            position: relative !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            font-size: 13px !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child {
+            border-bottom: 1px solid ${colors.black}40 !important;
+            font-weight: 900 !important;
+            font-size: 13px !important;
+            color: ${colors.black} !important;
+            background: transparent !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child * {
+            color: ${colors.black} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td:before {
+            content: attr(data-label) ":" !important;
+            position: absolute !important;
+            left: 12px !important;
+            font-weight: 600 !important;
+            color: ${colors.black} !important;
+            font-size: 13px !important;
+            text-transform: uppercase !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child {
+            display: block !important;
+            padding: 10px 12px !important;
+            text-align: left !important;
+            font-size: 14px !important;
+            color: ${colors.black} !important;
+            visibility: visible !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            border-bottom: 3px solid ${colors.black} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child:before {
+            display: none !important;
+            content: none !important;
+          }
+          /* Apply colorful backgrounds when in card mode */
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+1) {
+            background: ${colors.secondary} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+2) {
+            background: ${colors.white} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+3) {
+            background: ${colors.tertiary} !important;
+          }
+          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+4) {
+            background: ${colors.quad} !important;
+          }
+        }
         @media (max-width: 768px) {
           .color-pop-brutalist-template {
             border-width: 4px !important;
+          }
+          .color-pop-brutalist-content {
             padding: 20px !important;
           }
           .color-pop-brutalist-info-cards {
             flex-direction: column !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .color-pop-brutalist-content {
+            padding: 15px !important;
           }
         }
         /* Make invoice number wrap to new line at narrow widths */
@@ -83,7 +274,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="color-pop-brutalist-template"
         style={{
           fontFamily: "'Arial Black', Helvetica, sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: 0,
           background: colors.white,
@@ -193,7 +384,10 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
         </div>
 
-        <div style={{ padding: "40px" }}>
+        <div
+          style={{ padding: "40px" }}
+          className="color-pop-brutalist-content"
+        >
           {/* Info Cards Row */}
           <div
             className="color-pop-brutalist-info-cards"
@@ -333,131 +527,62 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               border: "4px solid " + colors.black,
               boxShadow: "8px 8px 0 " + colors.black,
               marginBottom: "40px",
+              width: "100%",
+              boxSizing: "border-box",
               overflow: "hidden",
             }}
           >
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      padding: "18px",
-                      border: "4px solid " + colors.black,
-                      background: colors.tertiary,
-                      textAlign: "left",
-                      fontSize: "13px",
-                      textTransform: "uppercase",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    Description
-                  </th>
-                  <th
-                    style={{
-                      padding: "18px",
-                      border: "4px solid " + colors.black,
-                      background: colors.tertiary,
-                      textAlign: "center",
-                      fontSize: "13px",
-                      textTransform: "uppercase",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    Qty
-                  </th>
-                  <th
-                    style={{
-                      padding: "18px",
-                      border: "4px solid " + colors.black,
-                      background: colors.tertiary,
-                      textAlign: "right",
-                      fontSize: "13px",
-                      textTransform: "uppercase",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    Rate
-                  </th>
-                  <th
-                    style={{
-                      padding: "18px",
-                      border: "4px solid " + colors.black,
-                      background: colors.tertiary,
-                      textAlign: "right",
-                      fontSize: "13px",
-                      textTransform: "uppercase",
-                      letterSpacing: "3px",
-                    }}
-                  >
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td
-                      style={{
-                        padding: "16px",
-                        border: "4px solid " + colors.black,
-                        background:
-                          index % 2 === 0 ? colors.white : colors.secondary,
-                        fontFamily: "'Arial Black', sans-serif",
-                        fontSize: "14px",
-                        fontWeight: 900,
-                        wordWrap: "break-word",
-                        overflowWrap: "break-word",
-                        whiteSpace: "normal",
-                        maxWidth: 0,
-                      }}
-                    >
-                      {item.description}
-                    </td>
-                    <td
-                      style={{
-                        padding: "16px",
-                        border: "4px solid " + colors.black,
-                        background:
-                          index % 2 === 0 ? colors.white : colors.secondary,
-                        textAlign: "center",
-                        fontWeight: 900,
-                        fontSize: "16px",
-                      }}
-                    >
-                      {item.quantity}
-                    </td>
-                    <td
-                      style={{
-                        padding: "16px",
-                        border: "4px solid " + colors.black,
-                        background:
-                          index % 2 === 0 ? colors.white : colors.secondary,
-                        textAlign: "right",
-                        fontWeight: 900,
-                      }}
-                    >
-                      {formatCurrencyWithCode(
-                        item.unit_price,
-                        invoice.currency
-                      )}
-                    </td>
-                    <td
-                      style={{
-                        padding: "16px",
-                        border: "4px solid " + colors.black,
-                        background: colors.primary,
-                        color: colors.white,
-                        textAlign: "right",
-                        fontWeight: 900,
-                        fontSize: "15px",
-                      }}
-                    >
-                      {formatCurrencyWithCode(item.amount, invoice.currency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <InvoiceItemList
+              items={items}
+              currency={invoice.currency}
+              styles={{
+                headerFontSize: "13px",
+                bodyFontSize: "14px",
+                headerPadding: "18px",
+                bodyPadding: "16px",
+                headerTextColor: colors.black,
+                headerBgColor: colors.tertiary,
+                bodyTextColor: colors.black,
+                borderColor: colors.black,
+                headerBorderBottom: "none",
+                rowBorderBottom: "none",
+                headerFontWeight: "normal",
+                headerTextTransform: "uppercase",
+                headerLetterSpacing: "3px",
+                bodyFontWeight: 900,
+                amountFontWeight: 900,
+                amountColor: colors.white,
+                fontFamily: "'Arial Black', sans-serif",
+                // Note: Component applies alternatingRowColor to even rows (0, 2, 4...)
+                // ColorPopBrutalist needs odd rows (1, 3, 5...) colored, so pattern is inverted
+                alternatingRowColor: colors.secondary,
+                descriptionCellStyle: {
+                  border: "4px solid " + colors.black,
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word",
+                  whiteSpace: "normal",
+                  maxWidth: 0,
+                },
+                quantityCellStyle: {
+                  border: "4px solid " + colors.black,
+                  fontSize: "16px",
+                },
+                unitPriceCellStyle: {
+                  border: "4px solid " + colors.black,
+                },
+                amountCellStyle: {
+                  border: "4px solid " + colors.black,
+                  background: colors.primary,
+                  fontSize: "15px",
+                },
+                headerStyle: {
+                  border: "4px solid " + colors.black,
+                },
+                bodyStyle: {
+                  marginBottom: 0,
+                },
+              }}
+            />
           </div>
 
           {/* Totals */}
@@ -494,7 +619,13 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 >
                   Subtotal
                 </span>
-                <span style={{ fontWeight: 900, fontSize: "16px" }}>
+                <span
+                  style={{
+                    fontWeight: 900,
+                    fontSize: "16px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
                 </span>
               </div>
@@ -516,7 +647,13 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 >
                   Tax
                 </span>
-                <span style={{ fontWeight: 900, fontSize: "16px" }}>
+                <span
+                  style={{
+                    fontWeight: 900,
+                    fontSize: "16px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
                 </span>
               </div>
@@ -546,7 +683,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontSize: "clamp(18px, 4vw, 32px)",
                     fontWeight: 900,
                     color: colors.white,
-                    wordBreak: "break-all",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {formatCurrencyWithCode(invoice.total, invoice.currency)}

@@ -142,6 +142,38 @@ export default function TemplateSelector({
     }
   }, [templateDataMap]);
 
+  // Scroll to selected template when it changes or when template data is ready
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+
+    const selectedIndex = templates.findIndex((t) => t.id === selected);
+    if (selectedIndex === -1) return;
+
+    const container = scrollContainerRef.current;
+    
+    // Wait for templates to be rendered and layout to be complete
+    const scrollToSelected = () => {
+      const templateButtons = container.querySelectorAll("button");
+      const selectedButton = templateButtons[selectedIndex];
+
+      if (selectedButton) {
+        selectedButton.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    };
+
+    // Use multiple requestAnimationFrame calls to ensure DOM is ready
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Add a small delay to ensure all templates are rendered
+        setTimeout(scrollToSelected, 50);
+      });
+    });
+  }, [selected, templateDataMap]);
+
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
@@ -219,7 +251,7 @@ export default function TemplateSelector({
                       >
                         <div
                           style={{
-                            width: "800px",
+                            width: "794px",
                             transform: "scale(0.1875)",
                             transformOrigin: "top center",
                             height: "auto",

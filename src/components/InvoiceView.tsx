@@ -154,7 +154,7 @@ export default function InvoiceView({
       tempDiv.style.position = "absolute";
       tempDiv.style.left = "-9999px";
       tempDiv.style.top = "0";
-      tempDiv.style.width = "800px";
+      tempDiv.style.width = "794px";
       tempDiv.style.background = "white";
       tempDiv.style.display = "block";
       tempDiv.style.visibility = "visible";
@@ -328,7 +328,7 @@ export default function InvoiceView({
       tempDiv.style.position = "absolute";
       tempDiv.style.left = "-9999px";
       tempDiv.style.top = "0";
-      tempDiv.style.width = "800px";
+      tempDiv.style.width = "794px";
       tempDiv.style.background = "white";
       tempDiv.style.display = "block";
       tempDiv.style.visibility = "visible";
@@ -575,7 +575,7 @@ export default function InvoiceView({
           </div>
         </div>
 
-        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print overflow-x-auto">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-lg print:border-0 invoice-content-print overflow-x-auto">
           {renderInvoice()}
         </div>
 
@@ -834,7 +834,7 @@ export default function InvoiceView({
             height: auto !important;
             min-height: 297mm !important;
             margin: 0 !important;
-            padding: 10mm !important;
+            padding: 0 !important;
             border: 0 !important;
             box-sizing: border-box !important;
             overflow: visible !important;

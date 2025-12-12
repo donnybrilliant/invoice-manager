@@ -7,6 +7,7 @@ import {
   formatCompanyAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -31,63 +32,33 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
             flex-direction: column !important;
             gap: 20px !important;
           }
-          .typewriter-table {
-            font-size: 11px !important;
-            display: block !important;
-            width: 100% !important;
-            overflow-x: visible !important;
-          }
-          .typewriter-table thead {
-            display: none !important;
-          }
-          .typewriter-table tbody {
-            display: block !important;
-            width: 100% !important;
-          }
-          .typewriter-table tr {
-            display: block !important;
-            width: 100% !important;
-            margin-bottom: 16px !important;
-            border: 1px dashed #8B7355 !important;
-            padding: 12px !important;
-            box-sizing: border-box !important;
-            background: rgba(139,115,85,0.05) !important;
-          }
-          .typewriter-table td {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 6px 0 !important;
-            font-size: 11px !important;
-            text-align: left !important;
-            box-sizing: border-box !important;
-            border: none !important;
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
-            white-space: normal !important;
-          }
-          .typewriter-table td:before {
-            content: attr(data-label) ": ";
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #5D4E37;
-            display: inline-block;
-            margin-right: 8px;
-            font-size: 9px;
-          }
         }
         @media (max-width: 480px) {
           .typewriter-template {
             padding: 15px !important;
           }
-          .typewriter-table {
-            font-size: 10px !important;
+        }
+        /* Override card borders to dashed for typewriter template */
+        @container (max-width: 435px) {
+          .typewriter-template [class^="invoice-item-list-"] tr {
+            border-left: 1px dashed #8B7355 !important;
+            border-right: 1px dashed #8B7355 !important;
+            border-top: 1px dashed #8B7355 !important;
+            border-bottom: 1px dashed #8B7355 !important;
           }
-          .typewriter-table th,
-          .typewriter-table td {
-            padding: 6px 4px !important;
-            font-size: 9px !important;
+          .typewriter-template [class^="invoice-item-list-"] tr:not(:first-child) {
+            border-top: 2px dashed #8B7355 !important;
+          }
+        }
+        @media (max-width: 435px) {
+          .typewriter-template [class^="invoice-item-list-"] tr {
+            border-left: 1px dashed #8B7355 !important;
+            border-right: 1px dashed #8B7355 !important;
+            border-top: 1px dashed #8B7355 !important;
+            border-bottom: 1px dashed #8B7355 !important;
+          }
+          .typewriter-template [class^="invoice-item-list-"] tr:not(:first-child) {
+            border-top: 2px dashed #8B7355 !important;
           }
         }
       `}</style>
@@ -95,7 +66,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="typewriter-template"
         style={{
           fontFamily: "'Courier New', Courier, monospace",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "50px",
           background: "#FDF6E3",
@@ -364,126 +335,44 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table
+        <div
           className="typewriter-table"
-          style={{
-            position: "relative",
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "40px",
-            tableLayout: "auto",
-          }}
+          style={{ marginBottom: "40px", position: "relative" }}
         >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  padding: "12px",
-                  borderBottom: "2px solid #8B7355",
-                  borderTop: "2px solid #8B7355",
-                  textAlign: "left",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: "#5D4E37",
-                }}
-              >
-                Description
-              </th>
-              <th
-                style={{
-                  padding: "12px",
-                  borderBottom: "2px solid #8B7355",
-                  borderTop: "2px solid #8B7355",
-                  textAlign: "center",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: "#5D4E37",
-                }}
-              >
-                Qty
-              </th>
-              <th
-                style={{
-                  padding: "12px",
-                  borderBottom: "2px solid #8B7355",
-                  borderTop: "2px solid #8B7355",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: "#5D4E37",
-                }}
-              >
-                Rate
-              </th>
-              <th
-                style={{
-                  padding: "12px",
-                  borderBottom: "2px solid #8B7355",
-                  borderTop: "2px solid #8B7355",
-                  textAlign: "right",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  color: "#5D4E37",
-                }}
-              >
-                Amount
-              </th>
-            </tr>
-          </thead>
-          <tbody style={{ color: "#3D2914", fontSize: "13px" }}>
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td
-                  data-label="Description"
-                  style={{
-                    padding: "10px 12px",
-                    borderBottom: "1px dashed #8B7355",
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: 0,
-                  }}
-                >
-                  {item.description}
-                </td>
-                <td
-                  data-label="Qty"
-                  style={{
-                    padding: "10px 12px",
-                    borderBottom: "1px dashed #8B7355",
-                    textAlign: "center",
-                  }}
-                >
-                  {item.quantity}
-                </td>
-                <td
-                  data-label="Rate"
-                  style={{
-                    padding: "10px 12px",
-                    borderBottom: "1px dashed #8B7355",
-                    textAlign: "right",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td
-                  data-label="Amount"
-                  style={{
-                    padding: "10px 12px",
-                    borderBottom: "1px dashed #8B7355",
-                    textAlign: "right",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            styles={{
+              headerFontSize: "11px",
+              bodyFontSize: "13px",
+              headerPadding: "12px",
+              bodyPadding: "10px 12px",
+              headerTextColor: "#5D4E37",
+              bodyTextColor: "#3D2914",
+              borderColor: "#8B7355",
+              headerBorderBottom: "2px solid #8B7355",
+              rowBorderBottom: "1px dashed #8B7355",
+              headerFontWeight: "normal",
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "2px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 700,
+              alternatingRowColor: "#FDF6E3",
+              headerStyle: {
+                borderTop: "2px solid #8B7355",
+              },
+              descriptionCellStyle: {
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+                maxWidth: 0,
+              },
+              bodyStyle: {
+                marginBottom: 0,
+              },
+            }}
+          />
+        </div>
 
         {/* Totals */}
         <div

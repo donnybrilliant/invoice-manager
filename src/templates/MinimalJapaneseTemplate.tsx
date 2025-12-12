@@ -7,6 +7,7 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -55,7 +56,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         className="minimaljapanese-template"
         style={{
           fontFamily: "'Hiragino Mincho Pro', 'Yu Mincho', Georgia, serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "50px 40px",
           background: "#FDFCFA",
@@ -257,129 +258,37 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table
-          className="minimaljapanese-table"
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "35px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  padding: "12px 0",
-                  borderBottom: "2px solid #2D2A26",
-                  textAlign: "left",
-                  fontSize: "10px",
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  letterSpacing: "4px",
-                  color: "#8A847B",
+        <div className="minimaljapanese-table" style={{ marginBottom: "35px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            headerLabels={{
+              description: "品目",
+              quantity: "数量",
+              unitPrice: "単価",
+              amount: "金額",
                 }}
-              >
-                品目
-              </th>
-              <th
-                style={{
-                  padding: "12px 0",
-                  borderBottom: "2px solid #2D2A26",
-                  textAlign: "center",
-                  fontSize: "10px",
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  letterSpacing: "4px",
-                  color: "#8A847B",
-                }}
-              >
-                数量
-              </th>
-              <th
-                style={{
-                  padding: "12px 0",
-                  borderBottom: "2px solid #2D2A26",
-                  textAlign: "right",
-                  fontSize: "10px",
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  letterSpacing: "4px",
-                  color: "#8A847B",
-                }}
-              >
-                単価
-              </th>
-              <th
-                style={{
-                  padding: "12px 0",
-                  borderBottom: "2px solid #2D2A26",
-                  textAlign: "right",
-                  fontSize: "10px",
-                  fontWeight: 400,
-                  textTransform: "uppercase",
-                  letterSpacing: "4px",
-                  color: "#8A847B",
-                }}
-              >
-                金額
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid #E8E4DF",
-                    fontSize: "14px",
-                    color: "#2D2A26",
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: 0,
+            styles={{
+              headerFontSize: "10px",
+              bodyFontSize: "14px",
+              headerPadding: "12px 0",
+              bodyPadding: "20px 0",
+              headerTextColor: "#8A847B",
+              bodyTextColor: "#2D2A26",
+              borderColor: "#E8E4DF",
+              headerBorderBottom: "2px solid #2D2A26",
+              rowBorderBottom: "1px solid #E8E4DF",
+              headerFontWeight: 400,
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "4px",
+              bodyFontWeight: "normal",
+              amountFontWeight: 500,
+              quantityCellStyle: { color: "#8A847B" },
+              unitPriceCellStyle: { color: "#8A847B" },
+              bodyStyle: { marginBottom: 0 },
                   }}
-                >
-                  {item.description}
-                </td>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid #E8E4DF",
-                    textAlign: "center",
-                    fontSize: "14px",
-                    color: "#8A847B",
-                  }}
-                >
-                  {item.quantity}
-                </td>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid #E8E4DF",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    color: "#8A847B",
-                  }}
-                >
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td
-                  style={{
-                    padding: "20px 0",
-                    borderBottom: "1px solid #E8E4DF",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    color: "#2D2A26",
-                    fontWeight: 500,
-                  }}
-                >
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          />
+        </div>
 
         {/* Totals */}
         <div

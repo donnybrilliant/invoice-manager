@@ -30,13 +30,19 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .color-pop-stacked-template {
             padding: 20px !important;
           }
+          /* Make payment info full width when wrapped on its own line */
+          .color-pop-stacked-template .totals-section > div > div:last-child {
+            max-width: 100% !important;
+            width: 100% !important;
+            flex: 1 1 100% !important;
+          }
         }
       `}</style>
       <div
         className="color-pop-stacked-template"
         style={{
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
-          maxWidth: "800px",
+          maxWidth: "794px",
           margin: "0 auto",
           padding: "40px",
           background: colors.black,
@@ -334,6 +340,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
 
           {/* Totals */}
           <div
+            className="totals-section"
             style={{
               padding: "30px",
               background: colors.secondary + "40",

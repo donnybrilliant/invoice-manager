@@ -7,6 +7,7 @@ import {
   formatCompanyAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceItemList } from "../components/InvoiceItemList";
 
 const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -16,7 +17,7 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
 }) => {
   const containerStyle: React.CSSProperties = {
     fontFamily: "Arial, sans-serif",
-    maxWidth: "800px",
+    maxWidth: "794px",
     margin: "0 auto",
     padding: "40px",
     background: "white",
@@ -24,8 +25,10 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
 
   const headerStyle: React.CSSProperties = {
     display: "flex",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "start",
+    gap: "20px",
     marginBottom: "40px",
     borderBottom: "3px solid #1f2937",
     paddingBottom: "20px",
@@ -71,13 +74,6 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
     overflowWrap: "break-word",
   };
 
-  const tableStyle: React.CSSProperties = {
-    width: "100%",
-    borderCollapse: "collapse",
-    marginBottom: "30px",
-    tableLayout: "fixed", // Ensures consistent column widths
-  };
-
   const thStyle: React.CSSProperties = {
     padding: "12px",
     textAlign: "left",
@@ -90,14 +86,6 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
   const tdStyle: React.CSSProperties = {
     padding: "12px",
     borderBottom: "1px solid #e5e7eb",
-  };
-
-  const descriptionCellStyle: React.CSSProperties = {
-    ...tdStyle,
-    wordWrap: "break-word",
-    overflowWrap: "break-word",
-    whiteSpace: "normal",
-    width: "auto", // Will take remaining space
   };
 
   const totalsContainerStyle: React.CSSProperties = {
@@ -193,8 +181,11 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
             padding: 20px !important;
           }
           .classic-header {
-            flex-direction: column !important;
-            gap: 20px !important;
+            flex-wrap: wrap !important;
+          }
+          .classic-header > div:last-child {
+            text-align: right !important;
+            width: 100% !important;
           }
           .classic-title {
             font-size: 24px !important;
@@ -206,8 +197,8 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .classic-table {
             font-size: 12px !important;
           }
-          .classic-table th,
-          .classic-table td {
+          .classic-table table th,
+          .classic-table table td {
             padding: 8px !important;
             font-size: 11px !important;
           }
@@ -222,8 +213,8 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .classic-table {
             font-size: 10px !important;
           }
-          .classic-table th,
-          .classic-table td {
+          .classic-table table th,
+          .classic-table table td {
             padding: 6px 4px !important;
             font-size: 9px !important;
           }
@@ -251,7 +242,13 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
               INVOICE
             </h1>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div
+            style={{
+              textAlign: "right",
+              flex: "1 1 auto",
+              minWidth: "200px",
+            }}
+          >
             <div style={companyNameStyle}>
               {getCompanyInfo(profile, "company_name")}
             </div>
@@ -386,38 +383,48 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <table className="classic-table" style={tableStyle}>
-          <thead>
-            <tr>
-              <th style={{ ...thStyle, width: "50%" }}>Description</th>
-              <th style={{ ...thStyle, textAlign: "center", width: "15%" }}>
-                Qty
-              </th>
-              <th style={{ ...thStyle, textAlign: "right", width: "20%" }}>
-                Unit Price
-              </th>
-              <th style={{ ...thStyle, textAlign: "right", width: "15%" }}>
-                Amount
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td style={descriptionCellStyle}>{item.description}</td>
-                <td style={{ ...tdStyle, textAlign: "center", width: "15%" }}>
-                  {item.quantity}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "right", width: "20%" }}>
-                  {formatCurrencyWithCode(item.unit_price, invoice.currency)}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "right", width: "15%" }}>
-                  {formatCurrencyWithCode(item.amount, invoice.currency)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="classic-table" style={{ marginBottom: "30px" }}>
+          <InvoiceItemList
+            items={items}
+            currency={invoice.currency}
+            styles={{
+              headerFontSize: thStyle.fontSize || "14px",
+              bodyFontSize: tdStyle.fontSize || "14px",
+              headerPadding: "12px",
+              bodyPadding: "12px",
+              headerTextColor: thStyle.color || "#1f2937",
+              headerBgColor: thStyle.backgroundColor || "#f3f4f6",
+              bodyTextColor: tdStyle.color || "#374151",
+              borderColor: "#e5e7eb",
+              headerBorderBottom:
+                typeof thStyle.borderBottom === "string"
+                  ? thStyle.borderBottom
+                  : "2px solid #d1d5db",
+              rowBorderBottom:
+                typeof tdStyle.borderBottom === "string"
+                  ? tdStyle.borderBottom
+                  : "1px solid #e5e7eb",
+              headerFontWeight: thStyle.fontWeight || 600,
+              bodyFontWeight: "normal",
+              amountFontWeight: 600,
+              tableLayout: "fixed",
+              columnWidths: {
+                description: "40%",
+                quantity: "10%",
+                unitPrice: "25%",
+                amount: "25%",
+              },
+              descriptionCellStyle: {
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+              },
+              bodyStyle: {
+                marginBottom: 0,
+              },
+            }}
+          />
+        </div>
 
         {/* Totals */}
         <div style={totalsContainerStyle}>

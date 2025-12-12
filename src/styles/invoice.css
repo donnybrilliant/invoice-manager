@@ -375,8 +375,8 @@
 /* Target any element with a class ending in "-template" inside thumbnail wrapper */
 .template-thumbnail-wrapper [class*="-template"] {
   padding: 40px !important;
-  max-width: 800px !important;
-  width: 800px !important;
+  max-width: 794px !important;
+  width: 794px !important;
 }
 
 /* Target any element with a class ending in "-header" inside thumbnail wrapper */

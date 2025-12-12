@@ -27,7 +27,7 @@ import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useToast } from "../contexts/ToastContext";
 import { useShareLink, useGenerateShareToken } from "../hooks/useInvoiceShare";
 import { supabase } from "../lib/supabase";
-import { formatDate } from "../templates/utils";
+import { formatDate, formatCurrencyWithCode } from "../lib/formatting";
 import { useQueryClient } from "@tanstack/react-query";
 import { renderEmailTemplate } from "../lib/emailTemplateUtils";
 import { useAuth } from "../contexts/AuthContext";
@@ -369,18 +369,11 @@ export default function InvoiceView({
       );
 
       // Render email template HTML
-      // Format total with currency symbol
-      const currencySymbol =
-        invoice.currency === "EUR"
-          ? "€"
-          : invoice.currency === "NOK"
-          ? "kr"
-          : invoice.currency === "USD"
-          ? "$"
-          : invoice.currency === "GBP"
-          ? "£"
-          : invoice.currency;
-      const formattedTotal = `${currencySymbol} ${invoice.total.toFixed(2)}`;
+      // Format total using the proper currency formatting function
+      const formattedTotal = formatCurrencyWithCode(
+        invoice.total,
+        invoice.currency
+      );
 
       const emailHtml = renderEmailTemplate({
         invoiceNumber: invoice.invoice_number,

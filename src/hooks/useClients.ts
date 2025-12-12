@@ -147,7 +147,7 @@ export function useDeleteClient() {
       return { previousClients };
     },
     // If mutation fails, rollback to previous value
-    onError: (err, id, context) => {
+    onError: (_err, _id, context) => {
       if (context?.previousClients) {
         queryClient.setQueryData(
           ["clients", user?.id],

@@ -2,37 +2,6 @@
 
 This directory contains the invoice template system for rendering invoices in different styles.
 
-## Available Templates
-
-### 1. Classic Template
-
-- **ID**: `classic`
-- **Description**: Traditional invoice design with yellow footer
-- **Features**:
-  - Clean, professional layout
-  - Yellow footer section for payment information
-  - Traditional styling with clear sections
-
-### 2. Modern Template
-
-- **ID**: `modern`
-- **Description**: Contemporary design with colored accents
-- **Features**:
-  - Gradient colored header and footer bars
-  - Colored left borders on line items
-  - Contemporary card-based layout
-  - Vibrant blue and purple color scheme
-
-### 3. Professional Template
-
-- **ID**: `professional`
-- **Description**: Clean and minimal business design
-- **Features**:
-  - Minimalist black and white design
-  - Clean lines and business-appropriate styling
-  - Sophisticated typography
-  - Maximum readability
-
 ## Usage
 
 ```typescript

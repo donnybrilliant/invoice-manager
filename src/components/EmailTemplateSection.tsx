@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Eye, X } from "lucide-react";
 import { getDefaultEmailTemplate } from "../templates/email";
-import { formatDate } from "../templates/utils";
+import { formatDate } from "../lib/formatting";
 
 interface EmailTemplateSectionProps {
   useCustomTemplate: boolean;

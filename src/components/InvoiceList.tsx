@@ -19,8 +19,7 @@ import { generateInvoiceFilenameForDownload } from "../lib/utils";
 import { useInvoices, useUpdateInvoiceStatus } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { getCurrencySymbol } from "../lib/utils";
-import { formatDate } from "../templates/utils";
+import { formatDate, formatCurrencyWithCode } from "../lib/formatting";
 import { InvoiceContainer } from "./InvoiceContainer";
 
 interface InvoiceListProps {
@@ -72,6 +71,10 @@ export default function InvoiceList({
 
       // Prevent manually setting overdue if invoice is not actually overdue
       if (status === "overdue") {
+        if (!currentInvoice) {
+          showToast("Invoice not found", "error");
+          return;
+        }
         const dueDate = new Date(currentInvoice.due_date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -90,6 +93,10 @@ export default function InvoiceList({
         currentInvoice?.status === "overdue" &&
         (status === "sent" || status === "draft")
       ) {
+        if (!currentInvoice) {
+          showToast("Invoice not found", "error");
+          return;
+        }
         const dueDate = new Date(currentInvoice.due_date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -473,8 +480,10 @@ export default function InvoiceList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap w-32">
                       <div className="text-sm font-medium text-slate-900 dark:text-white">
-                        {getCurrencySymbol(invoice.currency)}{" "}
-                        {invoice.total.toFixed(2)}
+                        {formatCurrencyWithCode(
+                          invoice.total,
+                          invoice.currency
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap w-28">

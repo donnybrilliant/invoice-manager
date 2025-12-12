@@ -21,7 +21,7 @@ import ClientDetailView from "./ClientDetailView";
 import { Invoice, Client } from "../types";
 import { useInvoices } from "../hooks/useInvoices";
 import { useClients } from "../hooks/useClients";
-import { getCurrencySymbol } from "../lib/utils";
+import { formatCurrencyAmountOnly } from "../lib/formatting";
 
 interface DashboardProps {
   onNavigateToProfile: () => void;
@@ -246,24 +246,36 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
                     </p>
                     <div className="space-y-1">
                       {Object.entries(paidByCurrency).length > 0 ? (
-                        Object.entries(paidByCurrency).map(
-                          ([currency, amount]) => (
-                            <p
-                              key={currency}
-                              className="text-xl font-bold text-slate-900 dark:text-white"
-                            >
-                              {getCurrencySymbol(currency)}{" "}
-                              {amount.toLocaleString("en-US", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </p>
-                          )
-                        )
+                        Object.entries(paidByCurrency)
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([currency, amount]) => {
+                            const formattedAmount = formatCurrencyAmountOnly(
+                              amount,
+                              currency
+                            );
+                            return (
+                              <div
+                                key={currency}
+                                className="flex items-center gap-3"
+                              >
+                                <span className="text-xl font-bold text-slate-900 dark:text-white w-12 text-left">
+                                  {currency}
+                                </span>
+                                <span className="text-xl font-bold text-slate-900 dark:text-white tabular-nums flex-1 text-right">
+                                  {formattedAmount}
+                                </span>
+                              </div>
+                            );
+                          })
                       ) : (
-                        <p className="text-xl font-bold text-slate-900 dark:text-white">
-                          € 0.00
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl font-bold text-slate-900 dark:text-white w-12 text-left">
+                            EUR
+                          </span>
+                          <span className="text-xl font-bold text-slate-900 dark:text-white tabular-nums flex-1 text-right">
+                            0,00
+                          </span>
+                        </div>
                       )}
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -292,24 +304,36 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
                     </p>
                     <div className="space-y-1">
                       {Object.entries(unpaidByCurrency).length > 0 ? (
-                        Object.entries(unpaidByCurrency).map(
-                          ([currency, amount]) => (
-                            <p
-                              key={currency}
-                              className="text-xl font-bold text-orange-900 dark:text-orange-300"
-                            >
-                              {getCurrencySymbol(currency)}{" "}
-                              {amount.toLocaleString("en-US", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </p>
-                          )
-                        )
+                        Object.entries(unpaidByCurrency)
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([currency, amount]) => {
+                            const formattedAmount = formatCurrencyAmountOnly(
+                              amount,
+                              currency
+                            );
+                            return (
+                              <div
+                                key={currency}
+                                className="flex items-center gap-3"
+                              >
+                                <span className="text-xl font-bold text-orange-900 dark:text-orange-300 w-12 text-left">
+                                  {currency}
+                                </span>
+                                <span className="text-xl font-bold text-orange-900 dark:text-orange-300 tabular-nums flex-1 text-right">
+                                  {formattedAmount}
+                                </span>
+                              </div>
+                            );
+                          })
                       ) : (
-                        <p className="text-xl font-bold text-orange-900 dark:text-orange-300">
-                          € 0.00
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl font-bold text-orange-900 dark:text-orange-300 w-12 text-left">
+                            EUR
+                          </span>
+                          <span className="text-xl font-bold text-orange-900 dark:text-orange-300 tabular-nums flex-1 text-right">
+                            0,00
+                          </span>
+                        </div>
                       )}
                     </div>
                     <p className="text-xs text-orange-500 dark:text-orange-400 mt-2">

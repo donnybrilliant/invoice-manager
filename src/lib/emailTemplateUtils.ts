@@ -4,7 +4,7 @@
  */
 
 import { getEmailTemplateByInvoiceTemplate } from "../templates/email";
-import { formatDate } from "../templates/utils";
+import { formatDate } from "./formatting";
 
 /**
  * Replace template variables in email template

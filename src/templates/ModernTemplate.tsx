@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
   formatClientAddress,
   formatCompanyAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -429,14 +428,14 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <h3 style={cardTitlePurpleStyle}>Invoice Details</h3>
             <div style={cardContentStyle}>
               <div>
-                <strong>Issue Date:</strong> {formatDate(invoice.issue_date)}
+                <strong>Issue Date: </strong> {formatDate(invoice.issue_date)}
               </div>
               <div>
-                <strong>Due Date:</strong> {formatDate(invoice.due_date)}
+                <strong>Due Date: </strong> {formatDate(invoice.due_date)}
               </div>
               {invoice.status === "sent" && invoice.sent_date && (
                 <div>
-                  <strong>Sent Date:</strong> {formatDate(invoice.sent_date)}
+                  <strong>Sent Date: </strong> {formatDate(invoice.sent_date)}
                 </div>
               )}
             </div>
@@ -505,7 +504,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <table style={totalsTableStyle}>
               <tbody>
                 <tr>
-                  <td style={totalsRowStyle}>Subtotal:</td>
+                  <td style={totalsRowStyle}>Subtotal: </td>
                   <td className="modern-totals-value" style={totalsValueStyle}>
                     {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
                   </td>
@@ -520,7 +519,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   </td>
                 </tr>
                 <tr style={totalRowStyle}>
-                  <td style={totalLabelStyle}>Total Due:</td>
+                  <td style={totalLabelStyle}>Total Due: </td>
                   <td className="modern-total-value" style={totalValueStyle}>
                     {formatCurrencyWithCode(invoice.total, invoice.currency)}
                   </td>

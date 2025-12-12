@@ -292,7 +292,7 @@ export function useDeleteInvoice() {
       return { previousInvoices };
     },
     // If mutation fails, rollback to previous value
-    onError: (err, id, context) => {
+    onError: (_err, _id, context) => {
       if (context?.previousInvoices) {
         queryClient.setQueryData(
           ["invoices", user?.id],
@@ -446,7 +446,7 @@ export function useUpdateInvoiceStatus() {
       return { previousInvoices };
     },
     // If mutation fails, rollback to previous value
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       if (context?.previousInvoices) {
         queryClient.setQueryData(
           ["invoices", user?.id],

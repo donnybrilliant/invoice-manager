@@ -14,7 +14,7 @@ import {
   useUpdateInvoice,
   useDeleteInvoice,
 } from "../hooks/useInvoices";
-import { getCurrencySymbol } from "../lib/utils";
+import { formatCurrencyWithCode } from "../lib/formatting";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -655,8 +655,7 @@ export default function InvoiceForm({
                       Amount
                     </label>
                     <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-slate-700 dark:text-slate-300 flex items-center justify-end min-h-[42px]">
-                      {getCurrencySymbol(formData.currency)}{" "}
-                      {item.amount.toFixed(2)}
+                      {formatCurrencyWithCode(item.amount, formData.currency)}
                     </div>
                   </div>
                   <div className="flex items-start justify-end">
@@ -682,7 +681,7 @@ export default function InvoiceForm({
                     Subtotal:
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)} {subtotal.toFixed(2)}
+                    {formatCurrencyWithCode(subtotal, formData.currency)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -690,14 +689,13 @@ export default function InvoiceForm({
                     Tax ({formData.tax_rate}%):
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)}{" "}
-                    {tax_amount.toFixed(2)}
+                    {formatCurrencyWithCode(tax_amount, formData.currency)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t border-slate-200 dark:border-slate-700 pt-2">
                   <span className="text-slate-900 dark:text-white">Total:</span>
                   <span className="text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)} {total.toFixed(2)}
+                    {formatCurrencyWithCode(total, formData.currency)}
                   </span>
                 </div>
               </div>

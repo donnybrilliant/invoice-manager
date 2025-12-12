@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
-  formatClientAddress,
   formatCompanyAddress,
+  formatClientAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -21,6 +20,9 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         @media (max-width: 768px) {
           .minimaljapanese-template {
             padding: 40px 30px !important;
+          }
+          .minimaljapanese-vertical-line {
+            display: none !important;
           }
           .minimaljapanese-header {
             flex-direction: column !important;
@@ -55,7 +57,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
           fontFamily: "'Hiragino Mincho Pro', 'Yu Mincho', Georgia, serif",
           maxWidth: "800px",
           margin: "0 auto",
-          padding: "80px 60px",
+          padding: "50px 40px",
           background: "#FDFCFA",
           position: "relative",
           width: "100%",
@@ -64,11 +66,12 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
       >
         {/* Vertical Line Accent */}
         <div
+          className="minimaljapanese-vertical-line"
           style={{
             position: "absolute",
             left: "40px",
-            top: "80px",
-            bottom: "80px",
+            top: "50px",
+            bottom: "50px",
             width: "1px",
             background:
               "linear-gradient(180deg, transparent 0%, #C9B99A 20%, #C9B99A 80%, transparent 100%)",
@@ -76,14 +79,14 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         />
 
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "80px" }}>
+        <div style={{ textAlign: "center", marginBottom: "50px" }}>
           <div
             style={{
               fontSize: "12px",
               color: "#C9B99A",
               letterSpacing: "8px",
               textTransform: "uppercase",
-              marginBottom: "20px",
+              marginBottom: "15px",
             }}
           >
             請求書
@@ -103,7 +106,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               width: "40px",
               height: "1px",
               background: "#2D2A26",
-              margin: "25px auto",
+              margin: "20px auto",
             }}
           />
           <div
@@ -117,8 +120,8 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           style={{
             textAlign: "center",
-            marginBottom: "60px",
-            paddingBottom: "40px",
+            marginBottom: "40px",
+            paddingBottom: "25px",
             borderBottom: "1px solid #E8E4DF",
           }}
         >
@@ -129,7 +132,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 maxWidth: "100px",
                 maxHeight: "50px",
-                marginBottom: "20px",
+                marginBottom: "15px",
                 opacity: 0.8,
               }}
             />
@@ -139,7 +142,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               fontSize: "18px",
               fontWeight: 500,
               color: "#2D2A26",
-              marginBottom: "15px",
+              marginBottom: "12px",
               letterSpacing: "2px",
             }}
           >
@@ -156,7 +159,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            marginBottom: "60px",
+            marginBottom: "40px",
           }}
         >
           <div style={{ maxWidth: "300px", minWidth: 0 }}>
@@ -166,7 +169,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: "#C9B99A",
                 letterSpacing: "4px",
                 textTransform: "uppercase",
-                marginBottom: "15px",
+                marginBottom: "12px",
               }}
             >
               御中
@@ -200,7 +203,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ marginBottom: "25px" }}>
+            <div style={{ marginBottom: "20px" }}>
               <div
                 style={{
                   fontSize: "10px",
@@ -233,7 +236,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
-              <div style={{ marginTop: "20px" }}>
+              <div style={{ marginTop: "15px" }}>
                 <div
                   style={{
                     fontSize: "10px",
@@ -259,14 +262,14 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            marginBottom: "50px",
+            marginBottom: "35px",
           }}
         >
           <thead>
             <tr>
               <th
                 style={{
-                  padding: "15px 0",
+                  padding: "12px 0",
                   borderBottom: "2px solid #2D2A26",
                   textAlign: "left",
                   fontSize: "10px",
@@ -280,7 +283,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </th>
               <th
                 style={{
-                  padding: "15px 0",
+                  padding: "12px 0",
                   borderBottom: "2px solid #2D2A26",
                   textAlign: "center",
                   fontSize: "10px",
@@ -294,7 +297,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </th>
               <th
                 style={{
-                  padding: "15px 0",
+                  padding: "12px 0",
                   borderBottom: "2px solid #2D2A26",
                   textAlign: "right",
                   fontSize: "10px",
@@ -308,7 +311,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </th>
               <th
                 style={{
-                  padding: "15px 0",
+                  padding: "12px 0",
                   borderBottom: "2px solid #2D2A26",
                   textAlign: "right",
                   fontSize: "10px",
@@ -331,6 +334,10 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     borderBottom: "1px solid #E8E4DF",
                     fontSize: "14px",
                     color: "#2D2A26",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}
@@ -379,7 +386,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
           style={{
             display: "flex",
             justifyContent: "flex-end",
-            marginBottom: "60px",
+            marginBottom: "40px",
           }}
         >
           <div style={{ width: "260px" }}>
@@ -413,9 +420,9 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                padding: "25px 0",
+                padding: "18px 0",
                 borderTop: "2px solid #2D2A26",
-                marginTop: "15px",
+                marginTop: "12px",
               }}
             >
               <span
@@ -443,9 +450,9 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         {/* Payment Info */}
         <div
           style={{
-            padding: "30px 0",
+            padding: "25px 0",
             borderTop: "1px solid #E8E4DF",
-            marginBottom: "30px",
+            marginBottom: "25px",
           }}
         >
           <div
@@ -454,7 +461,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
               color: "#C9B99A",
               letterSpacing: "4px",
               textTransform: "uppercase",
-              marginBottom: "15px",
+              marginBottom: "12px",
             }}
           >
             振込先
@@ -474,7 +481,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
         {invoice.notes && (
           <div
             style={{
-              padding: "30px 0",
+              padding: "25px 0",
               borderTop: "1px solid #E8E4DF",
             }}
           >
@@ -484,7 +491,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: "#C9B99A",
                 letterSpacing: "4px",
                 textTransform: "uppercase",
-                marginBottom: "15px",
+                marginBottom: "12px",
               }}
             >
               備考
@@ -497,7 +504,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
 
         {/* Footer */}
         <div
-          style={{ textAlign: "center", marginTop: "60px", paddingTop: "40px" }}
+          style={{ textAlign: "center", marginTop: "40px", paddingTop: "30px" }}
         >
           <div
             style={{

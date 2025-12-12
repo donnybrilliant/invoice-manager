@@ -74,19 +74,19 @@ export const BrutalistEmailTemplate = `<!DOCTYPE html>
     <p style="font-weight: bold;">PLEASE FIND ATTACHED YOUR INVOICE {{invoiceNumber}}.</p>
     <div class="invoice-details">
       <div class="detail-row">
-        <span>INVOICE NUMBER:</span>
+        <span>INVOICE NUMBER: </span>
         <span>{{invoiceNumber}}</span>
       </div>
       <div class="detail-row">
-        <span>ISSUE DATE:</span>
+        <span>ISSUE DATE: </span>
         <span>{{issueDate}}</span>
       </div>
       <div class="detail-row">
-        <span>DUE DATE:</span>
+        <span>DUE DATE: </span>
         <span>{{dueDate}}</span>
       </div>
       <div class="detail-row total">
-        <span>TOTAL:</span>
+        <span>TOTAL: </span>
         <span>{{total}} {{currency}}</span>
       </div>
     </div>

@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
   formatClientAddress,
   formatCompanyAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -23,7 +22,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
   return (
     <>
       <style>{`
-        @media (max-width: 535px) {
+        @media (max-width: 634px) {
           .typewriter-template {
             padding: 20px !important;
             overflow-x: visible !important;
@@ -36,6 +35,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
             font-size: 11px !important;
             display: block !important;
             width: 100% !important;
+            overflow-x: visible !important;
           }
           .typewriter-table thead {
             display: none !important;
@@ -56,11 +56,15 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
           .typewriter-table td {
             display: block !important;
             width: 100% !important;
+            max-width: 100% !important;
             padding: 6px 0 !important;
             font-size: 11px !important;
             text-align: left !important;
             box-sizing: border-box !important;
             border: none !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
           }
           .typewriter-table td:before {
             content: attr(data-label) ": ";
@@ -438,6 +442,10 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   style={{
                     padding: "10px 12px",
                     borderBottom: "1px dashed #8B7355",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}
@@ -552,11 +560,18 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   textTransform: "uppercase",
                   letterSpacing: "2px",
                   fontWeight: "bold",
+                  color: "#FDF6E3",
                 }}
               >
                 TOTAL DUE
               </span>
-              <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+              <span
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  color: "#FDF6E3",
+                }}
+              >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
               </span>
             </div>

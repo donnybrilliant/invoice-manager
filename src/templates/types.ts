@@ -18,7 +18,14 @@ export interface InvoiceTemplate {
     | "minimal-japanese"
     | "neo-brutalist"
     | "swiss"
-    | "typewriter";
+    | "typewriter"
+    | "cutout-brutalist"
+    | "constructivist"
+    | "color-pop-stacked"
+    | "color-pop-minimal"
+    | "color-pop-grid"
+    | "color-pop-diagonal"
+    | "color-pop-brutalist";
   name: string;
   description: string;
   Component: ComponentType<InvoiceTemplateData>;

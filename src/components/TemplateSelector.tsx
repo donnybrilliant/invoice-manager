@@ -3,10 +3,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { templates } from "../templates";
 import { InvoiceTemplateData } from "../templates/types";
 import { Client, CompanyProfile } from "../types";
+import { InvoiceContainer } from "./InvoiceContainer";
 
 interface TemplateSelectorProps {
   selected: string;
   onChange: (templateId: string) => void;
+  disabled?: boolean;
   previewData?: {
     formData: {
       client_id: string;
@@ -70,6 +72,7 @@ const createTemplateData = (
     show_iban: formData.show_iban,
     show_swift_bic: formData.show_swift_bic,
     kid_number: formData.kid_number || null,
+    sent_date: null,
     created_at: "",
     updated_at: "",
     client: selectedClient,
@@ -96,6 +99,7 @@ const createTemplateData = (
 export default function TemplateSelector({
   selected,
   onChange,
+  disabled = false,
   previewData,
 }: TemplateSelectorProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -164,7 +168,8 @@ export default function TemplateSelector({
           <button
             type="button"
             onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            disabled={disabled}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Scroll left"
           >
             <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-300" />
@@ -187,11 +192,12 @@ export default function TemplateSelector({
                 key={template.id}
                 type="button"
                 onClick={() => onChange(template.id)}
+                disabled={disabled}
                 className={`relative p-3 border-2 rounded-lg transition-all flex-shrink-0 w-48 ${
                   selected === template.id
                     ? "border-slate-900 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 ring-2 ring-slate-900 dark:ring-slate-600 ring-offset-2"
                     : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800"
-                }`}
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {/* Template Name */}
                 <div className="font-semibold text-slate-900 dark:text-white text-xs mb-2 text-center">
@@ -200,7 +206,7 @@ export default function TemplateSelector({
 
                 {/* Actual Template Preview (scaled down, showing full length) */}
                 <div
-                  className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative invoice-light-mode"
+                  className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded overflow-hidden relative"
                   style={{ aspectRatio: "8.5/11" }}
                 >
                   {templateData ? (
@@ -213,16 +219,20 @@ export default function TemplateSelector({
                       >
                         <div
                           style={{
-                            width: "896px",
-                            minWidth: "896px",
+                            width: "800px",
                             transform: "scale(0.1875)",
                             transformOrigin: "top center",
                             height: "auto",
-                            backgroundColor: "#ffffff",
-                            color: "#1f2937",
                           }}
                         >
-                          <TemplateComponent {...templateData} />
+                          <InvoiceContainer>
+                            <TemplateComponent
+                              invoice={templateData.invoice}
+                              items={templateData.items}
+                              client={templateData.client}
+                              profile={templateData.profile}
+                            />
+                          </InvoiceContainer>
                         </div>
                       </div>
                     </>
@@ -259,7 +269,8 @@ export default function TemplateSelector({
           <button
             type="button"
             onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            disabled={disabled}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 rounded-full p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Scroll right"
           >
             <ChevronRight className="w-5 h-5 text-slate-700 dark:text-slate-300" />

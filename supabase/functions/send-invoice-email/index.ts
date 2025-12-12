@@ -104,17 +104,11 @@ const handler = async (req: Request) => {
       Deno.env.get("SMTP_SENDER_NAME") ||
       "Invoice Manager";
 
-    // Debug logging (remove in production if needed)
-    console.log("Resend config:", {
-      hasApiKey: !!resendApiKey,
-      fromEmail: resendFromEmail,
-      fromName: resendFromName,
-      envVars: {
-        RESEND_FROM_EMAIL: Deno.env.get("RESEND_FROM_EMAIL"),
-        SMTP_FROM_EMAIL: Deno.env.get("SMTP_FROM_EMAIL"),
-        SMTP_ADMIN_EMAIL: Deno.env.get("SMTP_ADMIN_EMAIL"),
-        SMTP_SENDER_NAME: Deno.env.get("SMTP_SENDER_NAME"),
-      },
+    // Minimal logging for debugging
+    console.log("Sending invoice email:", {
+      invoiceId,
+      recipientEmail,
+      hasPdf: !!pdfBase64,
     });
 
     // Check Resend configuration
@@ -135,11 +129,6 @@ const handler = async (req: Request) => {
         JSON.stringify({
           error:
             "Resend from email not configured. Please set RESEND_FROM_EMAIL, SMTP_FROM_EMAIL, or SMTP_ADMIN_EMAIL to an email address using your verified domain (e.g., invoice@vierweb.no).",
-          debug: {
-            RESEND_FROM_EMAIL: Deno.env.get("RESEND_FROM_EMAIL"),
-            SMTP_FROM_EMAIL: Deno.env.get("SMTP_FROM_EMAIL"),
-            SMTP_ADMIN_EMAIL: Deno.env.get("SMTP_ADMIN_EMAIL"),
-          },
         }),
         {
           status: 500,
@@ -186,15 +175,38 @@ const handler = async (req: Request) => {
       ];
     }
 
-    // Send email using Resend API (straight from docs)
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify(emailPayload),
-    });
+    // Send email using Resend API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+
+    let res: Response;
+    try {
+      res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify(emailPayload),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        return new Response(
+          JSON.stringify({
+            error: "Email service timeout - request took too long",
+          }),
+          {
+            status: 504,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const data = await res.json();
 

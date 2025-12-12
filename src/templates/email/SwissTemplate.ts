@@ -78,15 +78,15 @@ export const SwissEmailTemplate = `<!DOCTYPE html>
     <p>Please find attached your invoice {{invoiceNumber}}.</p>
     <div class="invoice-details">
       <div class="detail-row">
-        <span style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b7280;">Issue Date</span>
+        <span style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b7280;">Issue Date </span>
         <span>{{issueDate}}</span>
       </div>
       <div class="detail-row">
-        <span style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b7280;">Due Date</span>
+        <span style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #6b7280;">Due Date </span>
         <span>{{dueDate}}</span>
       </div>
       <div class="detail-row total">
-        <span style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase;">Total</span>
+        <span style="font-size: 11px; letter-spacing: 1px; text-transform: uppercase;">Total </span>
         <span>{{total}} {{currency}}</span>
       </div>
     </div>

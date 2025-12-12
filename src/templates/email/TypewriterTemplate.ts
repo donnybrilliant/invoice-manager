@@ -73,19 +73,19 @@ export const TypewriterEmailTemplate = `<!DOCTYPE html>
     <p>Please find attached your invoice {{invoiceNumber}}.</p>
     <div class="invoice-details">
       <div class="detail-row">
-        <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Invoice Number:</span>
+        <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Invoice Number: </span>
         <span>{{invoiceNumber}}</span>
       </div>
       <div class="detail-row">
-        <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Issue Date:</span>
+        <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Issue Date: </span>
         <span>{{issueDate}}</span>
       </div>
       <div class="detail-row">
-        <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Due Date:</span>
+        <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Due Date: </span>
         <span>{{dueDate}}</span>
       </div>
       <div class="detail-row total">
-        <span>TOTAL AMOUNT:</span>
+        <span>TOTAL AMOUNT: </span>
         <span>{{total}} {{currency}}</span>
       </div>
     </div>

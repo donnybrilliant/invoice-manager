@@ -12,6 +12,13 @@ import { DarkModeEmailTemplate } from "./DarkModeTemplate";
 import { NeoBrutalistEmailTemplate } from "./NeoBrutalistTemplate";
 import { SwissEmailTemplate } from "./SwissTemplate";
 import { TypewriterEmailTemplate } from "./TypewriterTemplate";
+import { CutoutBrutalistEmailTemplate } from "./CutoutBrutalistTemplate";
+import { ConstructivistEmailTemplate } from "./ConstructivistTemplate";
+import { ColorPopStackedEmailTemplate } from "./ColorPopStackedTemplate";
+import { ColorPopMinimalEmailTemplate } from "./ColorPopMinimalTemplate";
+import { ColorPopGridEmailTemplate } from "./ColorPopGridTemplate";
+import { ColorPopDiagonalEmailTemplate } from "./ColorPopDiagonalTemplate";
+import { ColorPopBrutalistEmailTemplate } from "./ColorPopBrutalistTemplate";
 
 // Map invoice template IDs to email templates
 export const emailTemplates: Record<string, string> = {
@@ -24,6 +31,13 @@ export const emailTemplates: Record<string, string> = {
   "neo-brutalist": NeoBrutalistEmailTemplate,
   swiss: SwissEmailTemplate,
   typewriter: TypewriterEmailTemplate,
+  "cutout-brutalist": CutoutBrutalistEmailTemplate,
+  constructivist: ConstructivistEmailTemplate,
+  "color-pop-stacked": ColorPopStackedEmailTemplate,
+  "color-pop-minimal": ColorPopMinimalEmailTemplate,
+  "color-pop-grid": ColorPopGridEmailTemplate,
+  "color-pop-diagonal": ColorPopDiagonalEmailTemplate,
+  "color-pop-brutalist": ColorPopBrutalistEmailTemplate,
   // Fallback
   default: DefaultEmailTemplate,
 };

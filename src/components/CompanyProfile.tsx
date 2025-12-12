@@ -1,5 +1,5 @@
 import { useState, useEffect, useActionState, useRef } from "react";
-import { ArrowLeft, Upload, Loader2, Eye } from "lucide-react";
+import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import {

@@ -19,8 +19,8 @@ import { generateInvoiceFilenameForDownload } from "../lib/utils";
 import { useInvoices, useUpdateInvoiceStatus } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { getCurrencySymbol } from "../lib/utils";
-import { formatDate } from "../templates/utils";
+import { formatDate, formatCurrencyWithCode } from "../lib/formatting";
+import { InvoiceContainer } from "./InvoiceContainer";
 
 interface InvoiceListProps {
   onViewInvoice: (invoice: Invoice) => void;
@@ -48,9 +48,76 @@ export default function InvoiceList({
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
+      // Check current invoice status
+      const currentInvoice = invoices.find((inv) => inv.id === id);
+
+      // Prevent any status changes for paid invoices
+      if (currentInvoice?.status === "paid") {
+        showToast(
+          "Cannot change status of a paid invoice. Paid invoices are locked.",
+          "error"
+        );
+        return;
+      }
+
+      // Warn if changing from sent to draft (but allow it)
+      if (currentInvoice?.status === "sent" && status === "draft") {
+        // Just show a toast warning, no blocking
+        showToast(
+          "Invoice status changed to draft. You can now edit this invoice.",
+          "warning"
+        );
+      }
+
+      // Prevent manually setting overdue if invoice is not actually overdue
+      if (status === "overdue") {
+        if (!currentInvoice) {
+          showToast("Invoice not found", "error");
+          return;
+        }
+        const dueDate = new Date(currentInvoice.due_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (dueDate >= today) {
+          showToast(
+            "Cannot manually set invoice as overdue. Overdue status is automatically applied when the due date has passed.",
+            "error"
+          );
+          return;
+        }
+      }
+
+      // Warn if changing from overdue to sent/draft (due date will be updated)
+      if (
+        currentInvoice?.status === "overdue" &&
+        (status === "sent" || status === "draft")
+      ) {
+        if (!currentInvoice) {
+          showToast("Invoice not found", "error");
+          return;
+        }
+        const dueDate = new Date(currentInvoice.due_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (dueDate < today) {
+          showToast(
+            "Due date will be updated to today to prevent immediate overdue marking.",
+            "info"
+          );
+        }
+      }
+
       await updateStatusMutation.mutateAsync({ id, status });
     } catch (error) {
       console.error("Error updating status:", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to update invoice status",
+        "error"
+      );
     }
   };
 
@@ -222,7 +289,7 @@ export default function InvoiceList({
       tempDiv.style.visibility = "visible";
       tempDiv.style.opacity = "1";
       // Centralized styles in invoice.css handle dark mode isolation
-      tempDiv.className = "pdf-generation-temp invoice-light-mode";
+      tempDiv.className = "pdf-generation-temp";
       document.body.appendChild(tempDiv);
 
       // Render invoice React component
@@ -230,14 +297,14 @@ export default function InvoiceList({
       const TemplateComponent = template.Component;
       root = createRoot(tempDiv);
       root.render(
-        <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+        <InvoiceContainer>
           <TemplateComponent
             invoice={invoice}
             items={items}
             client={invoice.client!}
             profile={profile}
           />
-        </div>
+        </InvoiceContainer>
       );
 
       // Wait for React to render and images to load
@@ -329,7 +396,7 @@ export default function InvoiceList({
               <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-48"
+                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-36"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("invoice");
@@ -395,7 +462,7 @@ export default function InvoiceList({
                     className="hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer border-b last:border-b-0 border-slate-200 dark:border-slate-700"
                     onClick={() => onViewInvoice(invoice)}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap w-48">
+                    <td className="px-6 py-4 whitespace-nowrap w-36">
                       <div className="text-sm font-medium text-slate-900 dark:text-white">
                         {invoice.invoice_number}
                       </div>
@@ -413,8 +480,10 @@ export default function InvoiceList({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap w-32">
                       <div className="text-sm font-medium text-slate-900 dark:text-white">
-                        {getCurrencySymbol(invoice.currency)}{" "}
-                        {invoice.total.toFixed(2)}
+                        {formatCurrencyWithCode(
+                          invoice.total,
+                          invoice.currency
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap w-28">
@@ -431,9 +500,15 @@ export default function InvoiceList({
                         onChange={(e) =>
                           handleUpdateStatus(invoice.id, e.target.value)
                         }
+                        disabled={invoice.status === "paid"}
                         className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${getStatusColor(
                           invoice.status
-                        )}`}
+                        )} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={
+                          invoice.status === "paid"
+                            ? "Paid invoices cannot be changed"
+                            : undefined
+                        }
                       >
                         <option value="draft">Draft</option>
                         <option value="sent">Sent</option>
@@ -446,18 +521,20 @@ export default function InvoiceList({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center justify-end gap-2">
-                        {invoice.status === "draft" && onEditInvoice && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditInvoice(invoice);
-                            }}
-                            className="text-blue-600 hover:text-blue-800 transition p-2"
-                            title="Edit"
-                          >
-                            <Edit className="w-5 h-5" />
-                          </button>
-                        )}
+                        {(invoice.status === "draft" ||
+                          invoice.status === "sent") &&
+                          onEditInvoice && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditInvoice(invoice);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 transition p-2"
+                              title="Edit"
+                            >
+                              <Edit className="w-5 h-5" />
+                            </button>
+                          )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

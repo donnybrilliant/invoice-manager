@@ -1,6 +1,6 @@
 import React from "react";
-import { CompanyProfile } from "../types";
-import { formatDate, formatAmountWithComma } from "./utils";
+import { CompanyProfile } from "../../types";
+import { formatDate, formatCurrencyWithCode } from "../../lib/formatting";
 
 interface PaymentInfoProps {
   profile: CompanyProfile | null;
@@ -70,21 +70,14 @@ export function PaymentInformation({
     </div>
   );
 
-  // Amount Due
-  const currencySymbol =
-    invoice.currency === "EUR"
-      ? "€"
-      : invoice.currency === "NOK"
-      ? "kr"
-      : invoice.currency === "USD"
-      ? "$"
-      : invoice.currency === "GBP"
-      ? "£"
-      : invoice.currency;
-  const amountWithComma = formatAmountWithComma(invoice.total);
+  // Amount Due - use formatCurrencyWithCode for consistent formatting
+  const formattedAmount = formatCurrencyWithCode(
+    invoice.total,
+    invoice.currency
+  );
   details.push(
     <div key="amount" style={style.item}>
-      <strong>Amount Due:</strong> {currencySymbol} {amountWithComma}
+      <strong>Amount Due:</strong> {formattedAmount}
     </div>
   );
 

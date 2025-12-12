@@ -60,19 +60,19 @@ export const ProfessionalEmailTemplate = `<!DOCTYPE html>
     <p>Please find attached your invoice {{invoiceNumber}}.</p>
     <div class="invoice-details">
       <div class="detail-row">
-        <span>Invoice Number:</span>
+        <span>Invoice Number: </span>
         <span>{{invoiceNumber}}</span>
       </div>
       <div class="detail-row">
-        <span>Issue Date:</span>
+        <span>Issue Date: </span>
         <span>{{issueDate}}</span>
       </div>
       <div class="detail-row">
-        <span>Due Date:</span>
+        <span>Due Date: </span>
         <span>{{dueDate}}</span>
       </div>
       <div class="detail-row total">
-        <span>Total Amount:</span>
+        <span>Total Amount: </span>
         <span>{{total}} {{currency}}</span>
       </div>
     </div>

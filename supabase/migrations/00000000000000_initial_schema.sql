@@ -194,7 +194,7 @@ CREATE TABLE invoices (
   currency text DEFAULT 'EUR' CHECK (char_length(currency) = 3),
   
   -- Template selection
-  template text DEFAULT 'classic' CHECK (template IN ('classic', 'modern', 'professional', 'brutalist', 'dark-mode', 'minimal-japanese', 'neo-brutalist', 'swiss', 'typewriter')),
+  template text DEFAULT 'classic' CHECK (template IN ('classic', 'modern', 'professional', 'brutalist', 'dark-mode', 'minimal-japanese', 'neo-brutalist', 'swiss', 'typewriter', 'cutout-brutalist', 'constructivist', 'color-pop-stacked', 'color-pop-minimal', 'color-pop-grid', 'color-pop-diagonal', 'color-pop-brutalist')),
   
   -- Banking details display options
   show_account_number boolean DEFAULT true,

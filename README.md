@@ -7,14 +7,18 @@ A modern, full-featured invoice management system built with React, TypeScript, 
 ### Invoice Management
 
 - ✅ Create, edit, and manage invoices
-- ✅ Multiple professional PDF templates (Classic, Modern, Professional)
+- ✅ 16 professional PDF templates (Classic, Modern, Professional, Brutalist, Dark Mode, Minimal Japanese, Neo Brutalist, Swiss, Typewriter, Cutout Brutalist, Constructivist, Color Pop Stacked/Minimal/Grid/Diagonal/Brutalist)
 - ✅ Automatic invoice numbering
 - ✅ Tax/VAT/MVA calculations
 - ✅ Discount support
 - ✅ Multi-currency support (EUR, NOK, USD, etc.)
 - ✅ Invoice status tracking (Draft, Sent, Paid, Overdue)
+- ✅ Sent date tracking
+- ✅ Invoice locking for paid invoices (prevents editing)
+- ✅ Warning system for editing sent invoices
 - ✅ PDF export with company branding
 - ✅ EHF (Elektronisk Handelsformat) export for Norwegian e-invoicing
+- ✅ Email invoices directly to clients via Resend API
 
 ### Client Management
 
@@ -53,7 +57,7 @@ A modern, full-featured invoice management system built with React, TypeScript, 
 
 ## Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 22.12+ (required by Vite 7 and React plugin)
 - Supabase account (free tier works great)
 - Modern web browser
 
@@ -187,18 +191,26 @@ invoice-manager/
 │   │   ├── InvoiceForm.tsx
 │   │   ├── InvoiceList.tsx
 │   │   ├── InvoiceView.tsx
-│   │   └── TemplateSelector.tsx
+│   │   ├── TemplateSelector.tsx
+│   │   ├── PublicInvoiceView.tsx  # Public invoice sharing
+│   │   └── EmailTemplateSection.tsx  # Email template customization
 │   ├── contexts/            # React contexts
-│   │   └── AuthContext.tsx
+│   │   ├── AuthContext.tsx
+│   │   └── ToastContext.tsx
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useClients.ts
+│   │   ├── useInvoices.ts
+│   │   ├── useInvoiceShare.ts
+│   │   └── useCompanyProfile.ts
 │   ├── lib/                 # Utilities
 │   │   ├── supabase.ts      # Supabase client
 │   │   ├── pdfUtils.ts      # PDF generation
 │   │   ├── ehfGenerator.ts  # EHF XML generation
+│   │   ├── emailTemplateUtils.ts  # Email template rendering
 │   │   └── utils.ts         # Shared utilities
 │   ├── templates/           # Invoice PDF templates
-│   │   ├── ClassicTemplate.ts
-│   │   ├── ModernTemplate.ts
-│   │   ├── ProfessionalTemplate.ts
+│   │   ├── *.tsx            # 16 invoice templates
+│   │   ├── email/           # Email templates (matching invoice templates)
 │   │   ├── types.ts
 │   │   ├── utils.ts
 │   │   └── index.ts
@@ -300,6 +312,97 @@ invoice-manager/
 3. The PDF will be generated with your selected template
 4. Includes your company logo and branding
 
+### Sending Invoices via Email
+
+1. Open an invoice
+2. Click **Send Email** button
+3. Enter recipient email address
+4. Optionally add a custom message
+5. Click **Send** - the invoice PDF will be attached automatically
+6. Email templates match your selected invoice template style
+7. Invoices are automatically marked as "sent" with the current date
+
+### Managing Invoice Status
+
+#### Changing Invoice Status
+
+You can change an invoice's status directly from the invoice list:
+
+1. In the invoice list, find the **Status** column
+2. Click the status dropdown (shows current status: Draft, Sent, Paid, or Overdue)
+3. Select the new status
+4. The invoice status updates immediately
+
+#### Invoice Status Types
+
+- **Draft**: Invoice is still being worked on and can be freely edited
+- **Sent**: Invoice has been sent to the client. Can still be edited, but a warning banner will appear
+- **Paid**: Invoice has been paid. **Locked and cannot be edited or have status changed** (see below)
+- **Overdue**: Invoice is past its due date (automatically updated - see Automatic Overdue Marking below)
+
+#### Editing Restrictions
+
+**Sent Invoices:**
+
+- When editing an invoice that has already been sent, a yellow warning banner appears
+- Message: "This invoice has already been sent. Changes will require re-sending."
+- You can still edit and update the invoice
+- If you make changes, you'll need to send the updated invoice again
+
+**Paid Invoices (Locked):**
+
+- When an invoice is marked as "paid", it becomes **locked** and cannot be edited
+- A lock message appears: "This invoice has been marked as paid and cannot be edited. To make changes, create a credit note or a new invoice."
+- All form fields are disabled (client, dates, items, template, etc.)
+- This prevents accidental changes to invoices that have already been paid
+- To make changes to a paid invoice, create a new invoice or credit note instead
+
+**How to Lock an Invoice:**
+
+1. In the invoice list, change the status dropdown to **"Paid"**
+2. The invoice is now locked and cannot be edited or have its status changed
+3. **Note**: Once an invoice is marked as paid, it cannot be unlocked or have its status changed. This is a permanent lock to prevent accidental modifications to paid invoices.
+
+**Overdue Invoices:**
+
+- Overdue invoices can still be edited (unlike paid invoices)
+- You can manually change an overdue invoice back to "sent" or "draft" if needed
+- **Important**: When changing an overdue invoice to "sent" or "draft", the due date is automatically updated to today (if it was in the past) to prevent the invoice from being immediately marked as overdue again
+- Overdue status is automatically applied (see Automatic Overdue Marking below)
+
+#### Automatic Overdue Marking
+
+The system automatically marks invoices as overdue based on their due date:
+
+- **When it runs**: Every time you load the invoice list (when the app checks for invoices)
+- **What it checks**: Invoices with status "sent" or "draft" that have a `due_date` in the past
+- **What it does**: Automatically changes the status from "sent" or "draft" to "overdue"
+- **What it excludes**:
+  - Paid invoices (they cannot become overdue)
+  - Already overdue invoices (no duplicate marking)
+  - Invoices with future due dates
+
+**Manual Overdue Status:**
+
+- You **cannot manually set** an invoice to "overdue" if the due date hasn't passed
+- Overdue status is **automatically applied only** - you cannot set it manually
+- This prevents incorrect data and ensures overdue status accurately reflects the due date
+- If you try to manually set overdue on an invoice with a future due date, you'll see an error message
+
+**Example:**
+
+- Invoice has due date: January 1, 2025
+- Current date: January 2, 2025
+- Invoice status: "sent"
+- Result: When you load the invoice list, the invoice is automatically marked as "overdue"
+
+**Important Notes:**
+
+- Overdue marking happens automatically - you don't need to do anything
+- Paid invoices are protected and will never be marked as overdue
+- You can manually change an overdue invoice back to "sent" or "draft" if needed
+- The overdue check runs in the background and doesn't block the UI
+
 ### Exporting EHF (Electronic Invoice Format)
 
 1. Open an invoice
@@ -312,17 +415,37 @@ invoice-manager/
 
 ## Invoice Templates
 
-### Classic Template
+The app includes 16 professional invoice templates to match different business styles:
 
-Traditional invoice design with a yellow footer section. Professional and widely recognized format.
+### Classic Templates
 
-### Modern Template
+- **Classic**: Traditional invoice design with a yellow footer section. Professional and widely recognized format.
+- **Modern**: Contemporary design with gradient colored accents and card-based layout. Perfect for creative businesses.
+- **Professional**: Minimalist black and white design with clean lines. Ideal for corporate and professional services.
+- **Minimal Japanese**: Clean, minimalist design inspired by Japanese aesthetics with subtle typography.
 
-Contemporary design with gradient colored accents and card-based layout. Perfect for creative businesses.
+### Brutalist Templates
 
-### Professional Template
+- **Brutalist**: Bold, raw design with strong typography and geometric shapes.
+- **Neo Brutalist**: Modern take on brutalist design with clean lines and bold colors.
+- **Cutout Brutalist**: Brutalist design with cutout effects and layered elements.
 
-Minimalist black and white design with clean lines. Ideal for corporate and professional services.
+### Color Pop Templates
+
+- **Color Pop Stacked**: Vibrant color blocks in a stacked layout.
+- **Color Pop Minimal**: Minimal design with strategic color accents.
+- **Color Pop Grid**: Grid-based layout with colorful sections.
+- **Color Pop Diagonal**: Dynamic diagonal color sections.
+- **Color Pop Brutalist**: Bold brutalist design with vibrant colors.
+
+### Design System Templates
+
+- **Dark Mode**: Dark-themed template perfect for modern, tech-forward businesses.
+- **Swiss**: Clean, grid-based design inspired by Swiss design principles.
+- **Typewriter**: Retro-inspired design with typewriter aesthetics.
+- **Constructivist**: Geometric, avant-garde design inspired by constructivist art.
+
+Each template includes a matching email template for sending invoices to clients.
 
 ## Currency Support
 
@@ -484,16 +607,14 @@ Validates invoice share tokens for public invoice viewing (no authentication req
 **Testing Locally:**
 
 ```bash
-# For local testing with Supabase CLI, use --no-verify-jwt
-supabase functions serve validate-share-token --no-verify-jwt
+# Serve the function locally
+supabase functions serve validate-share-token
 
-# Note: Self-hosted setups don't require --no-verify-jwt flag
-# The function works without authentication in production
+# Note: JWT verification is disabled in config.toml for this function
+# No --no-verify-jwt flag needed - it's configured automatically
 ```
 
-**Why `--no-verify-jwt`?**
-
-When testing locally with Supabase CLI, Edge Functions require JWT verification by default. Since `validate-share-token` is designed for public access (no authentication), you need `--no-verify-jwt` for local testing. In self-hosted production environments, this is typically configured differently and doesn't require the flag.
+**Configuration**: The `validate-share-token` function has JWT verification disabled in `supabase/config.toml` via the `[functions.validate-share-token] verify_jwt = false` setting, so no additional flags are needed when serving locally.
 
 ## Development
 
@@ -515,7 +636,7 @@ supabase start
 
 # Serve individual functions
 supabase functions serve send-invoice-email --env-file supabase/functions/send-invoice-email/.env.local
-supabase functions serve validate-share-token --no-verify-jwt
+supabase functions serve validate-share-token
 
 # Or serve all functions
 supabase functions serve
@@ -550,7 +671,7 @@ supabase functions serve
 ### Edge Function Issues
 
 - **Email sending fails**: Verify `RESEND_API_KEY` is set and domain is verified in Resend
-- **Share token validation fails locally**: Use `--no-verify-jwt` flag when serving `validate-share-token` function locally
+- **Share token validation fails locally**: JWT verification is disabled in `config.toml` - no flags needed when serving locally
 - **Environment variables not found**: Ensure variables are set on the Edge Functions container (not the main Supabase instance) for self-hosted setups
 
 ## Contributing

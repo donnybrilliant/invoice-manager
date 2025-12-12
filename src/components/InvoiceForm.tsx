@@ -1,5 +1,5 @@
 import { useState, useEffect, useActionState, useRef } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, AlertCircle, Lock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
@@ -14,7 +14,7 @@ import {
   useUpdateInvoice,
   useDeleteInvoice,
 } from "../hooks/useInvoices";
-import { getCurrencySymbol } from "../lib/utils";
+import { formatCurrencyWithCode } from "../lib/formatting";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -306,6 +306,8 @@ export default function InvoiceForm({
   );
 
   const { subtotal, tax_amount, total } = calculateTotals(items, formData);
+  const isPaid = invoice?.status === "paid";
+  const isSent = invoice?.status === "sent";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -321,6 +323,32 @@ export default function InvoiceForm({
             <X className="w-6 h-6" />
           </button>
         </div>
+
+        {/* Warning banner for sent invoices */}
+        {isSent && !isPaid && (
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                This invoice has already been sent. Changes will require
+                re-sending.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Lock message for paid invoices */}
+        {isPaid && (
+          <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg flex items-start gap-3">
+            <Lock className="w-5 h-5 text-slate-600 dark:text-slate-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                This invoice has been marked as paid and cannot be edited. To
+                make changes, create a credit note or a new invoice.
+              </p>
+            </div>
+          </div>
+        )}
 
         <form action={submitAction} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -347,7 +375,8 @@ export default function InvoiceForm({
                 <button
                   type="button"
                   onClick={() => setShowClientForm(true)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition"
+                  disabled={isPaid}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
                   title="New Client"
                 >
                   <Plus className="w-4 h-4" />
@@ -365,7 +394,8 @@ export default function InvoiceForm({
                   setFormData({ ...formData, currency: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="EUR">EUR (€)</option>
                 <option value="NOK">NOK (kr)</option>
@@ -392,7 +422,8 @@ export default function InvoiceForm({
                     tax_rate: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -407,7 +438,8 @@ export default function InvoiceForm({
                   setFormData({ ...formData, issue_date: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -422,7 +454,8 @@ export default function InvoiceForm({
                   setFormData({ ...formData, due_date: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -437,7 +470,8 @@ export default function InvoiceForm({
                   setFormData({ ...formData, kid_number: e.target.value })
                 }
                 placeholder="Leave empty if not needed"
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Customer identification number for Norwegian banking
@@ -450,6 +484,7 @@ export default function InvoiceForm({
             onChange={(templateId) =>
               setFormData({ ...formData, template: templateId })
             }
+            disabled={isPaid}
             previewData={{
               formData,
               items,
@@ -466,7 +501,8 @@ export default function InvoiceForm({
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition font-medium"
+                disabled={isPaid}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5" />
                 Add Item
@@ -551,84 +587,86 @@ export default function InvoiceForm({
                     <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
                       Description
                     </label>
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) =>
-                      updateItem(item.id, "description", e.target.value)
-                    }
-                    placeholder="Description"
-                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
-                  />
+                    <input
+                      type="text"
+                      value={item.description}
+                      onChange={(e) =>
+                        updateItem(item.id, "description", e.target.value)
+                      }
+                      placeholder="Description"
+                      disabled={isPaid}
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
                   </div>
                   <div>
                     <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
                       Quantity
                     </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.quantity === 0 ? "" : item.quantity}
-                    onChange={(e) => {
-                      const value =
-                        e.target.value === ""
-                          ? 0
-                          : parseFloat(e.target.value) || 0;
-                      updateItem(item.id, "quantity", value);
-                    }}
-                    onFocus={(e) => {
-                      if (e.target.value === "0" || e.target.value === "") {
-                        e.target.select();
-                      }
-                    }}
-                    placeholder="Qty"
-                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
-                  />
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.quantity === 0 ? "" : item.quantity}
+                      onChange={(e) => {
+                        const value =
+                          e.target.value === ""
+                            ? 0
+                            : parseFloat(e.target.value) || 0;
+                        updateItem(item.id, "quantity", value);
+                      }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0" || e.target.value === "") {
+                          e.target.select();
+                        }
+                      }}
+                      placeholder="Qty"
+                      disabled={isPaid}
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
                   </div>
                   <div>
                     <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
                       Unit Price
                     </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.unit_price === 0 ? "" : item.unit_price}
-                    onChange={(e) => {
-                      const value =
-                        e.target.value === ""
-                          ? 0
-                          : parseFloat(e.target.value) || 0;
-                      updateItem(item.id, "unit_price", value);
-                    }}
-                    onFocus={(e) => {
-                      if (e.target.value === "0" || e.target.value === "") {
-                        e.target.select();
-                      }
-                    }}
-                    placeholder="Price"
-                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
-                  />
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.unit_price === 0 ? "" : item.unit_price}
+                      onChange={(e) => {
+                        const value =
+                          e.target.value === ""
+                            ? 0
+                            : parseFloat(e.target.value) || 0;
+                        updateItem(item.id, "unit_price", value);
+                      }}
+                      onFocus={(e) => {
+                        if (e.target.value === "0" || e.target.value === "") {
+                          e.target.select();
+                        }
+                      }}
+                      placeholder="Price"
+                      disabled={isPaid}
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
                   </div>
                   <div>
                     <label className="invoice-line-item-label block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:hidden">
                       Amount
                     </label>
                     <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-slate-700 dark:text-slate-300 flex items-center justify-end min-h-[42px]">
-                    {getCurrencySymbol(formData.currency)}{" "}
-                    {item.amount.toFixed(2)}
+                      {formatCurrencyWithCode(item.amount, formData.currency)}
                     </div>
                   </div>
                   <div className="flex items-start justify-end">
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    disabled={items.length === 1}
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      disabled={items.length === 1 || isPaid}
                       className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -643,7 +681,7 @@ export default function InvoiceForm({
                     Subtotal:
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)} {subtotal.toFixed(2)}
+                    {formatCurrencyWithCode(subtotal, formData.currency)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -651,14 +689,13 @@ export default function InvoiceForm({
                     Tax ({formData.tax_rate}%):
                   </span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)}{" "}
-                    {tax_amount.toFixed(2)}
+                    {formatCurrencyWithCode(tax_amount, formData.currency)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t border-slate-200 dark:border-slate-700 pt-2">
                   <span className="text-slate-900 dark:text-white">Total:</span>
                   <span className="text-slate-900 dark:text-white">
-                    {getCurrencySymbol(formData.currency)} {total.toFixed(2)}
+                    {formatCurrencyWithCode(total, formData.currency)}
                   </span>
                 </div>
               </div>
@@ -680,7 +717,8 @@ export default function InvoiceForm({
                       show_account_number: e.target.checked,
                     })
                   }
-                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600"
+                  disabled={isPaid}
+                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   Show Account Number
@@ -693,7 +731,8 @@ export default function InvoiceForm({
                   onChange={(e) =>
                     setFormData({ ...formData, show_iban: e.target.checked })
                   }
-                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600"
+                  disabled={isPaid}
+                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   Show IBAN
@@ -709,7 +748,8 @@ export default function InvoiceForm({
                       show_swift_bic: e.target.checked,
                     })
                   }
-                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600"
+                  disabled={isPaid}
+                  className="w-4 h-4 text-slate-900 dark:text-slate-500 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 dark:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
                   Show SWIFT/BIC
@@ -728,7 +768,8 @@ export default function InvoiceForm({
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent resize-none"
+              disabled={isPaid}
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Payment terms, thank you message, etc."
             />
           </div>
@@ -763,7 +804,7 @@ export default function InvoiceForm({
             </button>
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || isPaid}
               className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending

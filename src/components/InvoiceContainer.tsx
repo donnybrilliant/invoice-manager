@@ -1,13 +1,10 @@
 import React from "react";
 
 /**
- * InvoiceContainer - Reusable wrapper component for invoice content
+ * InvoiceContainer - Simple wrapper component for invoice content
  *
- * Ensures consistent styling and dark mode isolation across:
- * - Preview views
- * - Template selector thumbnails
- * - PDF generation
- * - Print views
+ * Uses CSS isolation to completely separate invoices from Tailwind dark mode.
+ * All templates use inline styles, so we only need isolation - no conditionals needed.
  *
  * Usage:
  *   <InvoiceContainer>
@@ -26,14 +23,7 @@ export function InvoiceContainer({
   style,
 }: InvoiceContainerProps) {
   return (
-    <div
-      className={`invoice-light-mode ${className}`}
-      style={{
-        backgroundColor: "#ffffff",
-        color: "#1f2937",
-        ...style,
-      }}
-    >
+    <div className={`invoice-container ${className}`} style={style}>
       {children}
     </div>
   );

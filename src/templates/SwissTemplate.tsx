@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
-  formatClientAddress,
   formatCompanyAddress,
+  formatClientAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -345,6 +344,10 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     borderBottom: "1px solid #e0e0e0",
                     fontSize: "14px",
                     color: "#333",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}

@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
-  formatClientAddress,
   formatCompanyAddress,
+  formatClientAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -37,6 +36,10 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             flex-direction: column !important;
             gap: 20px !important;
           }
+          .professional-totals-section > div:last-child {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
           .professional-table {
             font-size: 12px !important;
           }
@@ -58,6 +61,9 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             padding: 6px 4px !important;
             font-size: 9px !important;
           }
+        }
+        .professional-currency-value {
+          white-space: nowrap !important;
         }
       `}</style>
       <div
@@ -385,6 +391,10 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     padding: "14px 16px",
                     borderBottom: "1px solid #e5e7eb",
                     color: "#374151",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}
@@ -463,8 +473,13 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           ) : (
             <div style={{ flex: 1 }}></div>
           )}
-          <div style={{ width: "320px" }}>
-            <table style={{ width: "100%", borderSpacing: 0 }}>
+          <div
+            className="professional-totals-table-container"
+            style={{ width: "320px", maxWidth: "100%", minWidth: 0 }}
+          >
+            <table
+              style={{ width: "100%", borderSpacing: 0, minWidth: "200px" }}
+            >
               <tbody>
                 <tr>
                   <td
@@ -473,16 +488,20 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       color: "#6b7280",
                       fontWeight: 600,
                       fontSize: "14px",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Subtotal
                   </td>
                   <td
+                    className="professional-currency-value"
                     style={{
                       padding: "10px 0",
                       textAlign: "right",
                       color: "#111827",
                       fontSize: "15px",
+                      whiteSpace: "nowrap",
+                      minWidth: "100px",
                     }}
                   >
                     {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
@@ -495,16 +514,20 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       color: "#6b7280",
                       fontWeight: 600,
                       fontSize: "14px",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Tax ({invoice.tax_rate}%)
                   </td>
                   <td
+                    className="professional-currency-value"
                     style={{
                       padding: "10px 0",
                       textAlign: "right",
                       color: "#111827",
                       fontSize: "15px",
+                      whiteSpace: "nowrap",
+                      minWidth: "100px",
                     }}
                   >
                     {formatCurrencyWithCode(
@@ -522,17 +545,21 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       fontSize: "16px",
                       textTransform: "uppercase",
                       letterSpacing: "0.5px",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Total
                   </td>
                   <td
+                    className="professional-currency-value"
                     style={{
                       padding: "16px 0 0 0",
                       textAlign: "right",
                       color: "#111827",
                       fontWeight: 700,
                       fontSize: "26px",
+                      whiteSpace: "nowrap",
+                      minWidth: "120px",
                     }}
                   >
                     {formatCurrencyWithCode(invoice.total, invoice.currency)}

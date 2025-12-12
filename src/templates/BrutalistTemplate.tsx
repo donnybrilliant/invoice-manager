@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
-  formatClientAddress,
   formatCompanyAddress,
+  formatClientAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -412,6 +411,10 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontFamily: "'Courier New', monospace",
                     fontSize: "13px",
                     textTransform: "uppercase",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                    maxWidth: 0,
                   }}
                 >
                   {item.description}
@@ -529,11 +532,14 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   textTransform: "uppercase",
                   letterSpacing: "3px",
                   fontWeight: 900,
+                  color: "#fff",
                 }}
               >
                 TOTAL
               </span>
-              <span style={{ fontSize: "24px", fontWeight: 900 }}>
+              <span
+                style={{ fontSize: "24px", fontWeight: 900, color: "#fff" }}
+              >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
               </span>
             </div>

@@ -27,16 +27,23 @@ import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useToast } from "../contexts/ToastContext";
 import { useShareLink, useGenerateShareToken } from "../hooks/useInvoiceShare";
 import { supabase } from "../lib/supabase";
-import { formatDate } from "../templates/utils";
+import { formatDate, formatCurrencyWithCode } from "../lib/formatting";
 import { useQueryClient } from "@tanstack/react-query";
 import { renderEmailTemplate } from "../lib/emailTemplateUtils";
+import { useAuth } from "../contexts/AuthContext";
+import { InvoiceContainer } from "./InvoiceContainer";
 
 interface InvoiceViewProps {
   invoice: Invoice;
   onClose: () => void;
+  onInvoiceUpdate?: (invoice: Invoice) => void;
 }
 
-export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
+export default function InvoiceView({
+  invoice,
+  onClose,
+  onInvoiceUpdate,
+}: InvoiceViewProps) {
   const client = invoice.client || null;
   const { data: items = [], isLoading: itemsLoading } = useInvoiceItems(
     invoice.id
@@ -58,6 +65,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
   const { data: shareData } = useShareLink(invoice.id);
   const generateToken = useGenerateShareToken();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const loading = itemsLoading || profileLoading;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -153,7 +161,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       tempDiv.style.opacity = "1";
       // Ensure print CSS doesn't affect this element
       // Centralized styles in invoice.css handle dark mode isolation
-      tempDiv.className = "pdf-generation-temp invoice-light-mode";
+      tempDiv.className = "pdf-generation-temp";
       document.body.appendChild(tempDiv);
 
       // Render invoice React component
@@ -161,14 +169,14 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       const TemplateComponent = template.Component;
       root = createRoot(tempDiv);
       root.render(
-        <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+        <InvoiceContainer>
           <TemplateComponent
             invoice={invoice}
             items={items}
             client={client}
             profile={profile}
           />
-        </div>
+        </InvoiceContainer>
       );
 
       // Wait for React to render and images/fonts to load
@@ -361,18 +369,11 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
       );
 
       // Render email template HTML
-      // Format total with currency symbol
-      const currencySymbol =
-        invoice.currency === "EUR"
-          ? "€"
-          : invoice.currency === "NOK"
-          ? "kr"
-          : invoice.currency === "USD"
-          ? "$"
-          : invoice.currency === "GBP"
-          ? "£"
-          : invoice.currency;
-      const formattedTotal = `${currencySymbol} ${invoice.total.toFixed(2)}`;
+      // Format total using the proper currency formatting function
+      const formattedTotal = formatCurrencyWithCode(
+        invoice.total,
+        invoice.currency
+      );
 
       const emailHtml = renderEmailTemplate({
         invoiceNumber: invoice.invoice_number,
@@ -426,6 +427,54 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
         );
       }
 
+      // Invalidate and refetch invoices query to refresh the list with updated status
+      await queryClient.invalidateQueries({ queryKey: ["invoices", user?.id] });
+
+      // Refetch invoices to get the updated invoice data (matching useInvoices query)
+      const updatedInvoices = await queryClient.fetchQuery({
+        queryKey: ["invoices", user?.id],
+        queryFn: async () => {
+          if (!user) throw new Error("No user");
+
+          // First, mark any overdue invoices automatically
+          try {
+            const { error: overdueError } = await supabase.rpc(
+              "mark_overdue_invoices_for_user",
+              { user_uuid: user.id }
+            );
+            // Don't throw on error - just log it, as this is a background operation
+            if (overdueError) {
+              console.warn("Error marking overdue invoices:", overdueError);
+            }
+          } catch (err) {
+            // Function might not exist yet if migration hasn't run
+            console.warn("Could not mark overdue invoices:", err);
+          }
+
+          const { data, error } = await supabase
+            .from("invoices")
+            .select(
+              `
+              *,
+              client:clients(*)
+            `
+            )
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          return (data || []) as Invoice[];
+        },
+      });
+
+      // Find the updated invoice and notify parent component
+      const updatedInvoice = updatedInvoices?.find(
+        (inv) => inv.id === invoice.id
+      );
+      if (updatedInvoice && onInvoiceUpdate) {
+        onInvoiceUpdate(updatedInvoice);
+      }
+
       showToast("Email sent successfully", "success");
       setShowEmailDialog(false);
       setEmailMessage("");
@@ -456,14 +505,14 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
     const TemplateComponent = template.Component;
 
     return (
-      <div style={{ backgroundColor: "#ffffff", color: "#1f2937" }}>
+      <InvoiceContainer>
         <TemplateComponent
           invoice={invoice}
           items={items}
           client={client}
           profile={profile}
         />
-      </div>
+      </InvoiceContainer>
     );
   };
 
@@ -526,7 +575,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
           </div>
         </div>
 
-        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print overflow-x-auto invoice-light-mode">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-8 print:border-0 invoice-content-print overflow-x-auto">
           {renderInvoice()}
         </div>
 
@@ -779,7 +828,8 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
           .invoice-content-print {
             position: fixed !important;
             top: 0 !important;
-            left: 0 !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             width: 210mm !important;
             height: auto !important;
             min-height: 297mm !important;
@@ -798,7 +848,7 @@ export default function InvoiceView({ invoice, onClose }: InvoiceViewProps) {
             width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
-            transform-origin: top left !important;
+            transform-origin: top center !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             overflow: visible !important;

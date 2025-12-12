@@ -1,13 +1,12 @@
 import React from "react";
 import { InvoiceTemplateData } from "./types";
+import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import {
-  formatCurrencyWithCode,
-  formatDate,
   getCompanyInfo,
-  formatClientAddress,
   formatCompanyAddress,
+  formatClientAddress,
 } from "./utils";
-import { PaymentInformation } from "./reactUtils";
+import { PaymentInformation } from "./utils/PaymentInformation";
 
 const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -370,6 +369,10 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       background: index % 2 === 0 ? "#fff" : "#FFEB3B",
                       fontFamily: "'Arial Black', sans-serif",
                       fontSize: "13px",
+                      wordWrap: "break-word",
+                      overflowWrap: "break-word",
+                      whiteSpace: "normal",
+                      maxWidth: 0,
                     }}
                   >
                     {item.description}
@@ -439,10 +442,16 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: "#fff",
               }}
             >
-              <span style={{ fontSize: "13px", textTransform: "uppercase" }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                }}
+              >
                 Subtotal
               </span>
-              <span style={{ fontWeight: 900 }}>
+              <span style={{ fontWeight: 900, color: "#fff" }}>
                 {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
               </span>
             </div>
@@ -455,10 +464,16 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: "#fff",
               }}
             >
-              <span style={{ fontSize: "13px", textTransform: "uppercase" }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                }}
+              >
                 Tax
               </span>
-              <span style={{ fontWeight: 900 }}>
+              <span style={{ fontWeight: 900, color: "#fff" }}>
                 {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
               </span>
             </div>
@@ -476,11 +491,14 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   fontSize: "16px",
                   textTransform: "uppercase",
                   fontWeight: 900,
+                  color: "#000",
                 }}
               >
                 TOTAL DUE
               </span>
-              <span style={{ fontSize: "28px", fontWeight: 900 }}>
+              <span
+                style={{ fontSize: "28px", fontWeight: 900, color: "#000" }}
+              >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
               </span>
             </div>

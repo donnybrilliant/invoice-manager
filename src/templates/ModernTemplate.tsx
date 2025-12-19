@@ -8,6 +8,15 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import {
+  InvoiceContainer,
+  InvoiceHeader,
+  TotalsSection,
+  Section,
+} from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,405 +24,173 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
-  const containerStyle: React.CSSProperties = {
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    maxWidth: "794px",
-    margin: "0 auto",
-    padding: "40px",
-    background: "white",
-  };
+  const templateCSS = createTemplateStyles("modern-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
 
-  const headerBarStyle: React.CSSProperties = {
-    height: "8px",
-    background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)",
-    marginBottom: "30px",
-    borderRadius: "4px",
-  };
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "phone")}
+      <br />
+      {getCompanyInfo(profile, "email")}
+      {profile?.website && (
+        <>
+          <br />
+          {profile.website}
+        </>
+      )}
+      {profile?.organization_number && (
+        <>
+          <br />
+          Org: {profile.organization_number}
+        </>
+      )}
+      {profile?.tax_number && (
+        <>
+          <br />
+          Tax: {profile.tax_number}
+        </>
+      )}
+    </>
+  );
 
-  const headerStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "start",
-    marginBottom: "40px",
-    width: "100%",
-  };
-
-  const titleStyle: React.CSSProperties = {
-    margin: 0,
-    fontSize: "36px",
-    color: "#3b82f6",
-    fontWeight: 700,
-    letterSpacing: "-0.5px",
-  };
-
-  const invoiceNumberStyle: React.CSSProperties = {
-    color: "#6b7280",
-    fontSize: "16px",
-    marginTop: "5px",
-  };
-
-  const companyInfoBoxStyle: React.CSSProperties = {
-    textAlign: "right",
-    padding: "20px",
-    background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
-    borderRadius: "8px",
-  };
-
-  const companyNameStyle: React.CSSProperties = {
-    fontWeight: 700,
-    fontSize: "18px",
-    color: "#1f2937",
-    marginBottom: "8px",
-  };
-
-  const companyDetailsStyle: React.CSSProperties = {
-    color: "#6b7280",
-    fontSize: "13px",
-    lineHeight: 1.6,
-  };
-
-  const infoCardsStyle: React.CSSProperties = {
-    display: "flex",
-    gap: "20px",
-    marginBottom: "40px",
-  };
-
-  const infoCardStyle: React.CSSProperties = {
-    flex: 1,
-    minWidth: 0,
-    padding: "20px",
-    background: "#f9fafb",
-    borderLeft: "4px solid #3b82f6",
-    borderRadius: "4px",
-  };
-
-  const infoCardPurpleStyle: React.CSSProperties = {
-    ...infoCardStyle,
-    borderLeftColor: "#8b5cf6",
-  };
-
-  const cardTitleStyle: React.CSSProperties = {
-    margin: "0 0 12px 0",
-    color: "#3b82f6",
-    fontSize: "12px",
-    textTransform: "uppercase",
-    fontWeight: 700,
-    letterSpacing: "0.5px",
-  };
-
-  const cardTitlePurpleStyle: React.CSSProperties = {
-    ...cardTitleStyle,
-    color: "#8b5cf6",
-  };
-
-  const cardContentStyle: React.CSSProperties = {
-    color: "#1f2937",
-    lineHeight: 1.7,
-    fontSize: "14px",
-    wordWrap: "break-word",
-    overflowWrap: "break-word",
-  };
-
-  const tableStyle: React.CSSProperties = {
-    width: "100%",
-    borderCollapse: "collapse",
-    marginBottom: "30px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    borderRadius: "8px",
-    overflow: "hidden",
-  };
-
-  const tableHeaderStyle: React.CSSProperties = {
-    background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-  };
-
-  const thStyle: React.CSSProperties = {
-    padding: "16px",
-    textAlign: "left",
-    fontWeight: 600,
-    color: "white",
-    fontSize: "13px",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-  };
-
-  const tdStyle: React.CSSProperties = {
-    padding: "16px",
-    borderLeft: "4px solid #3b82f6",
-  };
-
-  const totalsContainerStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "flex-end",
-    marginBottom: "40px",
-  };
-
-  const totalsBoxStyle: React.CSSProperties = {
-    width: "350px",
-    maxWidth: "100%",
-    padding: "24px",
-    background: "linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)",
-    borderRadius: "8px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    boxSizing: "border-box",
-  };
-
-  const totalsTableStyle: React.CSSProperties = {
-    width: "100%",
-  };
-
-  const totalsRowStyle: React.CSSProperties = {
-    padding: "8px 0",
-    color: "#6b7280",
-    fontWeight: 600,
-  };
-
-  const totalsValueStyle: React.CSSProperties = {
-    padding: "8px 0",
-    textAlign: "right",
-    color: "#1f2937",
-    fontSize: "16px",
-    whiteSpace: "nowrap",
-  };
-
-  const totalRowStyle: React.CSSProperties = {
-    borderTop: "2px solid #d1d5db",
-  };
-
-  const totalLabelStyle: React.CSSProperties = {
-    padding: "16px 0 0 0",
-    color: "#1f2937",
-    fontWeight: 700,
-    fontSize: "18px",
-  };
-
-  const totalValueStyle: React.CSSProperties = {
-    padding: "16px 0 0 0",
-    textAlign: "right",
-    color: "#3b82f6",
-    fontWeight: 700,
-    fontSize: "24px",
-    whiteSpace: "nowrap",
-  };
-
-  const notesBoxStyle: React.CSSProperties = {
-    marginBottom: "40px",
-    padding: "20px",
-    background: "#fffbeb",
-    borderLeft: "4px solid #f59e0b",
-    borderRadius: "4px",
-  };
-
-  const notesTitleStyle: React.CSSProperties = {
-    margin: "0 0 10px 0",
-    color: "#92400e",
-    fontSize: "13px",
-    textTransform: "uppercase",
-    fontWeight: 700,
-    letterSpacing: "0.5px",
-  };
-
-  const notesContentStyle: React.CSSProperties = {
-    color: "#78350f",
-    lineHeight: 1.6,
-    margin: 0,
-    fontSize: "14px",
-  };
-
-  const paymentBoxStyle: React.CSSProperties = {
-    padding: "24px",
-    background: "white",
-    border: "2px solid #e5e7eb",
-    borderRadius: "8px",
-  };
-
-  const paymentTitleStyle: React.CSSProperties = {
-    margin: "0 0 16px 0",
-    color: "#1f2937",
-    fontSize: "16px",
-    fontWeight: 700,
-    display: "flex",
-    alignItems: "center",
-  };
-
-  const paymentTitleAccentStyle: React.CSSProperties = {
-    display: "inline-block",
-    width: "4px",
-    height: "20px",
-    background: "linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%)",
-    marginRight: "10px",
-    borderRadius: "2px",
-  };
-
-  const paymentContentStyle: React.CSSProperties = {
-    color: "#374151",
-    lineHeight: 1.8,
-    fontSize: "14px",
-  };
-
-  const paymentInstructionsStyle: React.CSSProperties = {
-    marginTop: "12px",
-    paddingTop: "12px",
-    borderTop: "1px solid #e5e7eb",
-    color: "#6b7280",
-    fontSize: "14px",
-    lineHeight: 1.6,
-  };
-
-  const footerBarStyle: React.CSSProperties = {
-    height: "6px",
-    background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)",
-    marginTop: "30px",
-    borderRadius: "4px",
-  };
+  // Format client address
+  const clientAddress = (
+    <>
+      {client.email || ""}
+      <br />
+      {client.phone || ""}
+      <br />
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+    </>
+  );
 
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .modern-template {
-            padding: 20px !important;
-          }
-          .modern-header {
-            flex-wrap: wrap !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            gap: 20px !important;
-          }
-          .modern-header > div:first-child {
-            margin-right: 0 !important;
-          }
-          .modern-header > div:last-child {
-            text-align: right !important;
-            margin-left: auto !important;
-            margin-right: 0 !important;
-            margin-top: 20px !important;
-          }
-          .modern-title {
-            font-size: 28px !important;
-          }
-          .modern-info-cards {
-            flex-direction: column !important;
-          }
-          .modern-table {
-            font-size: 12px !important;
-          }
-          .modern-table table th,
-          .modern-table table td {
-            padding: 8px !important;
-            font-size: 11px !important;
-          }
-          .modern-totals-container {
-            justify-content: flex-start !important;
-          }
-          .modern-totals-box {
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .modern-template {
-            padding: 15px !important;
-          }
-          .modern-title {
-            font-size: 24px !important;
-          }
-          .modern-table {
-            font-size: 10px !important;
-          }
-          .modern-table table th,
-          .modern-table table td {
-            padding: 6px 4px !important;
-            font-size: 9px !important;
-          }
-          .modern-totals-container {
-            justify-content: flex-start !important;
-          }
-          .modern-totals-box {
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 16px !important;
-          }
-          .modern-totals-value {
-            font-size: 14px !important;
-          }
-          .modern-total-value {
-            font-size: 20px !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="modern-template"
-        style={{ ...containerStyle, width: "100%", boxSizing: "border-box" }}
+        maxWidth={794}
+        padding={{ desktop: 40, tablet: 20, mobile: 15 }}
+        style={{
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        }}
       >
         {/* Colored Header Bar */}
-        <div style={headerBarStyle}></div>
+        <div
+          style={{
+            height: "8px",
+            background:
+              "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)",
+            marginBottom: spacing["2xl"],
+            borderRadius: spacing.xs,
+          }}
+        />
 
         {/* Header */}
-        <div className="modern-header" style={headerStyle}>
-          <div>
-            {profile?.logo_url && (
-              <img
-                src={profile.logo_url}
-                alt="Company Logo"
-                style={{
-                  maxWidth: "150px",
-                  maxHeight: "80px",
-                  marginBottom: "15px",
-                }}
-              />
-            )}
-            <h1 className="modern-title" style={titleStyle}>
-              INVOICE
-            </h1>
-            <div style={invoiceNumberStyle}>#{invoice.invoice_number}</div>
-          </div>
-          <div style={companyInfoBoxStyle}>
-            <div style={companyNameStyle}>
-              {getCompanyInfo(profile, "company_name")}
-            </div>
-            <div style={companyDetailsStyle}>
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "phone")}
-              <br />
-              {getCompanyInfo(profile, "email")}
-              {profile?.website && (
-                <>
-                  <br />
-                  {profile.website}
-                </>
-              )}
-              {profile?.organization_number && (
-                <>
-                  <br />
-                  Org: {profile.organization_number}
-                </>
-              )}
-              {profile?.tax_number && (
-                <>
-                  <br />
-                  Tax: {profile.tax_number}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <InvoiceHeader
+          className="modern-header"
+          logo={
+            profile?.logo_url
+              ? {
+                  url: profile.logo_url,
+                  alt: "Company Logo",
+                  maxWidth: 150,
+                  maxHeight: 80,
+                }
+              : undefined
+          }
+          title="INVOICE"
+          invoiceNumber={invoice.invoice_number}
+          companyInfo={{
+            name: getCompanyInfo(profile, "company_name"),
+            details: companyDetails,
+          }}
+          layout="side-by-side"
+          style={{
+            marginBottom: spacing["3xl"],
+            width: "100%",
+          }}
+          titleStyle={{
+            margin: 0,
+            fontSize: "36px",
+            color: "#3b82f6",
+            fontWeight: 700,
+            letterSpacing: "-0.5px",
+          }}
+          invoiceNumberStyle={{
+            color: "#6b7280",
+            fontSize: spacing.base,
+            marginTop: "5px",
+          }}
+          companyInfoStyle={{
+            textAlign: "right",
+            padding: spacing.lg,
+            background: "linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)",
+            borderRadius: spacing.sm,
+          }}
+        />
 
         {/* Invoice Info Cards */}
-        <div className="modern-info-cards" style={infoCardsStyle}>
-          <div style={infoCardStyle}>
-            <h3 style={cardTitleStyle}>Bill To</h3>
-            <div style={cardContentStyle}>
+        <div
+          className="modern-info-cards"
+          style={{
+            ...flexContainer("row", "flex-start", "stretch", spacing.lg),
+            marginBottom: spacing["3xl"],
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              padding: spacing.lg,
+              background: "#f9fafb",
+              borderLeft: "4px solid #3b82f6",
+              borderRadius: spacing.xs,
+            }}
+          >
+            <h3
+              style={{
+                margin: "0 0 12px 0",
+                color: "#3b82f6",
+                fontSize: spacing.md,
+                textTransform: "uppercase",
+                fontWeight: 700,
+                letterSpacing: "0.5px",
+              }}
+            >
+              Bill To
+            </h3>
+            <div
+              style={{
+                color: "#1f2937",
+                lineHeight: 1.7,
+                fontSize: spacing.lg,
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+              }}
+            >
               <strong
                 style={{
-                  fontSize: "16px",
+                  fontSize: spacing.base,
                   wordWrap: "break-word",
                   overflowWrap: "break-word",
                   whiteSpace: "normal",
@@ -423,23 +200,38 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {client.name}
               </strong>
               <br />
-              {client.email || ""}
-              <br />
-              {client.phone || ""}
-              <br />
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
+              {clientAddress}
             </div>
           </div>
-          <div style={infoCardPurpleStyle}>
-            <h3 style={cardTitlePurpleStyle}>Invoice Details</h3>
-            <div style={cardContentStyle}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              padding: spacing.lg,
+              background: "#f9fafb",
+              borderLeft: "4px solid #8b5cf6",
+              borderRadius: spacing.xs,
+            }}
+          >
+            <h3
+              style={{
+                margin: "0 0 12px 0",
+                color: "#8b5cf6",
+                fontSize: spacing.md,
+                textTransform: "uppercase",
+                fontWeight: 700,
+                letterSpacing: "0.5px",
+              }}
+            >
+              Invoice Details
+            </h3>
+            <div
+              style={{
+                color: "#1f2937",
+                lineHeight: 1.7,
+                fontSize: spacing.lg,
+              }}
+            >
               <div>
                 <strong>Issue Date: </strong> {formatDate(invoice.issue_date)}
               </div>
@@ -456,24 +248,24 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <div className="modern-table" style={{ marginBottom: "30px" }}>
+        <div className="modern-table" style={{ marginBottom: spacing["2xl"] }}>
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
             styles={{
-              headerFontSize: thStyle.fontSize || "13px",
-              bodyFontSize: tdStyle.fontSize || "14px",
-              headerPadding: thStyle.padding || "16px",
-              bodyPadding: tdStyle.padding || "16px",
-              headerTextColor: thStyle.color || "white",
+              headerFontSize: "13px",
+              bodyFontSize: `${spacing.lg}px`,
+              headerPadding: `${spacing.base}px`,
+              bodyPadding: `${spacing.base}px`,
+              headerTextColor: "white",
               headerBgColor: "#3b82f6",
               bodyTextColor: "#374151",
               borderColor: "#e5e7eb",
               headerBorderBottom: "none",
               rowBorderBottom: "none",
-              headerFontWeight: thStyle.fontWeight || 600,
-              headerTextTransform: thStyle.textTransform || "uppercase",
-              headerLetterSpacing: thStyle.letterSpacing || "0.5px",
+              headerFontWeight: 600,
+              headerTextTransform: "uppercase",
+              headerLetterSpacing: "0.5px",
               bodyFontWeight: "normal",
               amountFontWeight: 600,
               amountColor: "#1f2937",
@@ -484,15 +276,15 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 amount: "120px",
               },
               descriptionCellStyle: {
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: 0,
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+                maxWidth: 0,
               },
               bodyStyle: {
                 marginBottom: 0,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                borderRadius: "8px",
+                borderRadius: spacing.sm,
                 overflow: "hidden",
               },
               headerStyle: {
@@ -503,51 +295,131 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div className="modern-totals-container" style={totalsContainerStyle}>
-          <div className="modern-totals-box" style={totalsBoxStyle}>
-            <table style={totalsTableStyle}>
-              <tbody>
-                <tr>
-                  <td style={totalsRowStyle}>Subtotal: </td>
-                  <td className="modern-totals-value" style={totalsValueStyle}>
-                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-                  </td>
-                </tr>
-                <tr>
-                  <td style={totalsRowStyle}>Tax ({invoice.tax_rate}%):</td>
-                  <td className="modern-totals-value" style={totalsValueStyle}>
-                    {formatCurrencyWithCode(
-                      invoice.tax_amount,
-                      invoice.currency
-                    )}
-                  </td>
-                </tr>
-                <tr style={totalRowStyle}>
-                  <td style={totalLabelStyle}>Total Due: </td>
-                  <td className="modern-total-value" style={totalValueStyle}>
-                    {formatCurrencyWithCode(invoice.total, invoice.currency)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TotalsSection
+          subtotal={{
+            label: "Subtotal:",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
+          }}
+          tax={{
+            label: "Tax",
+            amount: formatCurrencyWithCode(
+              invoice.tax_amount,
+              invoice.currency
+            ),
+            rate: invoice.tax_rate,
+          }}
+          total={{
+            label: "Total Due:",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          className="modern-totals-box"
+          style={{
+            width: "350px",
+            maxWidth: "100%",
+            padding: spacing.xl,
+            background: "linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)",
+            borderRadius: spacing.sm,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            marginBottom: spacing["3xl"],
+          }}
+          rowStyle={{
+            padding: "8px 0",
+            color: "#6b7280",
+            fontWeight: 600,
+          }}
+          amountStyle={{
+            ...getCurrencyStyle(),
+            padding: "8px 0",
+            color: "#1f2937",
+            fontSize: `${spacing.base}px`,
+          }}
+          totalRowStyle={{
+            borderTop: "2px solid #d1d5db",
+          }}
+          totalLabelStyle={{
+            padding: `${spacing.base}px 0 0 0`,
+            color: "#1f2937",
+            fontWeight: 700,
+            fontSize: `${spacing["3xl"]}px`,
+          }}
+          totalAmountStyle={{
+            ...getCurrencyStyle(),
+            padding: `${spacing.base}px 0 0 0`,
+            color: "#3b82f6",
+            fontWeight: 700,
+            fontSize: `${spacing["4xl"]}px`,
+          }}
+        />
 
         {/* Notes */}
         {invoice.notes && (
-          <div style={notesBoxStyle}>
-            <h3 style={notesTitleStyle}>Notes</h3>
-            <p style={notesContentStyle}>{invoice.notes}</p>
-          </div>
+          <Section
+            title="Notes"
+            style={{
+              marginBottom: spacing["3xl"],
+              padding: spacing.lg,
+              background: "#fffbeb",
+              borderLeft: "4px solid #f59e0b",
+              borderRadius: spacing.xs,
+            }}
+            titleStyle={{
+              margin: "0 0 10px 0",
+              color: "#92400e",
+              fontSize: spacing.md,
+              textTransform: "uppercase",
+              fontWeight: 700,
+              letterSpacing: "0.5px",
+            }}
+            contentStyle={{
+              color: "#78350f",
+              lineHeight: 1.6,
+              margin: 0,
+              fontSize: spacing.lg,
+            }}
+          >
+            {invoice.notes}
+          </Section>
         )}
 
         {/* Payment Information */}
-        <div style={paymentBoxStyle}>
-          <h3 style={paymentTitleStyle}>
-            <span style={paymentTitleAccentStyle}></span>
+        <div
+          style={{
+            padding: spacing.xl,
+            background: "white",
+            border: "2px solid #e5e7eb",
+            borderRadius: spacing.sm,
+          }}
+        >
+          <h3
+            style={{
+              margin: "0 0 16px 0",
+              color: "#1f2937",
+              fontSize: spacing.base,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: "4px",
+                height: spacing.lg,
+                background: "linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%)",
+                marginRight: spacing.md,
+                borderRadius: "2px",
+              }}
+            />
             Payment Information
           </h3>
-          <div style={paymentContentStyle}>
+          <div
+            style={{
+              color: "#374151",
+              lineHeight: 1.8,
+              fontSize: spacing.lg,
+            }}
+          >
             <PaymentInformation
               profile={profile}
               invoice={invoice}
@@ -557,15 +429,32 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             />
           </div>
           {profile?.payment_instructions && (
-            <div style={paymentInstructionsStyle}>
+            <div
+              style={{
+                marginTop: spacing.md,
+                paddingTop: spacing.md,
+                borderTop: "1px solid #e5e7eb",
+                color: "#6b7280",
+                fontSize: spacing.lg,
+                lineHeight: 1.6,
+              }}
+            >
               {profile.payment_instructions}
             </div>
           )}
         </div>
 
         {/* Colored Footer Bar */}
-        <div style={footerBarStyle}></div>
-      </div>
+        <div
+          style={{
+            height: "6px",
+            background:
+              "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)",
+            marginTop: spacing["2xl"],
+            borderRadius: spacing.xs,
+          }}
+        />
+      </InvoiceContainer>
     </>
   );
 };

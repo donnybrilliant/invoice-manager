@@ -8,6 +8,10 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, TotalsSection, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, gridContainer, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,61 +19,51 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("swiss-template", {
+    padding: true,
+    table: true,
+    layout: "grid",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "email")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .swiss-template {
-            padding: 30px !important;
-          }
-          .swiss-header {
-            grid-template-columns: 1fr !important;
-            gap: 40px !important;
-          }
-          .swiss-client-dates {
-            grid-template-columns: 1fr !important;
-            gap: 40px !important;
-          }
-          .swiss-table {
-            font-size: 12px !important;
-          }
-          .swiss-table th,
-          .swiss-table td {
-            padding: 12px 0 !important;
-            font-size: 11px !important;
-          }
-          .swiss-payment-notes {
-            grid-template-columns: 1fr !important;
-            gap: 30px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .swiss-template {
-            padding: 20px !important;
-          }
-          .swiss-title {
-            font-size: 48px !important;
-          }
-          .swiss-table {
-            font-size: 10px !important;
-          }
-          .swiss-table th,
-          .swiss-table td {
-            padding: 10px 0 !important;
-            font-size: 9px !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="swiss-template"
+        maxWidth={794}
+        padding={{ desktop: 60, tablet: 30, mobile: 20 }}
         style={{
           fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "60px",
-          background: "#fff",
-          width: "100%",
-          boxSizing: "border-box",
         }}
       >
         {/* Red Accent Bar */}
@@ -78,7 +72,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             width: "60px",
             height: "8px",
             background: "#FF0000",
-            marginBottom: "60px",
+            marginBottom: "80px",
           }}
         />
 
@@ -86,9 +80,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="swiss-header"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "80px",
+            ...gridContainer("1fr 1fr", 80),
             marginBottom: "80px",
           }}
         >
@@ -100,18 +92,18 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 style={{
                   maxWidth: "140px",
                   maxHeight: "70px",
-                  marginBottom: "30px",
+                  marginBottom: spacing["2xl"],
                 }}
               />
             )}
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
                 color: "#999",
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               From
@@ -119,23 +111,17 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontWeight: 700,
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 color: "#000",
-                marginBottom: "12px",
+                marginBottom: spacing.md,
               }}
             >
               {getCompanyInfo(profile, "company_name")}
             </div>
-            <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.8 }}>
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "email")}
+            <div
+              style={{ fontSize: spacing.md, color: "#666", lineHeight: 1.8 }}
+            >
+              {companyDetails}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -151,7 +137,13 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               Invoice
             </div>
-            <div style={{ fontSize: "14px", color: "#999", marginTop: "15px" }}>
+            <div
+              style={{
+                fontSize: spacing.lg,
+                color: "#999",
+                marginTop: spacing.xl,
+              }}
+            >
               No. {invoice.invoice_number}
             </div>
           </div>
@@ -161,23 +153,21 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="swiss-client-dates"
           style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: "80px",
-            marginBottom: "60px",
-            paddingBottom: "40px",
+            ...gridContainer("2fr 1fr", 80),
+            marginBottom: spacing["5xl"],
+            paddingBottom: spacing["3xl"],
             borderBottom: "1px solid #e0e0e0",
           }}
         >
           <div style={{ maxWidth: "300px", minWidth: 0 }}>
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
                 color: "#999",
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               Bill To
@@ -185,9 +175,9 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontWeight: 700,
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 color: "#000",
-                marginBottom: "12px",
+                marginBottom: spacing.md,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
                 whiteSpace: "normal",
@@ -196,70 +186,68 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               {client.name}
             </div>
-            <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.8 }}>
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+            <div
+              style={{ fontSize: spacing.md, color: "#666", lineHeight: 1.8 }}
+            >
+              {clientAddress}
             </div>
           </div>
           <div>
-            <div style={{ marginBottom: "25px" }}>
+            <div style={{ marginBottom: spacing["2xl"] }}>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: spacing.base,
                   fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "3px",
                   color: "#999",
-                  marginBottom: "6px",
+                  marginBottom: spacing.xs,
                 }}
               >
                 Issue Date
               </div>
-              <div style={{ fontSize: "15px", color: "#000" }}>
+              <div style={{ fontSize: spacing.xl, color: "#000" }}>
                 {formatDate(invoice.issue_date)}
               </div>
             </div>
             <div>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: spacing.base,
                   fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "3px",
                   color: "#999",
-                  marginBottom: "6px",
+                  marginBottom: spacing.xs,
                 }}
               >
                 Due Date
               </div>
               <div
-                style={{ fontSize: "15px", color: "#FF0000", fontWeight: 600 }}
+                style={{
+                  fontSize: spacing.xl,
+                  color: "#FF0000",
+                  fontWeight: 600,
+                }}
               >
                 {formatDate(invoice.due_date)}
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
-              <div style={{ marginTop: "25px" }}>
+              <div style={{ marginTop: spacing["2xl"] }}>
                 <div
                   style={{
-                    fontSize: "11px",
+                    fontSize: spacing.base,
                     fontWeight: 500,
                     textTransform: "uppercase",
                     letterSpacing: "3px",
                     color: "#999",
-                    marginBottom: "6px",
+                    marginBottom: spacing.xs,
                   }}
                 >
                   Sent Date
                 </div>
-                <div style={{ fontSize: "15px", color: "#000" }}>
+                <div style={{ fontSize: spacing.xl, color: "#000" }}>
                   {formatDate(invoice.sent_date)}
                 </div>
               </div>
@@ -268,15 +256,15 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <div className="swiss-table" style={{ marginBottom: "50px" }}>
+        <div className="swiss-table" style={{ marginBottom: spacing["4xl"] }}>
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
             styles={{
-              headerFontSize: "11px",
-              bodyFontSize: "14px",
-              headerPadding: "16px 0",
-              bodyPadding: "16px 0",
+              headerFontSize: spacing.base,
+              bodyFontSize: spacing.lg,
+              headerPadding: `${spacing.base}px 0`,
+              bodyPadding: `${spacing.base}px 0`,
               headerTextColor: "#999",
               bodyTextColor: "#333",
               borderColor: "#e0e0e0",
@@ -294,125 +282,113 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "60px",
+        <TotalsSection
+          subtotal={{
+            label: "Subtotal",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
           }}
-        >
-          <div style={{ width: "280px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 0",
-                borderBottom: "1px solid #e0e0e0",
-              }}
-            >
-              <span style={{ fontSize: "13px", color: "#666" }}>Subtotal</span>
-              <span style={{ fontSize: "14px", color: "#333" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 0",
-                borderBottom: "1px solid #e0e0e0",
-              }}
-            >
-              <span style={{ fontSize: "13px", color: "#666" }}>Tax</span>
-              <span style={{ fontSize: "14px", color: "#333" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "20px 0",
-                borderTop: "2px solid #000",
-                marginTop: "10px",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  color: "#000",
-                }}
-              >
-                Total
-              </span>
-              <span
-                style={{
-                  fontSize: "28px",
-                  fontWeight: 300,
-                  color: "#000",
-                }}
-              >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
-              </span>
-            </div>
-          </div>
-        </div>
+          tax={{
+            label: "Tax",
+            amount: formatCurrencyWithCode(
+              invoice.tax_amount,
+              invoice.currency
+            ),
+          }}
+          total={{
+            label: "Total",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          style={{
+            width: "280px",
+            marginBottom: spacing["5xl"],
+          }}
+          rowStyle={{
+            ...flexContainer("row", "space-between", "center"),
+            padding: `${spacing.md}px 0`,
+            borderBottom: "1px solid #e0e0e0",
+          }}
+          labelStyle={{
+            fontSize: spacing.md,
+            color: "#666",
+          }}
+          amountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: spacing.lg,
+            color: "#333",
+          }}
+          totalRowStyle={{
+            padding: `${spacing.lg}px 0`,
+            borderTop: "2px solid #000",
+            marginTop: spacing.md,
+          }}
+          totalLabelStyle={{
+            fontSize: spacing.base,
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            color: "#000",
+          }}
+          totalAmountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: "28px",
+            fontWeight: 300,
+            color: "#000",
+          }}
+        />
 
         {/* Payment & Notes */}
         <div
           className="swiss-payment-notes"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "60px",
-            paddingTop: "40px",
+            ...gridContainer("1fr 1fr", spacing["5xl"]),
+            paddingTop: spacing["3xl"],
             borderTop: "1px solid #e0e0e0",
           }}
         >
-          <div>
-            <div
+          <Section
+            title="Payment Information"
+            titleStyle={{
+              fontSize: spacing.base,
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "3px",
+              color: "#999",
+              marginBottom: spacing.xl,
+            }}
+            contentStyle={{
+              fontSize: spacing.md,
+              color: "#333",
+              lineHeight: 1.9,
+            }}
+          >
+            <PaymentInformation
+              profile={profile}
+              invoice={invoice}
               style={{
-                fontSize: "11px",
+                item: { marginBottom: "4px" },
+              }}
+            />
+          </Section>
+          {invoice.notes && (
+            <Section
+              title="Notes"
+              titleStyle={{
+                fontSize: spacing.base,
                 fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
                 color: "#999",
-                marginBottom: "15px",
+                marginBottom: spacing.xl,
+              }}
+              contentStyle={{
+                fontSize: spacing.md,
+                color: "#333",
+                lineHeight: 1.9,
               }}
             >
-              Payment Information
-            </div>
-            <div style={{ fontSize: "13px", color: "#333", lineHeight: 1.9 }}>
-              <PaymentInformation
-                profile={profile}
-                invoice={invoice}
-                style={{
-                  item: { marginBottom: "4px" },
-                }}
-              />
-            </div>
-          </div>
-          {invoice.notes && (
-            <div>
-              <div
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  color: "#999",
-                  marginBottom: "15px",
-                }}
-              >
-                Notes
-              </div>
-              <div style={{ fontSize: "13px", color: "#333", lineHeight: 1.9 }}>
-                {invoice.notes}
-              </div>
-            </div>
+              {invoice.notes}
+            </Section>
           )}
         </div>
 
@@ -427,7 +403,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             }}
           />
         </div>
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

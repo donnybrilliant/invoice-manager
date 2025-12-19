@@ -8,6 +8,15 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import {
+  InvoiceContainer,
+  InvoiceHeader,
+  TotalsSection,
+  Section,
+} from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, gridContainer, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,8 +24,45 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("darkmode-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "email")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
+      <style>{templateCSS}</style>
       <style>{`
         /* Ensure all text in dark mode template maintains proper contrast */
         .darkmode-template * {
@@ -26,152 +72,78 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
           color: inherit;
           font-weight: 600;
         }
-        @media (max-width: 768px) {
-          .darkmode-template {
-            padding: 25px !important;
-          }
-          .darkmode-header {
-            flex-direction: column !important;
-            gap: 20px !important;
-          }
-          .darkmode-info-grid {
-            grid-template-columns: 1fr !important;
-            gap: 20px !important;
-          }
-          .darkmode-table {
-            font-size: 12px !important;
-          }
-          .darkmode-table th,
-          .darkmode-table td {
-            padding: 8px !important;
-            font-size: 11px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .darkmode-template {
-            padding: 15px !important;
-          }
-          .darkmode-table {
-            font-size: 10px !important;
-          }
-          .darkmode-table th,
-          .darkmode-table td {
-            padding: 6px 4px !important;
-            font-size: 9px !important;
-          }
-        }
       `}</style>
-      <div
+      <InvoiceContainer
         className="darkmode-template"
+        maxWidth={794}
+        padding={{ desktop: 50, tablet: 25, mobile: 15 }}
+        background="linear-gradient(180deg, #0D0D0D 0%, #1A1A1A 100%)"
         style={{
           fontFamily:
             "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "50px",
-          background: "linear-gradient(180deg, #0D0D0D 0%, #1A1A1A 100%)",
           color: "#fff",
           borderRadius: "12px",
-          width: "100%",
-          boxSizing: "border-box",
         }}
       >
         {/* Header */}
-        <div
+        <InvoiceHeader
           className="darkmode-header"
+          logo={
+            profile?.logo_url
+              ? {
+                  url: profile.logo_url,
+                  alt: "Logo",
+                  maxWidth: 140,
+                  maxHeight: 70,
+                }
+              : undefined
+          }
+          title="Invoice"
+          invoiceNumber={invoice.invoice_number}
+          companyInfo={{
+            name: getCompanyInfo(profile, "company_name"),
+            details: companyDetails,
+          }}
+          layout="side-by-side"
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "start",
-            marginBottom: "50px",
-            paddingBottom: "30px",
+            marginBottom: spacing["4xl"],
+            paddingBottom: spacing["2xl"],
             borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
-        >
-          <div>
-            {profile?.logo_url && (
-              <img
-                src={profile.logo_url}
-                alt="Logo"
-                style={{
-                  maxWidth: "140px",
-                  maxHeight: "70px",
-                  marginBottom: "20px",
-                  filter: "brightness(0) invert(1)",
-                }}
-              />
-            )}
-            <div
-              style={{
-                fontSize: "48px",
-                fontWeight: 200,
-                color: "#fff",
-                letterSpacing: "-1px",
-                marginBottom: "8px",
-              }}
-            >
-              Invoice
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                color: "#00FFB2",
-                fontFamily: "'SF Mono', monospace",
-              }}
-            >
-              #{invoice.invoice_number}
-            </div>
-          </div>
-          <div
-            style={{
-              textAlign: "right",
-              padding: "25px",
-              background: "rgba(255,255,255,0.03)",
-              borderRadius: "8px",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: "16px",
-                color: "#fff",
-                marginBottom: "12px",
-              }}
-            >
-              {getCompanyInfo(profile, "company_name")}
-            </div>
-            <div
-              style={{ fontSize: "13px", color: "#D0D0D0", lineHeight: 1.8 }}
-            >
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "email")}
-            </div>
-          </div>
-        </div>
+          titleStyle={{
+            fontSize: "48px",
+            fontWeight: 200,
+            color: "#fff",
+            letterSpacing: "-1px",
+            marginBottom: spacing.sm,
+          }}
+          invoiceNumberStyle={{
+            fontSize: spacing.lg,
+            color: "#00FFB2",
+            fontFamily: "'SF Mono', monospace",
+          }}
+          companyInfoStyle={{
+            textAlign: "right",
+            padding: spacing["2xl"],
+            background: "rgba(255,255,255,0.03)",
+            borderRadius: spacing.sm,
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        />
 
         {/* Info Grid */}
         <div
           className="darkmode-info-grid"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "30px",
-            marginBottom: "50px",
+            ...gridContainer("1fr 1fr", spacing["2xl"]),
+            marginBottom: spacing["4xl"],
           }}
         >
           <div
             style={{
-              padding: "25px",
+              padding: spacing["2xl"],
               background: "rgba(0,255,178,0.05)",
-              borderRadius: "8px",
+              borderRadius: spacing.sm,
               border: "1px solid rgba(0,255,178,0.2)",
               maxWidth: "300px",
               minWidth: 0,
@@ -179,22 +151,22 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 fontWeight: 600,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 color: "#00FFB2",
-                marginBottom: "15px",
+                marginBottom: spacing.lg,
               }}
             >
               Bill To
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 fontWeight: 600,
                 color: "#fff",
-                marginBottom: "10px",
+                marginBottom: spacing.md,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
                 whiteSpace: "normal",
@@ -204,65 +176,59 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
               {client.name}
             </div>
             <div
-              style={{ fontSize: "13px", color: "#D0D0D0", lineHeight: 1.8 }}
+              style={{
+                fontSize: spacing.md,
+                color: "#D0D0D0",
+                lineHeight: 1.8,
+              }}
             >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+              {clientAddress}
             </div>
           </div>
           <div
             style={{
-              padding: "25px",
+              padding: spacing["2xl"],
               background: "rgba(255,255,255,0.03)",
-              borderRadius: "8px",
+              borderRadius: spacing.sm,
               border: "1px solid rgba(255,255,255,0.08)",
             }}
           >
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "25px",
+                ...gridContainer("1fr 1fr", spacing["2xl"]),
               }}
             >
               <div>
                 <div
                   style={{
-                    fontSize: "11px",
+                    fontSize: spacing.base,
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
                     color: "#D0D0D0",
-                    marginBottom: "8px",
+                    marginBottom: spacing.sm,
                   }}
                 >
                   Issued
                 </div>
-                <div style={{ fontSize: "15px", color: "#E0E0E0" }}>
+                <div style={{ fontSize: spacing.xl, color: "#E0E0E0" }}>
                   {formatDate(invoice.issue_date)}
                 </div>
               </div>
               <div>
                 <div
                   style={{
-                    fontSize: "11px",
+                    fontSize: spacing.base,
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
                     color: "#D0D0D0",
-                    marginBottom: "8px",
+                    marginBottom: spacing.sm,
                   }}
                 >
                   Due
                 </div>
-                <div style={{ fontSize: "15px", color: "#FF6B6B" }}>
+                <div style={{ fontSize: spacing.xl, color: "#FF6B6B" }}>
                   {formatDate(invoice.due_date)}
                 </div>
               </div>
@@ -270,16 +236,16 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <div>
                   <div
                     style={{
-                      fontSize: "11px",
+                      fontSize: spacing.base,
                       color: "#D0D0D0",
                       textTransform: "uppercase",
                       letterSpacing: "1px",
-                      marginBottom: "4px",
+                      marginBottom: spacing.xs,
                     }}
                   >
                     Sent Date
                   </div>
-                  <div style={{ fontSize: "15px", color: "#60A5FA" }}>
+                  <div style={{ fontSize: spacing.xl, color: "#60A5FA" }}>
                     {formatDate(invoice.sent_date)}
                   </div>
                 </div>
@@ -289,14 +255,14 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <div style={{ marginBottom: "40px" }}>
+        <div style={{ marginBottom: spacing["3xl"] }}>
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
             className="darkmode-table"
             styles={{
-              headerFontSize: "11px",
-              bodyFontSize: "14px",
+              headerFontSize: spacing.base,
+              bodyFontSize: spacing.lg,
               headerPadding: "18px 20px",
               bodyPadding: "16px 20px",
               headerTextColor: "#D0D0D0",
@@ -326,148 +292,126 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "50px",
+        <TotalsSection
+          subtotal={{
+            label: "Subtotal",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
           }}
-        >
-          <div
-            style={{
-              width: "320px",
-              background: "rgba(255,255,255,0.02)",
-              borderRadius: "8px",
-              border: "1px solid rgba(255,255,255,0.08)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "16px 20px",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <span style={{ fontSize: "13px", color: "#D0D0D0" }}>
-                Subtotal
-              </span>
-              <span style={{ fontSize: "14px", color: "#E0E0E0" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "16px 20px",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <span style={{ fontSize: "13px", color: "#D0D0D0" }}>Tax</span>
-              <span style={{ fontSize: "14px", color: "#E0E0E0" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "20px",
-                background:
-                  "linear-gradient(135deg, rgba(0,255,178,0.15) 0%, rgba(0,255,178,0.05) 100%)",
-              }}
-            >
-              <span
-                style={{ fontSize: "14px", fontWeight: 600, color: "#fff" }}
-              >
-                Total Due
-              </span>
-              <span
-                style={{
-                  fontSize: "28px",
-                  fontWeight: 300,
-                  color: "#00FFB2",
-                }}
-              >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
-              </span>
-            </div>
-          </div>
-        </div>
+          tax={{
+            label: "Tax",
+            amount: formatCurrencyWithCode(
+              invoice.tax_amount,
+              invoice.currency
+            ),
+          }}
+          total={{
+            label: "Total Due",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          style={{
+            width: "320px",
+            background: "rgba(255,255,255,0.02)",
+            borderRadius: spacing.sm,
+            border: "1px solid rgba(255,255,255,0.08)",
+            overflow: "hidden",
+            marginBottom: spacing["4xl"],
+          }}
+          rowStyle={{
+            ...flexContainer("row", "space-between", "center"),
+            padding: `${spacing.base}px ${spacing.lg}px`,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+          labelStyle={{
+            fontSize: spacing.md,
+            color: "#D0D0D0",
+          }}
+          amountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: spacing.lg,
+            color: "#E0E0E0",
+          }}
+          totalRowStyle={{
+            padding: spacing.lg,
+            background:
+              "linear-gradient(135deg, rgba(0,255,178,0.15) 0%, rgba(0,255,178,0.05) 100%)",
+          }}
+          totalLabelStyle={{
+            fontSize: spacing.lg,
+            fontWeight: 600,
+            color: "#fff",
+          }}
+          totalAmountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: "28px",
+            fontWeight: 300,
+            color: "#00FFB2",
+          }}
+        />
 
         {/* Payment Info */}
-        <div
+        <Section
+          title="Payment Information"
           style={{
-            padding: "25px",
+            padding: spacing["2xl"],
             background: "rgba(255,255,255,0.02)",
-            borderRadius: "8px",
+            borderRadius: spacing.sm,
             border: "1px solid rgba(255,255,255,0.08)",
-            marginBottom: "25px",
+            marginBottom: spacing["2xl"],
+          }}
+          titleStyle={{
+            fontSize: spacing.base,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+            color: "#D0D0D0",
+            marginBottom: spacing.lg,
+          }}
+          contentStyle={{
+            fontSize: spacing.md,
+            color: "#D0D0D0",
+            lineHeight: 1.9,
+            fontFamily: "'SF Mono', monospace",
           }}
         >
-          <div
+          <PaymentInformation
+            profile={profile}
+            invoice={invoice}
             style={{
-              fontSize: "11px",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "2px",
-              color: "#D0D0D0",
-              marginBottom: "15px",
+              item: { marginBottom: "4px", color: "#D0D0D0" },
+              empty: { color: "#D0D0D0" },
             }}
-          >
-            Payment Information
-          </div>
-          <div
-            style={{
-              fontSize: "13px",
-              color: "#D0D0D0",
-              lineHeight: 1.9,
-              fontFamily: "'SF Mono', monospace",
-            }}
-          >
-            <PaymentInformation
-              profile={profile}
-              invoice={invoice}
-              style={{
-                item: { marginBottom: "4px", color: "#D0D0D0" },
-                empty: { color: "#D0D0D0" },
-              }}
-            />
-          </div>
-        </div>
+          />
+        </Section>
 
         {/* Notes */}
         {invoice.notes && (
-          <div
+          <Section
+            title="Notes"
             style={{
-              padding: "25px",
+              padding: spacing["2xl"],
               background: "rgba(255,107,107,0.05)",
-              borderRadius: "8px",
+              borderRadius: spacing.sm,
               border: "1px solid rgba(255,107,107,0.2)",
             }}
+            titleStyle={{
+              fontSize: spacing.base,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "2px",
+              color: "#FF6B6B",
+              marginBottom: spacing.lg,
+            }}
+            contentStyle={{
+              fontSize: spacing.md,
+              color: "#D0D0D0",
+              lineHeight: 1.8,
+            }}
           >
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "2px",
-                color: "#FF6B6B",
-                marginBottom: "15px",
-              }}
-            >
-              Notes
-            </div>
-            <div
-              style={{ fontSize: "13px", color: "#D0D0D0", lineHeight: 1.8 }}
-            >
-              {invoice.notes}
-            </div>
-          </div>
+            {invoice.notes}
+          </Section>
         )}
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

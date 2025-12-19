@@ -4,6 +4,9 @@ import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import { getCompanyInfo, formatClientAddress } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
 
 const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -11,73 +14,37 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("cutout-brutalist-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .cutout-brutalist-template {
-            padding: 30px !important;
-          }
-          .cutout-header {
-            flex-direction: column !important;
-          }
-          .cutout-info-cards {
-            flex-direction: column !important;
-          }
-          .cutout-date-cards {
-            flex-direction: row !important;
-            flex-wrap: wrap !important;
-            width: 100% !important;
-          }
-          .cutout-date-cards > div {
-            flex: 1 1 auto !important;
-            min-width: 150px !important;
-          }
-          .cutout-items-table {
-            font-size: 10px !important;
-          }
-          .cutout-items-table th,
-          .cutout-items-table td {
-            padding: 10px !important;
-            font-size: 9px !important;
-          }
-          .cutout-items-table th {
-            letter-spacing: 1px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .cutout-brutalist-template {
-            padding: 20px !important;
-          }
-          .cutout-date-cards {
-            flex-direction: column !important;
-          }
-          .cutout-date-cards > div {
-            width: 100% !important;
-            min-width: unset !important;
-          }
-          .cutout-items-table {
-            font-size: 9px !important;
-          }
-          .cutout-items-table th,
-          .cutout-items-table td {
-            padding: 8px 6px !important;
-            font-size: 8px !important;
-          }
-          .cutout-items-table th {
-            letter-spacing: 0.5px !important;
-            padding: 8px 4px !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="cutout-brutalist-template"
+        maxWidth={794}
+        padding={{ desktop: 60, tablet: 30, mobile: 20 }}
+        background="linear-gradient(135deg, #FAF8F5 0%, #F0EDE8 100%)"
         style={{
           fontFamily: "'Georgia', serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "60px",
-          background: "linear-gradient(135deg, #FAF8F5 0%, #F0EDE8 100%)",
           position: "relative",
         }}
       >
@@ -120,13 +87,19 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         />
 
         {/* Header */}
-        <div style={{ position: "relative", zIndex: 1, marginBottom: "50px" }}>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            marginBottom: spacing["4xl"],
+          }}
+        >
           <div
             style={{
               display: "inline-block",
               background: "#fff",
               border: "3px solid #000",
-              padding: "30px 50px",
+              padding: `${spacing["2xl"]}px ${spacing["4xl"]}px`,
               boxShadow: "8px 8px 0 rgba(0,0,0,0.1)",
               transform: "rotate(-2deg)",
             }}
@@ -159,7 +132,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               marginLeft: "-20px",
               background: "#1A535C",
               color: "#fff",
-              padding: "15px 30px",
+              padding: `${spacing.xl}px ${spacing["2xl"]}px`,
               transform: "rotate(3deg)",
               boxShadow: "5px 5px 0 rgba(0,0,0,0.2)",
             }}
@@ -167,7 +140,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontFamily: "'Courier New', monospace",
-                fontSize: "11px",
+                fontSize: spacing.base,
                 letterSpacing: "3px",
               }}
             >
@@ -176,8 +149,8 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontFamily: "'Arial Black', sans-serif",
-                fontSize: "22px",
-                marginTop: "5px",
+                fontSize: spacing.lg,
+                marginTop: spacing.xs,
               }}
             >
               {invoice.invoice_number}
@@ -192,24 +165,22 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             zIndex: 1,
             background: "#000",
             color: "#fff",
-            padding: "15px 25px",
-            marginBottom: "40px",
-            marginLeft: "-30px",
-            marginRight: "-30px",
+            padding: `${spacing.xl}px ${spacing["2xl"]}px`,
+            marginBottom: spacing["3xl"],
+            marginLeft: `-${spacing["2xl"]}px`,
+            marginRight: `-${spacing["2xl"]}px`,
             transform: "rotate(-0.5deg)",
           }}
         >
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              ...flexContainer("row", "space-between", "center"),
             }}
           >
             <div
               style={{
                 fontFamily: "'Arial Black', sans-serif",
-                fontSize: "16px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 color: "#fff",
               }}
@@ -219,7 +190,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontFamily: "'Courier New', monospace",
-                fontSize: "12px",
+                fontSize: spacing.md,
                 color: "#fff",
               }}
             >
@@ -235,9 +206,8 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           style={{
             position: "relative",
             zIndex: 1,
-            display: "flex",
-            gap: "30px",
-            marginBottom: "50px",
+            ...flexContainer("row", "flex-start", "stretch", spacing["2xl"]),
+            marginBottom: spacing["4xl"],
           }}
         >
           <div
@@ -245,7 +215,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               flex: 1,
               background: "#fff",
               border: "2px solid #000",
-              padding: "25px",
+              padding: spacing["2xl"],
               boxShadow: "6px 6px 0 #FFE4B5",
               transform: "rotate(-1deg)",
             }}
@@ -253,12 +223,12 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontFamily: "'Courier New', monospace",
-                fontSize: "10px",
+                fontSize: spacing.sm,
                 letterSpacing: "3px",
                 color: "#666",
-                marginBottom: "12px",
+                marginBottom: spacing.md,
                 borderBottom: "2px solid #000",
-                paddingBottom: "8px",
+                paddingBottom: spacing.sm,
               }}
             >
               BILLED TO
@@ -266,9 +236,9 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontFamily: "'Arial Black', sans-serif",
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 textTransform: "uppercase",
-                marginBottom: "10px",
+                marginBottom: spacing.md,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
                 whiteSpace: "normal",
@@ -279,29 +249,18 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontFamily: "'Georgia', serif",
-                fontSize: "13px",
+                fontSize: spacing.md,
                 lineHeight: 1.8,
                 color: "#333",
               }}
             >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+              {clientAddress}
             </div>
           </div>
           <div
             className="cutout-date-cards"
             style={{
-              display: "flex",
-              flexDirection: "column",
-              flexWrap: "wrap",
-              gap: "15px",
+              ...flexContainer("column", "flex-start", "stretch", spacing.lg),
               width: "180px",
             }}
           >
@@ -309,8 +268,8 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 background: "#004E89",
                 color: "#fff",
-                padding: "20px",
-                marginBottom: "0",
+                padding: spacing.lg,
+                marginBottom: 0,
                 transform: "rotate(2deg)",
                 boxShadow: "4px 4px 0 rgba(0,0,0,0.2)",
               }}
@@ -318,7 +277,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{
                   fontFamily: "'Courier New', monospace",
-                  fontSize: "9px",
+                  fontSize: spacing.sm,
                   letterSpacing: "2px",
                   opacity: 0.7,
                 }}
@@ -328,8 +287,8 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{
                   fontFamily: "'Arial Black', sans-serif",
-                  fontSize: "16px",
-                  marginTop: "8px",
+                  fontSize: spacing.base,
+                  marginTop: spacing.sm,
                 }}
               >
                 {formatDate(invoice.issue_date)}
@@ -339,7 +298,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 background: "#FF6B35",
                 color: "#fff",
-                padding: "20px",
+                padding: spacing.lg,
                 transform: "rotate(-1deg)",
                 boxShadow: "4px 4px 0 rgba(0,0,0,0.2)",
               }}
@@ -347,7 +306,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{
                   fontFamily: "'Courier New', monospace",
-                  fontSize: "9px",
+                  fontSize: spacing.sm,
                   letterSpacing: "2px",
                   opacity: 0.7,
                 }}
@@ -357,8 +316,8 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{
                   fontFamily: "'Arial Black', sans-serif",
-                  fontSize: "16px",
-                  marginTop: "8px",
+                  fontSize: spacing.base,
+                  marginTop: spacing.sm,
                 }}
               >
                 {formatDate(invoice.due_date)}
@@ -375,7 +334,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             zIndex: 1,
             background: "#fff",
             border: "2px solid #000",
-            marginBottom: "40px",
+            marginBottom: spacing["3xl"],
             boxShadow: "8px 8px 0 #1A535C",
             transform: "rotate(0.5deg)",
             width: "100%",
@@ -392,10 +351,10 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               amount: "AMOUNT",
             }}
             styles={{
-              headerFontSize: "11px",
-              bodyFontSize: "14px",
-              headerPadding: "18px",
-              bodyPadding: "16px",
+              headerFontSize: spacing.base,
+              bodyFontSize: spacing.lg,
+              headerPadding: `${spacing["3xl"]}px`,
+              bodyPadding: `${spacing.base}px`,
               headerTextColor: "#fff",
               headerBgColor: "transparent",
               bodyTextColor: "#000",
@@ -407,24 +366,24 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               bodyFontWeight: "normal",
               amountFontWeight: 900,
               headerStyle: {
-                  background: "linear-gradient(90deg, #1A535C, #004E89)",
+                background: "linear-gradient(90deg, #1A535C, #004E89)",
               },
               descriptionCellStyle: {
-                      fontFamily: "'Times New Roman', serif",
-                      wordWrap: "break-word",
-                      overflowWrap: "break-word",
-                      whiteSpace: "normal",
-                      maxWidth: 0,
+                fontFamily: "'Times New Roman', serif",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+                maxWidth: 0,
               },
               quantityCellStyle: {
-                      fontFamily: "'Courier New', monospace",
-                      fontWeight: 900,
+                fontFamily: "'Courier New', monospace",
+                fontWeight: 900,
               },
               unitPriceCellStyle: {
-                      fontFamily: "'Courier New', monospace",
+                fontFamily: "'Courier New', monospace",
               },
               amountCellStyle: {
-                      fontFamily: "'Courier New', monospace",
+                fontFamily: "'Courier New', monospace",
                 background: "#FFE4B5",
               },
               bodyStyle: {
@@ -439,9 +398,8 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           style={{
             position: "relative",
             zIndex: 1,
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "40px",
+            ...flexContainer("row", "flex-end", "flex-start"),
+            marginBottom: spacing["3xl"],
           }}
         >
           <div style={{ minWidth: "300px" }}>
@@ -455,16 +413,15 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "12px 20px",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: `${spacing.md}px ${spacing.lg}px`,
                   borderBottom: "1px dashed #ccc",
                 }}
               >
                 <span
                   style={{
                     fontFamily: "'Courier New', monospace",
-                    fontSize: "12px",
+                    fontSize: spacing.md,
                     letterSpacing: "2px",
                   }}
                 >
@@ -481,15 +438,14 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "12px 20px",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: `${spacing.md}px ${spacing.lg}px`,
                 }}
               >
                 <span
                   style={{
                     fontFamily: "'Courier New', monospace",
-                    fontSize: "12px",
+                    fontSize: spacing.md,
                     letterSpacing: "2px",
                   }}
                 >
@@ -509,7 +465,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 background: "#000",
                 color: "#fff",
-                padding: "20px",
+                padding: spacing.lg,
                 marginTop: "-5px",
                 transform: "rotate(-1deg)",
                 boxShadow: "6px 6px 0 #FF6B35",
@@ -517,15 +473,13 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  ...flexContainer("row", "space-between", "center"),
                 }}
               >
                 <span
                   style={{
                     fontFamily: "'Courier New', monospace",
-                    fontSize: "13px",
+                    fontSize: spacing.md,
                     letterSpacing: "3px",
                     color: "#fff",
                   }}
@@ -547,75 +501,63 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Payment */}
-        <div
+        <Section
+          title="PAYMENT DETAILS"
           style={{
             position: "relative",
             zIndex: 1,
             background: "#FFE4B5",
             border: "2px solid #000",
-            padding: "25px",
+            padding: spacing["2xl"],
             transform: "rotate(0.3deg)",
           }}
+          titleStyle={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: spacing.base,
+            letterSpacing: "3px",
+            marginBottom: spacing.md,
+            paddingBottom: spacing.sm,
+            borderBottom: "2px solid #000",
+          }}
+          contentStyle={{
+            fontFamily: "'Georgia', serif",
+            fontSize: spacing.lg,
+            lineHeight: 1.9,
+          }}
         >
-          <div
-            style={{
-              fontFamily: "'Courier New', monospace",
-              fontSize: "11px",
-              letterSpacing: "3px",
-              marginBottom: "12px",
-              paddingBottom: "8px",
-              borderBottom: "2px solid #000",
-            }}
-          >
-            PAYMENT DETAILS
-          </div>
-          <div
-            style={{
-              fontFamily: "'Georgia', serif",
-              fontSize: "14px",
-              lineHeight: 1.9,
-            }}
-          >
-            <PaymentInformation profile={profile} invoice={invoice} />
-          </div>
-        </div>
+          <PaymentInformation profile={profile} invoice={invoice} />
+        </Section>
 
         {invoice.notes && (
-          <div
+          <Section
+            title="NOTES"
             style={{
               position: "relative",
               zIndex: 1,
-              marginTop: "25px",
+              marginTop: spacing["2xl"],
               background: "#fff",
               borderLeft: "6px solid #FF6B35",
-              padding: "20px 25px",
+              padding: `${spacing.lg}px ${spacing["2xl"]}px`,
               boxShadow: "4px 4px 0 rgba(0,0,0,0.1)",
             }}
+            titleStyle={{
+              fontFamily: "'Courier New', monospace",
+              fontSize: spacing.sm,
+              letterSpacing: "3px",
+              color: "#666",
+              marginBottom: spacing.md,
+            }}
+            contentStyle={{
+              fontFamily: "'Georgia', serif",
+              fontSize: spacing.lg,
+              lineHeight: 1.8,
+              fontStyle: "italic",
+            }}
           >
-            <div
-              style={{
-                fontFamily: "'Courier New', monospace",
-                fontSize: "10px",
-                letterSpacing: "3px",
-                color: "#666",
-                marginBottom: "10px",
-              }}
-            >
-              NOTES
-            </div>
-            <div
-              style={{
-                fontFamily: "'Georgia', serif",
-                fontSize: "14px",
-                lineHeight: 1.8,
-                fontStyle: "italic",
-              }}
-            >
-              {invoice.notes}
-            </div>
-          </div>
+            {invoice.notes}
+          </Section>
         )}
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

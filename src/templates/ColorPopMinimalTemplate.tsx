@@ -8,6 +8,13 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, AddressSection } from "./design-system";
+import {
+  createTemplateStyles,
+  generateContainerQueryCSS,
+} from "./design-system";
+import { spacing, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -24,77 +31,92 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("color-pop-minimal-template", {
+    padding: true,
+  });
+
+  // Add container query for totals wrapping
+  const containerCSS = generateContainerQueryCSS(
+    "totals-container",
+    "totalsWrap",
+    `
+      .payment-info-wrapper {
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+        text-align: left !important;
+      }
+      .totals-section {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+      }
+    `
+  );
+
+  // Format addresses
+  const companyAddress = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "email")}
+      <br />
+      {getCompanyInfo(profile, "phone")}
+    </>
+  );
+
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .color-pop-minimal-template {
-            padding: 30px !important;
-          }
-          /* Make address section wrap on small screens */
-          .color-pop-minimal-template .address-section {
-            flex-direction: column !important;
-            gap: 30px !important;
-          }
-          /* Fix totals overflow on tiny screens */
-          .color-pop-minimal-template .totals-section {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-          }
-        }
-        /* When container is narrow enough that items would overlap, make payment info full width and left-aligned */
-        /* Totals: 260px + Payment: 320px + Gap: 20px = 600px minimum needed */
-        /* Set breakpoint at 600px to trigger exactly when wrapping occurs */
-        @container (max-width: 600px) {
-          .totals-container .payment-info-wrapper {
-            flex: 1 1 100% !important;
-            max-width: 100% !important;
-            margin-left: 0 !important;
-            width: 100% !important;
-            text-align: left !important;
-          }
-          .totals-container .totals-section {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            width: 100% !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <style>{containerCSS}</style>
+      <InvoiceContainer
         className="color-pop-minimal-template"
-        style={{
-          fontFamily: "'Helvetica Neue', Arial, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "50px",
-          background: colors.white,
-        }}
+        maxWidth={794}
+        padding={{ desktop: 50, tablet: 30, mobile: 20 }}
+        background={colors.white}
+        style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
       >
         {/* Minimal Header with Color Bar */}
         <div
           style={{
-            display: "flex",
-            alignItems: "stretch",
-            marginBottom: "60px",
+            ...flexContainer("row", "flex-start", "stretch"),
+            marginBottom: spacing["5xl"],
           }}
         >
           <div
             style={{
-              width: "8px",
+              width: spacing.sm,
               background: `linear-gradient(180deg, ${colors.primary} 0%, ${colors.secondary} 33%, ${colors.tertiary} 66%, ${colors.quad} 100%)`,
-              marginRight: "30px",
+              marginRight: spacing["2xl"],
             }}
           />
           <div style={{ flex: 1 }}>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
+                ...flexContainer("row", "space-between", "flex-start"),
               }}
             >
               <div>
@@ -111,7 +133,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "24px",
+                    fontSize: spacing["4xl"],
                     fontWeight: 300,
                     color: colors.black + "50",
                     marginTop: "5px",
@@ -123,34 +145,34 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div style={{ textAlign: "right" }}>
                 <div
                   style={{
-                    fontSize: "13px",
+                    fontSize: spacing.md,
                     color: colors.black + "60",
-                    marginBottom: "4px",
+                    marginBottom: spacing.xs,
                   }}
                 >
                   Issue Date
                 </div>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: spacing.base,
                     fontWeight: 700,
-                    marginBottom: "15px",
+                    marginBottom: spacing.lg,
                   }}
                 >
                   {formatDate(invoice.issue_date)}
                 </div>
                 <div
                   style={{
-                    fontSize: "13px",
+                    fontSize: spacing.md,
                     color: colors.black + "60",
-                    marginBottom: "4px",
+                    marginBottom: spacing.xs,
                   }}
                 >
                   Due Date
                 </div>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: spacing.base,
                     fontWeight: 700,
                     color: colors.primary,
                   }}
@@ -163,111 +185,55 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Minimal Address Section */}
-        <div
+        <AddressSection
           className="address-section"
+          from={{
+            label: "From",
+            name: getCompanyInfo(profile, "company_name"),
+            address: companyAddress,
+          }}
+          billTo={{
+            label: "Bill To",
+            name: client.name,
+            address: clientAddress,
+          }}
+          layout="flex"
           style={{
-            display: "flex",
-            gap: "60px",
-            marginBottom: "50px",
-            paddingBottom: "50px",
+            gap: spacing["5xl"],
+            marginBottom: spacing["4xl"],
+            paddingBottom: spacing["4xl"],
             borderBottom: "3px solid " + colors.black,
             flexWrap: "wrap",
           }}
-        >
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "3px",
-                color: colors.tertiary,
-                fontWeight: 700,
-                marginBottom: "15px",
-              }}
-            >
-              From
-            </div>
-            <div
-              style={{
-                fontSize: "18px",
-                fontWeight: 800,
-                marginBottom: "10px",
-              }}
-            >
-              {getCompanyInfo(profile, "company_name")}
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                lineHeight: 1.8,
-                color: colors.black + "80",
-              }}
-            >
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "email")}
-              <br />
-              {getCompanyInfo(profile, "phone")}
-            </div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "3px",
-                color: colors.primary,
-                fontWeight: 700,
-                marginBottom: "15px",
-              }}
-            >
-              Bill To
-            </div>
-            <div
-              style={{
-                fontSize: "18px",
-                fontWeight: 800,
-                marginBottom: "10px",
-              }}
-            >
-              {client.name}
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                lineHeight: 1.8,
-                color: colors.black + "80",
-              }}
-            >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
-            </div>
-          </div>
-        </div>
+          labelStyle={{
+            fontSize: spacing.base,
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            fontWeight: 700,
+            marginBottom: spacing.lg,
+          }}
+          nameStyle={{
+            fontSize: spacing["3xl"],
+            fontWeight: 800,
+            marginBottom: spacing.md,
+          }}
+          addressStyle={{
+            fontSize: spacing.lg,
+            lineHeight: 1.8,
+            color: colors.black + "80",
+          }}
+        />
 
         {/* Items Table */}
-        <div style={{ marginBottom: "40px" }}>
+        <div style={{ marginBottom: spacing["3xl"] }}>
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
             styles={{
-              headerFontSize: "11px",
-              bodyFontSize: "15px",
-              headerPadding: "15px 0",
-              bodyPadding: "20px 0",
+              headerFontSize: spacing.base,
+              bodyFontSize: spacing.xl,
+              headerPadding: `${spacing.lg}px 0`,
+              bodyPadding: `${spacing.lg}px 0`,
               headerTextColor: colors.black + "60",
               bodyTextColor: colors.black,
               borderColor: colors.black + "20",
@@ -292,7 +258,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             justifyContent: "space-between",
             alignItems: "flex-start",
             flexWrap: "wrap",
-            gap: "20px",
+            gap: `${spacing.lg}px`,
             containerType: "inline-size",
           }}
         >
@@ -302,75 +268,69 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           >
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 20px",
+                ...flexContainer("row", "space-between", "center", spacing.md),
+                padding: `${spacing.md}px ${spacing.lg}px`,
                 borderBottom: "1px solid " + colors.black + "15",
-                gap: "10px",
                 boxSizing: "border-box",
               }}
             >
               <span
-                style={{ color: colors.black + "60", whiteSpace: "nowrap" }}
+                style={{ color: colors.black + "60", ...getCurrencyStyle() }}
               >
                 Subtotal
               </span>
-              <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+              <span style={{ fontWeight: 600, ...getCurrencyStyle() }}>
                 {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
               </span>
             </div>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 20px",
+                ...flexContainer("row", "space-between", "center", spacing.md),
+                padding: `${spacing.md}px ${spacing.lg}px`,
                 borderBottom: "1px solid " + colors.black + "15",
-                gap: "10px",
                 boxSizing: "border-box",
               }}
             >
               <span
-                style={{ color: colors.black + "60", whiteSpace: "nowrap" }}
+                style={{ color: colors.black + "60", ...getCurrencyStyle() }}
               >
                 Tax
               </span>
-              <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+              <span style={{ fontWeight: 600, ...getCurrencyStyle() }}>
                 {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
               </span>
             </div>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "20px",
-                marginTop: "10px",
+                ...flexContainer("row", "space-between", "center", spacing.md),
+                padding: spacing.lg,
+                marginTop: spacing.md,
                 background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
-                marginLeft: "-20px",
-                marginRight: "-20px",
-                paddingLeft: "20px",
-                paddingRight: "20px",
-                gap: "10px",
+                marginLeft: `-${spacing.lg}px`,
+                marginRight: `-${spacing.lg}px`,
+                paddingLeft: spacing.lg,
+                paddingRight: spacing.lg,
                 boxSizing: "border-box",
               }}
             >
               <span
                 style={{
-                  fontSize: "14px",
+                  fontSize: spacing.lg,
                   fontWeight: 900,
                   color: colors.white,
                   textTransform: "uppercase",
                   letterSpacing: "2px",
-                  whiteSpace: "nowrap",
+                  ...getCurrencyStyle(),
                 }}
               >
                 Total
               </span>
               <span
                 style={{
-                  fontSize: "24px",
+                  fontSize: spacing["4xl"],
                   fontWeight: 900,
                   color: colors.white,
-                  whiteSpace: "nowrap",
+                  ...getCurrencyStyle(),
                 }}
               >
                 {formatCurrencyWithCode(invoice.total, invoice.currency)}
@@ -379,7 +339,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
           <div
             style={{
-              padding: "25px",
+              padding: spacing["2xl"],
               background: colors.quad + "20",
               borderLeft: "4px solid " + colors.quad,
               flex: "0 1 320px",
@@ -389,18 +349,18 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 color: colors.black + "60",
-                marginBottom: "12px",
+                marginBottom: spacing.md,
               }}
             >
               Payment Information
             </div>
             <div
               style={{
-                fontSize: "13px",
+                fontSize: spacing.md,
                 lineHeight: 1.8,
                 color: colors.black + "80",
               }}
@@ -410,11 +370,12 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
         </div>
 
+        {/* Notes */}
         {invoice.notes && (
           <div
             style={{
-              marginTop: "40px",
-              paddingTop: "30px",
+              marginTop: spacing["3xl"],
+              paddingTop: spacing["2xl"],
               borderTop: "1px dashed " + colors.black + "30",
             }}
           >
@@ -423,19 +384,19 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 display: "inline-block",
                 background: colors.tertiary,
                 color: colors.black,
-                padding: "4px 10px",
-                fontSize: "10px",
+                padding: `${spacing.xs}px ${spacing.md}px`,
+                fontSize: spacing.sm,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 fontWeight: 700,
-                marginBottom: "12px",
+                marginBottom: spacing.md,
               }}
             >
               Notes
             </div>
             <div
               style={{
-                fontSize: "14px",
+                fontSize: spacing.lg,
                 lineHeight: 1.8,
                 color: colors.black + "70",
               }}
@@ -444,7 +405,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
           </div>
         )}
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

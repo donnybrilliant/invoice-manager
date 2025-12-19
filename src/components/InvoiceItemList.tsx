@@ -1,6 +1,17 @@
 import React from "react";
 import { InvoiceItem } from "../types";
 import { formatCurrencyWithCode } from "../lib/formatting";
+import {
+  getTableColumnWidths,
+  getTableLayout,
+  getTableStyles,
+  getCurrencyCellStyles,
+  getDescriptionCellStyles,
+} from "../templates/design-system/table";
+import { getCurrencyStyle } from "../templates/design-system/text";
+import { preventOverflow } from "../templates/design-system/styles";
+import { fullWidth } from "../templates/design-system/layout";
+import { containerBreakpoints, responsiveScales } from "../templates/design-system/tokens";
 
 export interface InvoiceItemListStyles {
   // Typography
@@ -113,8 +124,8 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
     rowBorderBottom,
 
     // Responsive defaults
-    tabletScale = 0.85,
-    mobileScale = 0.7,
+    tabletScale = responsiveScales.tablet,
+    mobileScale = responsiveScales.mobile,
 
     // Additional styles
     headerStyle = {},
@@ -151,7 +162,7 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
     }
 
     /* Container queries for fine-grained control */
-    @container (max-width: 600px) {
+    @container (max-width: ${containerBreakpoints.totalsWrap}px) {
       .${containerClass} table {
         font-size: clamp(${
           parseFloat(headerFontSizeStr) * mobileScale
@@ -171,7 +182,7 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
       }
     }
 
-    @container (max-width: 400px) {
+    @container (max-width: ${containerBreakpoints.extraSmall}px) {
       .${containerClass} th,
       .${containerClass} td {
         font-size: clamp(9px, 2cqw, ${bodyFontSizeStr}) !important;
@@ -209,7 +220,7 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
     }
 
     /* Mobile card layout below 435px */
-    @container (max-width: 435px) {
+    @container (max-width: ${containerBreakpoints.mobileCard}px) {
       .${containerClass} table {
         border: none !important;
         font-size: ${headerFontSizeStr} !important;
@@ -336,7 +347,7 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
       }
     }
     
-    @media (max-width: 435px) {
+    @media (max-width: ${containerBreakpoints.mobileCard}px) {
       .${containerClass} table {
         border: none !important;
         font-size: ${headerFontSizeStr} !important;
@@ -469,40 +480,32 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
   const defaultRowBorderBottom =
     rowBorderBottom || `${borderBottomWidth} solid ${borderColor}`;
 
-  // Determine table layout - use fixed if columnWidths are provided, otherwise auto
-  const finalTableLayout =
-    tableLayout || (Object.keys(columnWidths).length > 0 ? "fixed" : "auto");
+  // Determine table layout using design system utility
+  const finalTableLayout = tableLayout || getTableLayout(columnWidths);
 
-  // Set smart default column widths if none provided and using fixed layout
-  const finalColumnWidths =
-    Object.keys(columnWidths).length > 0
-      ? columnWidths
-      : finalTableLayout === "fixed"
-      ? {
-          description: "40%", // Can shrink when content is short
-          quantity: "10%",
-          unitPrice: "25%", // More space for currency+value
-          amount: "25%", // More space for currency+value
-        }
-      : {};
+  // Get column widths using design system utility
+  const finalColumnWidths = getTableColumnWidths(columnWidths);
+
+  // Get standardized cell styles from design system
+  const currencyCellStyles = getCurrencyCellStyles(unitPriceCellStyle, amountCellStyle);
+  const descriptionCellStyleFromDS = getDescriptionCellStyles(
+    finalTableLayout,
+    descriptionCellStyle
+  );
 
   return (
     <>
       <style>{responsiveCSS}</style>
       <div
         className={`${containerClass} ${className}`}
-        style={{
-          width: "100%",
-          boxSizing: "border-box",
-        }}
+        style={fullWidth()}
       >
         <table
           style={{
-            width: "100%",
+            ...getTableStyles(bodyStyle),
             borderCollapse,
             tableLayout: finalTableLayout,
             fontFamily: fontFamily || "inherit",
-            ...(bodyStyle as React.CSSProperties),
           }}
         >
           <thead>
@@ -594,11 +597,7 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
                     fontSize: bodyFontSizeStr,
                     fontWeight: bodyFontWeight,
                     color: bodyTextColor,
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: finalTableLayout === "fixed" ? 0 : "auto",
-                    ...(descriptionCellStyle as React.CSSProperties),
+                    ...descriptionCellStyleFromDS,
                     ...(bodyStyle as React.CSSProperties),
                   }}
                 >
@@ -627,11 +626,8 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
                     fontSize: bodyFontSizeStr,
                     fontWeight: bodyFontWeight,
                     color: bodyTextColor,
-                    whiteSpace: "nowrap",
-                    ...(unitPriceCellStyle as React.CSSProperties),
+                    ...currencyCellStyles.unitPrice,
                     ...(bodyStyle as React.CSSProperties),
-                    // Ensure right alignment is always applied (after custom styles)
-                    textAlign: "right",
                   }}
                 >
                   {formatCurrencyWithCode(item.unit_price, currency)}
@@ -644,11 +640,8 @@ export const InvoiceItemList: React.FC<InvoiceItemListProps> = ({
                     fontSize: bodyFontSizeStr,
                     fontWeight: amountFontWeight,
                     color: amountColor || bodyTextColor,
-                    whiteSpace: "nowrap",
-                    ...(amountCellStyle as React.CSSProperties),
+                    ...currencyCellStyles.amount,
                     ...(bodyStyle as React.CSSProperties),
-                    // Ensure right alignment is always applied (after custom styles)
-                    textAlign: "right",
                   }}
                 >
                   {formatCurrencyWithCode(item.amount, currency)}

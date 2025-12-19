@@ -7,6 +7,9 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceContainer, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -23,29 +26,29 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("color-pop-stacked-template", {
+    padding: true,
+    layout: "flex",
+  });
+
   return (
     <>
+      <style>{templateCSS}</style>
       <style>{`
-        @media (max-width: 768px) {
-          .color-pop-stacked-template {
-            padding: 20px !important;
-          }
-          /* Make payment info full width when wrapped on its own line */
-          .color-pop-stacked-template .totals-section > div > div:last-child {
-            max-width: 100% !important;
-            width: 100% !important;
-            flex: 1 1 100% !important;
-          }
+        /* Make payment info full width when wrapped on its own line */
+        .color-pop-stacked-template .totals-section > div > div:last-child {
+          max-width: 100% !important;
+          width: 100% !important;
+          flex: 1 1 100% !important;
         }
       `}</style>
-      <div
+      <InvoiceContainer
         className="color-pop-stacked-template"
+        maxWidth={794}
+        padding={{ desktop: 40, tablet: 20, mobile: 20 }}
+        background={colors.black}
         style={{
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "40px",
-          background: colors.black,
         }}
       >
         {/* Main Card */}
@@ -59,7 +62,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
           {/* Header */}
           <div
             style={{
-              padding: "40px",
+              padding: spacing["3xl"],
               borderBottom: "6px solid " + colors.black,
               position: "relative",
               overflow: "hidden",
@@ -104,9 +107,8 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  marginTop: "15px",
-                  display: "flex",
-                  gap: "15px",
+                  marginTop: spacing.lg,
+                  ...flexContainer("row", "flex-start", "center", spacing.lg),
                   flexWrap: "wrap",
                 }}
               >
@@ -116,7 +118,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     color: colors.white,
                     padding: "10px 20px",
                     fontWeight: 900,
-                    fontSize: "14px",
+                    fontSize: spacing.lg,
                   }}
                 >
                   #{invoice.invoice_number}
@@ -126,7 +128,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     background: colors.quad,
                     padding: "10px 20px",
                     fontWeight: 700,
-                    fontSize: "14px",
+                    fontSize: spacing.lg,
                   }}
                 >
                   {formatDate(invoice.issue_date)}
@@ -136,7 +138,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     background: colors.secondary,
                     padding: "10px 20px",
                     fontWeight: 700,
-                    fontSize: "14px",
+                    fontSize: spacing.lg,
                   }}
                 >
                   Due: {formatDate(invoice.due_date)}
@@ -149,16 +151,19 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
           <div style={{ borderBottom: "6px solid " + colors.black }}>
             <div
               style={{
-                padding: "30px",
+                padding: spacing["2xl"],
                 background: colors.tertiary + "30",
                 borderBottom: "4px solid " + colors.black,
               }}
             >
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "20px",
+                  ...flexContainer(
+                    "row",
+                    "flex-start",
+                    "flex-start",
+                    spacing.lg
+                  ),
                 }}
               >
                 <div
@@ -166,7 +171,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     background: colors.black,
                     color: colors.white,
                     padding: "8px 16px",
-                    fontSize: "11px",
+                    fontSize: spacing.base,
                     textTransform: "uppercase",
                     letterSpacing: "3px",
                     fontWeight: 900,
@@ -178,16 +183,16 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <div>
                   <div
                     style={{
-                      fontSize: "20px",
+                      fontSize: spacing.lg,
                       fontWeight: 900,
-                      marginBottom: "8px",
+                      marginBottom: spacing.sm,
                     }}
                   >
                     {getCompanyInfo(profile, "company_name")}
                   </div>
                   <div
                     style={{
-                      fontSize: "13px",
+                      fontSize: spacing.md,
                       lineHeight: 1.6,
                       color: colors.black + "99",
                     }}
@@ -201,15 +206,18 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                padding: "30px",
+                padding: spacing["2xl"],
                 background: colors.quad + "30",
               }}
             >
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "20px",
+                  ...flexContainer(
+                    "row",
+                    "flex-start",
+                    "flex-start",
+                    spacing.lg
+                  ),
                 }}
               >
                 <div
@@ -217,7 +225,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     background: colors.primary,
                     color: colors.white,
                     padding: "8px 16px",
-                    fontSize: "11px",
+                    fontSize: spacing.base,
                     textTransform: "uppercase",
                     letterSpacing: "3px",
                     fontWeight: 900,
@@ -229,9 +237,9 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <div>
                   <div
                     style={{
-                      fontSize: "20px",
+                      fontSize: spacing.lg,
                       fontWeight: 900,
-                      marginBottom: "8px",
+                      marginBottom: spacing.sm,
                       wordWrap: "break-word",
                       overflowWrap: "break-word",
                       whiteSpace: "normal",
@@ -241,7 +249,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   </div>
                   <div
                     style={{
-                      fontSize: "13px",
+                      fontSize: spacing.md,
                       lineHeight: 1.6,
                       color: colors.black + "99",
                     }}
@@ -255,14 +263,14 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
 
           {/* Items Stack */}
-          <div style={{ padding: "30px", background: colors.white }}>
+          <div style={{ padding: spacing["2xl"], background: colors.white }}>
             <div
               style={{
-                fontSize: "12px",
+                fontSize: spacing.md,
                 textTransform: "uppercase",
                 letterSpacing: "4px",
                 fontWeight: 900,
-                marginBottom: "20px",
+                marginBottom: spacing.lg,
                 color: colors.black + "60",
               }}
             >
@@ -283,7 +291,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   style={{
                     background: bg,
                     border: "4px solid " + colors.black,
-                    padding: "20px",
+                    padding: spacing.lg,
                     marginBottom: index < items.length - 1 ? "-4px" : "0",
                     position: "relative",
                     boxShadow: "6px 6px 0 " + colors.black,
@@ -291,18 +299,16 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 >
                   <div
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
+                      ...flexContainer("row", "space-between", "center"),
                     }}
                   >
                     <div style={{ flex: 2 }}>
                       <div
                         style={{
-                          fontSize: "18px",
+                          fontSize: spacing["3xl"],
                           fontWeight: 900,
                           color: textColor,
-                          marginBottom: "4px",
+                          marginBottom: spacing.xs,
                           wordWrap: "break-word",
                           overflowWrap: "break-word",
                           whiteSpace: "normal",
@@ -312,7 +318,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       </div>
                       <div
                         style={{
-                          fontSize: "12px",
+                          fontSize: spacing.md,
                           color: textColor + "80",
                         }}
                       >
@@ -325,7 +331,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     </div>
                     <div
                       style={{
-                        fontSize: "24px",
+                        fontSize: spacing["4xl"],
                         fontWeight: 900,
                         color: textColor,
                       }}
@@ -342,7 +348,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
           <div
             className="totals-section"
             style={{
-              padding: "30px",
+              padding: spacing["2xl"],
               background: colors.secondary + "40",
               borderTop: "6px solid " + colors.black,
             }}
@@ -354,7 +360,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 justifyContent: "space-between",
                 alignItems: "flex-end",
                 flexWrap: "wrap",
-                gap: "20px",
+                gap: `${spacing.lg}px`,
               }}
             >
               <div
@@ -364,27 +370,31 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   minWidth: "200px",
                 }}
               >
-                <div style={{ marginBottom: "10px" }}>
-                  <span style={{ fontSize: "13px", marginRight: "20px" }}>
+                <div style={{ marginBottom: spacing.md }}>
+                  <span
+                    style={{ fontSize: spacing.md, marginRight: spacing.lg }}
+                  >
                     Subtotal
                   </span>
                   <span
                     style={{
                       fontWeight: 800,
-                      fontSize: "16px",
+                      fontSize: spacing.base,
                     }}
                   >
                     {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
                   </span>
                 </div>
-                <div style={{ marginBottom: "15px" }}>
-                  <span style={{ fontSize: "13px", marginRight: "20px" }}>
+                <div style={{ marginBottom: spacing.lg }}>
+                  <span
+                    style={{ fontSize: spacing.md, marginRight: spacing.lg }}
+                  >
                     Tax
                   </span>
                   <span
                     style={{
                       fontWeight: 800,
-                      fontSize: "16px",
+                      fontSize: spacing.base,
                     }}
                   >
                     {formatCurrencyWithCode(
@@ -397,17 +407,17 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   style={{
                     background: colors.primary,
                     color: colors.white,
-                    padding: "20px 30px",
+                    padding: `${spacing.lg}px ${spacing["2xl"]}px`,
                     display: "inline-block",
                     boxShadow: "6px 6px 0 " + colors.black,
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "10px",
+                      fontSize: spacing.sm,
                       textTransform: "uppercase",
                       letterSpacing: "2px",
-                      marginBottom: "5px",
+                      marginBottom: spacing.xs,
                     }}
                   >
                     Total
@@ -429,26 +439,23 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   flex: "1 1 200px",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: "11px",
+                <Section
+                  title="Payment Info"
+                  titleStyle={{
+                    fontSize: spacing.base,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
                     fontWeight: 900,
-                    marginBottom: "12px",
+                    marginBottom: spacing.md,
                   }}
-                >
-                  Payment Info
-                </div>
-                <div
-                  style={{
-                    fontSize: "12px",
+                  contentStyle={{
+                    fontSize: spacing.md,
                     lineHeight: 1.7,
                     color: colors.black + "99",
                   }}
                 >
                   <PaymentInformation profile={profile} invoice={invoice} />
-                </div>
+                </Section>
               </div>
             </div>
           </div>
@@ -456,17 +463,26 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
           {invoice.notes && (
             <div
               style={{
-                padding: "25px 30px",
+                padding: `${spacing["2xl"]}px ${spacing["2xl"]}px`,
                 borderTop: "4px dashed " + colors.black,
                 background: colors.white,
               }}
             >
-              <div style={{ display: "flex", gap: "15px" }}>
+              <div
+                style={{
+                  ...flexContainer(
+                    "row",
+                    "flex-start",
+                    "flex-start",
+                    spacing.lg
+                  ),
+                }}
+              >
                 <div
                   style={{
                     background: colors.tertiary,
                     padding: "6px 12px",
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
                     fontWeight: 900,
@@ -477,7 +493,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "13px",
+                    fontSize: spacing.md,
                     lineHeight: 1.7,
                     color: colors.black + "99",
                   }}
@@ -488,7 +504,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
           )}
         </div>
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

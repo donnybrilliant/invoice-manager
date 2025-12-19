@@ -4,6 +4,10 @@ import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 import { getCompanyInfo, formatClientAddress } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -20,264 +24,37 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("color-pop-brutalist-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        /* Force card mode at 650px to allow more column shrinking before stacking */
-        @container (max-width: 650px) {
-          .color-pop-brutalist-template [class^="invoice-item-list-"] table {
-            border: none !important;
-            font-size: 13px !important;
-            box-shadow: none !important;
-            background: transparent !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] thead {
-            display: none !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody {
-            display: block !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tr {
-            display: block !important;
-            width: 100% !important;
-            border-left: 4px solid ${colors.black} !important;
-            border-right: 4px solid ${colors.black} !important;
-            border-top: 4px solid ${colors.black} !important;
-            border-bottom: 4px solid ${colors.black} !important;
-            margin-bottom: 0 !important;
-            padding: 12px !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tr:not(:first-child) {
-            border-top: 2px solid ${colors.black} !important;
-            margin-top: 0 !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 6px 12px !important;
-            border-bottom: 2px solid ${colors.black}40 !important;
-            text-align: right !important;
-            position: relative !important;
-            box-shadow: none !important;
-            box-sizing: border-box !important;
-            white-space: nowrap !important;
-            font-size: 13px !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child {
-            border-bottom: 1px solid ${colors.black}40 !important;
-            font-weight: 900 !important;
-            font-size: 13px !important;
-            color: ${colors.black} !important;
-            background: transparent !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child * {
-            color: ${colors.black} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td:before {
-            content: attr(data-label) ":" !important;
-            position: absolute !important;
-            left: 12px !important;
-            font-weight: 600 !important;
-            color: ${colors.black} !important;
-            font-size: 13px !important;
-            text-transform: uppercase !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child {
-            display: block !important;
-            padding: 10px 12px !important;
-            text-align: left !important;
-            font-size: 14px !important;
-            color: ${colors.black} !important;
-            visibility: visible !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            border-bottom: 3px solid ${colors.black} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child:before {
-            display: none !important;
-            content: none !important;
-          }
-          /* Apply colorful backgrounds when in card mode */
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+1) {
-            background: ${colors.secondary} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+2) {
-            background: ${colors.white} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+3) {
-            background: ${colors.tertiary} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+4) {
-            background: ${colors.quad} !important;
-          }
-        }
-        @media (max-width: 650px) {
-          .color-pop-brutalist-template [class^="invoice-item-list-"] table {
-            border: none !important;
-            font-size: 13px !important;
-            box-shadow: none !important;
-            background: transparent !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] thead {
-            display: none !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody {
-            display: block !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tr {
-            display: block !important;
-            width: 100% !important;
-            border-left: 4px solid ${colors.black} !important;
-            border-right: 4px solid ${colors.black} !important;
-            border-top: 4px solid ${colors.black} !important;
-            border-bottom: 4px solid ${colors.black} !important;
-            margin-bottom: 0 !important;
-            padding: 12px !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tr:not(:first-child) {
-            border-top: 2px solid ${colors.black} !important;
-            margin-top: 0 !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 6px 12px !important;
-            border-bottom: 2px solid ${colors.black}40 !important;
-            text-align: right !important;
-            position: relative !important;
-            box-shadow: none !important;
-            box-sizing: border-box !important;
-            white-space: nowrap !important;
-            font-size: 13px !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child {
-            border-bottom: 1px solid ${colors.black}40 !important;
-            font-weight: 900 !important;
-            font-size: 13px !important;
-            color: ${colors.black} !important;
-            background: transparent !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td:last-child * {
-            color: ${colors.black} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td:before {
-            content: attr(data-label) ":" !important;
-            position: absolute !important;
-            left: 12px !important;
-            font-weight: 600 !important;
-            color: ${colors.black} !important;
-            font-size: 13px !important;
-            text-transform: uppercase !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child {
-            display: block !important;
-            padding: 10px 12px !important;
-            text-align: left !important;
-            font-size: 14px !important;
-            color: ${colors.black} !important;
-            visibility: visible !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            border-bottom: 3px solid ${colors.black} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] td[data-label]:first-child:before {
-            display: none !important;
-            content: none !important;
-          }
-          /* Apply colorful backgrounds when in card mode */
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+1) {
-            background: ${colors.secondary} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+2) {
-            background: ${colors.white} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+3) {
-            background: ${colors.tertiary} !important;
-          }
-          .color-pop-brutalist-template [class^="invoice-item-list-"] tbody tr:nth-child(4n+4) {
-            background: ${colors.quad} !important;
-          }
-        }
-        @media (max-width: 768px) {
-          .color-pop-brutalist-template {
-            border-width: 4px !important;
-          }
-          .color-pop-brutalist-content {
-            padding: 20px !important;
-          }
-          .color-pop-brutalist-info-cards {
-            flex-direction: column !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .color-pop-brutalist-content {
-            padding: 15px !important;
-          }
-        }
-        /* Make invoice number wrap to new line at narrow widths */
-        @container (max-width: 600px) {
-          .color-pop-brutalist-header {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 20px !important;
-          }
-          .color-pop-brutalist-invoice-number {
-            width: 100% !important;
-          }
-        }
-        @media (max-width: 600px) {
-          .color-pop-brutalist-header {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 20px !important;
-          }
-          .color-pop-brutalist-invoice-number {
-            width: 100% !important;
-          }
-        }
-        /* Make invoice header, invoice number and total amount responsive */
-        .invoice-header-text {
-          font-size: clamp(32px, 7vw, 56px) !important;
-        }
-        .invoice-number-value {
-          font-size: clamp(14px, 3vw, 24px) !important;
-        }
-        .total-amount-value {
-          font-size: clamp(18px, 4vw, 32px) !important;
-        }
-        @container (max-width: 400px) {
-          .invoice-header-text {
-            font-size: clamp(28px, 6vw, 48px) !important;
-          }
-          .invoice-number-value {
-            font-size: clamp(12px, 2.5vw, 20px) !important;
-          }
-          .total-amount-value {
-            font-size: clamp(16px, 3.5vw, 28px) !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .invoice-header-text {
-            font-size: clamp(28px, 6vw, 48px) !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="color-pop-brutalist-template"
+        maxWidth={794}
+        padding={{ desktop: 0, tablet: 0, mobile: 0 }}
+        background={colors.white}
         style={{
           fontFamily: "'Arial Black', Helvetica, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: 0,
-          background: colors.white,
           border: "6px solid " + colors.black,
         }}
       >
@@ -285,16 +62,14 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           style={{
             background: colors.primary,
-            padding: "30px 40px",
+            padding: `${spacing["2xl"]}px ${spacing["3xl"]}px`,
             borderBottom: "6px solid " + colors.black,
           }}
         >
           <div
             className="color-pop-brutalist-header"
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              ...flexContainer("row", "space-between", "center"),
               flexWrap: "wrap",
               containerType: "inline-size",
             }}
@@ -316,7 +91,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               style={{
                 background: colors.secondary,
                 border: "4px solid " + colors.black,
-                padding: "12px 24px",
+                padding: `${spacing.md}px ${spacing["4xl"]}px`,
                 boxShadow: "6px 6px 0 " + colors.black,
                 whiteSpace: "nowrap",
                 maxWidth: "100%",
@@ -325,7 +100,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <div
                 style={{
-                  fontSize: "12px",
+                  fontSize: spacing.md,
                   fontWeight: 900,
                   textTransform: "uppercase",
                   letterSpacing: "2px",
@@ -351,25 +126,23 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           style={{
             background: colors.tertiary,
-            padding: "15px 40px",
+            padding: `${spacing.xl}px ${spacing["3xl"]}px`,
             borderBottom: "4px solid " + colors.black,
           }}
         >
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              ...flexContainer("row", "space-between", "center"),
               flexWrap: "wrap",
-              gap: "10px",
+              gap: spacing.md,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: "18px" }}>
+            <div style={{ fontWeight: 900, fontSize: spacing["3xl"] }}>
               {getCompanyInfo(profile, "company_name")}
             </div>
             <div
               style={{
-                fontSize: "13px",
+                fontSize: spacing.md,
                 fontWeight: 700,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
@@ -385,16 +158,15 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         <div
-          style={{ padding: "40px" }}
+          style={{ padding: spacing["3xl"] }}
           className="color-pop-brutalist-content"
         >
           {/* Info Cards Row */}
           <div
             className="color-pop-brutalist-info-cards"
             style={{
-              display: "flex",
-              gap: "20px",
-              marginBottom: "40px",
+              ...flexContainer("row", "flex-start", "stretch", spacing.lg),
+              marginBottom: spacing["3xl"],
             }}
           >
             {/* Bill To */}
@@ -410,8 +182,8 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 style={{
                   background: colors.black,
                   color: colors.white,
-                  padding: "10px 16px",
-                  fontSize: "12px",
+                  padding: `${spacing.md}px ${spacing.base}px`,
+                  fontSize: spacing.md,
                   fontWeight: 900,
                   textTransform: "uppercase",
                   letterSpacing: "3px",
@@ -419,12 +191,12 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               >
                 → Bill To
               </div>
-              <div style={{ padding: "20px" }}>
+              <div style={{ padding: spacing.lg }}>
                 <div
                   style={{
-                    fontSize: "20px",
+                    fontSize: spacing.lg,
                     fontWeight: 900,
-                    marginBottom: "10px",
+                    marginBottom: spacing.md,
                     wordWrap: "break-word",
                     overflowWrap: "break-word",
                     whiteSpace: "normal",
@@ -434,20 +206,12 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "12px",
+                    fontSize: spacing.md,
                     lineHeight: 1.8,
                     fontFamily: "Arial, sans-serif",
                   }}
                 >
-                  {formatClientAddress(client)
-                    .split("\n")
-                    .map((line, i) => (
-                      <React.Fragment key={i}>
-                        {line}
-                        <br />
-                      </React.Fragment>
-                    ))}
-                  {client.email}
+                  {clientAddress}
                 </div>
               </div>
             </div>
@@ -456,22 +220,20 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 width: "200px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
+                ...flexContainer("column", "flex-start", "stretch", spacing.md),
               }}
             >
               <div
                 style={{
                   background: colors.secondary,
                   border: "4px solid " + colors.black,
-                  padding: "15px",
+                  padding: spacing.xl,
                   boxShadow: "4px 4px 0 " + colors.black,
                 }}
               >
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     fontWeight: 900,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
@@ -481,9 +243,9 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "18px",
+                    fontSize: spacing["3xl"],
                     fontWeight: 900,
-                    marginTop: "5px",
+                    marginTop: spacing.xs,
                   }}
                 >
                   {formatDate(invoice.issue_date)}
@@ -494,13 +256,13 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   background: colors.primary,
                   color: colors.white,
                   border: "4px solid " + colors.black,
-                  padding: "15px",
+                  padding: spacing.xl,
                   boxShadow: "4px 4px 0 " + colors.black,
                 }}
               >
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     fontWeight: 900,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
@@ -510,9 +272,9 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "18px",
+                    fontSize: spacing["3xl"],
                     fontWeight: 900,
-                    marginTop: "5px",
+                    marginTop: spacing.xs,
                   }}
                 >
                   {formatDate(invoice.due_date)}
@@ -526,7 +288,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             style={{
               border: "4px solid " + colors.black,
               boxShadow: "8px 8px 0 " + colors.black,
-              marginBottom: "40px",
+              marginBottom: spacing["3xl"],
               width: "100%",
               boxSizing: "border-box",
               overflow: "hidden",
@@ -536,10 +298,10 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               items={items}
               currency={invoice.currency}
               styles={{
-                headerFontSize: "13px",
-                bodyFontSize: "14px",
-                headerPadding: "18px",
-                bodyPadding: "16px",
+                headerFontSize: `${spacing.md}px`,
+                bodyFontSize: `${spacing.lg}px`,
+                headerPadding: `${spacing["3xl"]}px`,
+                bodyPadding: `${spacing.base}px`,
                 headerTextColor: colors.black,
                 headerBgColor: colors.tertiary,
                 bodyTextColor: colors.black,
@@ -553,8 +315,6 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 amountFontWeight: 900,
                 amountColor: colors.white,
                 fontFamily: "'Arial Black', sans-serif",
-                // Note: Component applies alternatingRowColor to even rows (0, 2, 4...)
-                // ColorPopBrutalist needs odd rows (1, 3, 5...) colored, so pattern is inverted
                 alternatingRowColor: colors.secondary,
                 descriptionCellStyle: {
                   border: "4px solid " + colors.black,
@@ -565,7 +325,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 },
                 quantityCellStyle: {
                   border: "4px solid " + colors.black,
-                  fontSize: "16px",
+                  fontSize: spacing.base,
                 },
                 unitPriceCellStyle: {
                   border: "4px solid " + colors.black,
@@ -573,7 +333,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 amountCellStyle: {
                   border: "4px solid " + colors.black,
                   background: colors.primary,
-                  fontSize: "15px",
+                  fontSize: spacing.xl,
                 },
                 headerStyle: {
                   border: "4px solid " + colors.black,
@@ -588,9 +348,8 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           {/* Totals */}
           <div
             style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: "40px",
+              ...flexContainer("row", "flex-end", "flex-start"),
+              marginBottom: spacing["3xl"],
             }}
           >
             <div
@@ -603,16 +362,15 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "15px 20px",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: `${spacing.xl}px ${spacing.lg}px`,
                   borderBottom: "3px solid " + colors.black,
                   background: colors.white,
                 }}
               >
                 <span
                   style={{
-                    fontSize: "14px",
+                    fontSize: spacing.lg,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
                   }}
@@ -622,8 +380,8 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <span
                   style={{
                     fontWeight: 900,
-                    fontSize: "16px",
-                    whiteSpace: "nowrap",
+                    fontSize: spacing.base,
+                    ...getCurrencyStyle(),
                   }}
                 >
                   {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
@@ -631,16 +389,15 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "15px 20px",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: `${spacing.xl}px ${spacing.lg}px`,
                   borderBottom: "3px solid " + colors.black,
                   background: colors.white,
                 }}
               >
                 <span
                   style={{
-                    fontSize: "14px",
+                    fontSize: spacing.lg,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
                   }}
@@ -650,8 +407,8 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <span
                   style={{
                     fontWeight: 900,
-                    fontSize: "16px",
-                    whiteSpace: "nowrap",
+                    fontSize: spacing.base,
+                    ...getCurrencyStyle(),
                   }}
                 >
                   {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
@@ -659,16 +416,15 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "20px",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: spacing.lg,
                   background: colors.primary,
                   color: colors.white,
                 }}
               >
                 <span
                   style={{
-                    fontSize: "18px",
+                    fontSize: spacing["3xl"],
                     textTransform: "uppercase",
                     fontWeight: 900,
                     letterSpacing: "2px",
@@ -683,7 +439,7 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontSize: "clamp(18px, 4vw, 32px)",
                     fontWeight: 900,
                     color: colors.white,
-                    whiteSpace: "nowrap",
+                    ...getCurrencyStyle(),
                   }}
                 >
                   {formatCurrencyWithCode(invoice.total, invoice.currency)}
@@ -693,71 +449,60 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
 
           {/* Payment Info */}
-          <div
+          <Section
+            title="Payment Information"
             style={{
               background: colors.quad,
               border: "4px solid " + colors.black,
               boxShadow: "6px 6px 0 " + colors.black,
             }}
+            titleStyle={{
+              background: colors.black,
+              color: colors.white,
+              padding: `${spacing.md}px ${spacing.base}px`,
+              fontSize: spacing.md,
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "3px",
+              marginBottom: 0,
+            }}
+            contentStyle={{
+              padding: spacing.lg,
+              fontSize: spacing.md,
+              lineHeight: 1.8,
+              fontFamily: "Arial, sans-serif",
+            }}
           >
-            <div
+            <PaymentInformation profile={profile} invoice={invoice} />
+          </Section>
+
+          {invoice.notes && (
+            <Section
+              title="Notes"
               style={{
-                background: colors.black,
-                color: colors.white,
-                padding: "10px 16px",
-                fontSize: "12px",
+                marginTop: spacing.lg,
+                background: colors.secondary,
+                border: "4px dashed " + colors.black,
+                padding: spacing.lg,
+              }}
+              titleStyle={{
+                fontSize: spacing.md,
                 fontWeight: 900,
                 textTransform: "uppercase",
-                letterSpacing: "3px",
+                letterSpacing: "2px",
+                marginBottom: spacing.md,
               }}
-            >
-              Payment Information
-            </div>
-            <div
-              style={{
-                padding: "20px",
-                fontSize: "13px",
+              contentStyle={{
+                fontSize: spacing.md,
                 lineHeight: 1.8,
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              <PaymentInformation profile={profile} invoice={invoice} />
-            </div>
-          </div>
-
-          {invoice.notes && (
-            <div
-              style={{
-                marginTop: "20px",
-                background: colors.secondary,
-                border: "4px dashed " + colors.black,
-                padding: "20px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 900,
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  marginBottom: "10px",
-                }}
-              >
-                Notes
-              </div>
-              <div
-                style={{
-                  fontSize: "13px",
-                  lineHeight: 1.8,
-                  fontFamily: "Arial, sans-serif",
-                }}
-              >
-                {invoice.notes}
-              </div>
-            </div>
+              {invoice.notes}
+            </Section>
           )}
         </div>
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

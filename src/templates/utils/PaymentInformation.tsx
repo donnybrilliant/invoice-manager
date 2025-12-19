@@ -29,12 +29,22 @@ export function PaymentInformation({
 
   // Get the color from style.item to apply to strong tags
   const textColor = style.item?.color || "inherit";
+  
+  // Default item style with responsive font size and wrapping
+  const defaultItemStyle: React.CSSProperties = {
+    fontSize: "clamp(11px, 2.5vw, 18px)",
+    wordWrap: "break-word",
+    overflowWrap: "break-word",
+    whiteSpace: "normal",
+    minWidth: 0,
+    ...style.item,
+  };
 
   // Banking details
   if (profile) {
     if (invoice.show_account_number && profile.account_number) {
       details.push(
-        <div key="account" style={style.item}>
+        <div key="account" style={defaultItemStyle}>
           <strong style={{ color: textColor }}>Account Number:</strong>{" "}
           {profile.account_number}
         </div>
@@ -43,7 +53,7 @@ export function PaymentInformation({
 
     if (invoice.show_iban && profile.iban) {
       details.push(
-        <div key="iban" style={style.item}>
+        <div key="iban" style={defaultItemStyle}>
           <strong style={{ color: textColor }}>IBAN:</strong> {profile.iban}
         </div>
       );
@@ -51,7 +61,7 @@ export function PaymentInformation({
 
     if (invoice.show_swift_bic && profile.swift_bic) {
       details.push(
-        <div key="swift" style={style.item}>
+        <div key="swift" style={defaultItemStyle}>
           <strong style={{ color: textColor }}>SWIFT/BIC:</strong>{" "}
           {profile.swift_bic}
         </div>
@@ -62,7 +72,7 @@ export function PaymentInformation({
   // KID number
   if (invoice.kid_number) {
     details.push(
-      <div key="kid" style={style.item}>
+      <div key="kid" style={defaultItemStyle}>
         <strong style={{ color: textColor }}>KID:</strong> {invoice.kid_number}
       </div>
     );
@@ -70,7 +80,7 @@ export function PaymentInformation({
 
   // Due date
   details.push(
-    <div key="due-date" style={style.item}>
+    <div key="due-date" style={defaultItemStyle}>
       <strong style={{ color: textColor }}>Due Date:</strong>{" "}
       {formatDate(invoice.due_date)}
     </div>
@@ -82,7 +92,7 @@ export function PaymentInformation({
     invoice.currency
   );
   details.push(
-    <div key="amount" style={style.item}>
+    <div key="amount" style={defaultItemStyle}>
       <strong style={{ color: textColor }}>Amount Due:</strong>{" "}
       {formattedAmount}
     </div>
@@ -90,11 +100,18 @@ export function PaymentInformation({
 
   if (details.length === 0) {
     return (
-      <div style={style.empty || { color: "#9ca3af", fontSize: "14px" }}>
+      <div style={style.empty || { color: "#9ca3af", fontSize: "clamp(11px, 2.5vw, 18px)" }}>
         [Payment information not set]
       </div>
     );
   }
 
-  return <div style={style.container}>{details}</div>;
+  // Default container style with overflow handling
+  const defaultContainerStyle: React.CSSProperties = {
+    minWidth: 0,
+    overflow: "hidden",
+    ...style.container,
+  };
+
+  return <div style={defaultContainerStyle}>{details}</div>;
 }

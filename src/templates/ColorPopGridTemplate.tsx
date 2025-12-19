@@ -7,6 +7,9 @@ import {
   formatClientAddress,
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
+import { InvoiceContainer, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, gridContainer, flexContainer } from "./design-system";
 
 const colors = {
   primary: "hsl(358, 100%, 67%)",
@@ -23,168 +26,60 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("color-pop-grid-template", {
+    padding: true,
+    layout: "grid",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "email")}
+      <br />
+      {getCompanyInfo(profile, "phone")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
+      <style>{templateCSS}</style>
       <style>{`
         /* Prevent currency values from breaking across lines, but allow text to shrink */
         .color-pop-grid-template .rate-cell,
         .color-pop-grid-template .amount-cell {
           white-space: nowrap !important;
         }
-        
-        @media (max-width: 768px) {
-          .color-pop-grid-template {
-            border-width: 3px !important;
-            overflow-x: hidden !important;
-          }
-          /* Fix header overflow - add borders and prevent overflow */
-          .color-pop-grid-header {
-            grid-template-columns: 1fr !important;
-            overflow-x: hidden !important;
-          }
-          .color-pop-grid-header > div {
-            border-right: none !important;
-            border-bottom: 5px solid hsl(0, 0%, 0%) !important;
-            min-width: 0 !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-          }
-          .color-pop-grid-header > div:last-child {
-            border-bottom: none !important;
-          }
-          /* Fix info section overflow */
-          .color-pop-grid-info {
-            grid-template-columns: 1fr !important;
-            overflow-x: hidden !important;
-          }
-          .color-pop-grid-info > div {
-            border-right: none !important;
-            border-bottom: 5px solid hsl(0, 0%, 0%) !important;
-            min-width: 0 !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-          }
-          .color-pop-grid-info > div:last-child {
-            border-bottom: none !important;
-          }
-          /* Fix totals section */
-          .color-pop-grid-totals {
-            grid-template-columns: 1fr !important;
-            overflow-x: hidden !important;
-          }
-          .color-pop-grid-totals > div {
-            border-right: none !important;
-            border-bottom: 5px solid hsl(0, 0%, 0%) !important;
-            min-width: 0 !important;
-            overflow: hidden !important;
-          }
-          .color-pop-grid-totals > div:last-child {
-            border-bottom: none !important;
-          }
-          .color-pop-grid-totals .payment-info-section {
-            order: 3 !important;
-          }
-          .color-pop-grid-totals .subtotal-section {
-            order: 1 !important;
-          }
-          .color-pop-grid-totals .total-section {
-            order: 2 !important;
-          }
-          /* Fix subtotal/tax overflow */
-          .color-pop-grid-totals .subtotal-section {
-            overflow-x: hidden !important;
-            min-width: 0 !important;
-          }
-          .color-pop-grid-totals .subtotal-section > div {
-            min-width: 0 !important;
-            box-sizing: border-box !important;
-            overflow-x: hidden !important;
-          }
-          .color-pop-grid-totals .subtotal-section span {
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
-          }
-        }
-        
-        @media (max-width: 435px) {
-          /* Hide table header on mobile */
-          .color-pop-grid-template .items-header {
-            display: none !important;
-          }
-          
-          /* Convert item rows to cards like InvoiceItemList - stack them directly */
-          .color-pop-grid-template .item-row {
-            display: block !important;
-            border-left: 3px solid hsl(0, 0%, 0%) !important;
-            border-right: 3px solid hsl(0, 0%, 0%) !important;
-            border-top: 3px solid hsl(0, 0%, 0%) !important;
-            border-bottom: 3px solid hsl(0, 0%, 0%) !important;
-            margin-bottom: 0 !important;
-            padding: 0 !important;
-            background: hsl(0, 0%, 100%) !important;
-          }
-          .color-pop-grid-template .item-row:not(:last-of-type) {
-            border-bottom: 2px solid hsl(0, 0%, 0%) !important;
-            margin-bottom: 0 !important;
-          }
-          
-          /* Make all cells in a row appear inside the card */
-          .color-pop-grid-template .item-row > div {
-            display: flex !important;
-            width: 100% !important;
-            border-right: none !important;
-            border-bottom: 2px solid hsl(0, 0%, 0%) !important;
-            padding: 12px 16px !important;
-            box-sizing: border-box !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-          }
-          .color-pop-grid-template .item-row > div:last-child {
-            border-bottom: none !important;
-          }
-          
-          /* Description cell - full width, bold, no label */
-          .color-pop-grid-template .item-row > .description-cell {
-            font-weight: 900 !important;
-            font-size: 16px !important;
-            border-bottom: 3px solid hsl(0, 0%, 0%) !important;
-            padding: 16px !important;
-            display: block !important;
-          }
-          
-          /* Quantity cell - label on left, value on right */
-          .color-pop-grid-template .item-row > .quantity-cell::before {
-            content: "Qty: " !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            margin-right: auto !important;
-          }
-          
-          /* Rate cell - label on left, value on right */
-          .color-pop-grid-template .item-row > .rate-cell::before {
-            content: "Rate: " !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            margin-right: auto !important;
-          }
-          
-          /* Amount cell - label on left (white), value on right */
-          .color-pop-grid-template .item-row > .amount-cell::before {
-            content: "Amount: " !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            color: hsl(0, 0%, 100%) !important;
-            margin-right: auto !important;
-          }
-        }
       `}</style>
-      <div
+      <InvoiceContainer
         className="color-pop-grid-template"
+        maxWidth={794}
+        padding={{ desktop: 0, tablet: 0, mobile: 0 }}
+        background={colors.white}
         style={{
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          background: colors.white,
           border: "5px solid " + colors.black,
         }}
       >
@@ -192,21 +87,20 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="color-pop-grid-header"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+            ...gridContainer("1fr 1fr 1fr 1fr", 0),
             borderBottom: "5px solid " + colors.black,
           }}
         >
           <div
             style={{
               background: colors.primary,
-              padding: "40px 25px",
+              padding: `${spacing["3xl"]}px ${spacing["2xl"]}px`,
               borderRight: "5px solid " + colors.black,
             }}
           >
             <div
               style={{
-                fontSize: "14px",
+                fontSize: spacing.lg,
                 color: colors.white,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
@@ -220,7 +114,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 fontSize: "36px",
                 color: colors.white,
                 fontWeight: 900,
-                marginTop: "8px",
+                marginTop: spacing.sm,
               }}
             >
               #{invoice.invoice_number}
@@ -229,65 +123,65 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
           <div
             style={{
               background: colors.secondary,
-              padding: "40px 25px",
+              padding: `${spacing["3xl"]}px ${spacing["2xl"]}px`,
               borderRight: "5px solid " + colors.black,
             }}
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 fontWeight: 900,
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               Issue Date
             </div>
-            <div style={{ fontSize: "20px", fontWeight: 900 }}>
+            <div style={{ fontSize: spacing.lg, fontWeight: 900 }}>
               {formatDate(invoice.issue_date)}
             </div>
           </div>
           <div
             style={{
               background: colors.tertiary,
-              padding: "40px 25px",
+              padding: `${spacing["3xl"]}px ${spacing["2xl"]}px`,
               borderRight: "5px solid " + colors.black,
             }}
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 fontWeight: 900,
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               Due Date
             </div>
-            <div style={{ fontSize: "20px", fontWeight: 900 }}>
+            <div style={{ fontSize: spacing.lg, fontWeight: 900 }}>
               {formatDate(invoice.due_date)}
             </div>
           </div>
           <div
             style={{
               background: colors.quad,
-              padding: "40px 25px",
+              padding: `${spacing["3xl"]}px ${spacing["2xl"]}px`,
             }}
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 fontWeight: 900,
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               Total Due
             </div>
-            <div style={{ fontSize: "20px", fontWeight: 900 }}>
+            <div style={{ fontSize: spacing.lg, fontWeight: 900 }}>
               {formatCurrencyWithCode(invoice.total, invoice.currency)}
             </div>
           </div>
@@ -297,14 +191,13 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="color-pop-grid-info"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            ...gridContainer("1fr 1fr", 0),
             borderBottom: "5px solid " + colors.black,
           }}
         >
           <div
             style={{
-              padding: "30px",
+              padding: spacing["2xl"],
               borderRight: "5px solid " + colors.black,
             }}
           >
@@ -314,47 +207,37 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: colors.white,
                 padding: "8px 14px",
                 display: "inline-block",
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
                 fontWeight: 900,
-                marginBottom: "15px",
+                marginBottom: spacing.lg,
               }}
             >
               From
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 fontWeight: 900,
-                marginBottom: "10px",
+                marginBottom: spacing.md,
               }}
             >
               {getCompanyInfo(profile, "company_name")}
             </div>
             <div
               style={{
-                fontSize: "13px",
+                fontSize: spacing.md,
                 lineHeight: 1.8,
                 color: colors.black,
               }}
             >
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "email")}
-              <br />
-              {getCompanyInfo(profile, "phone")}
+              {companyDetails}
             </div>
           </div>
           <div
             style={{
-              padding: "30px",
+              padding: spacing["2xl"],
               background: colors.secondary + "15",
             }}
           >
@@ -364,20 +247,20 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: colors.white,
                 padding: "8px 14px",
                 display: "inline-block",
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
                 fontWeight: 900,
-                marginBottom: "15px",
+                marginBottom: spacing.lg,
               }}
             >
               Bill To
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 fontWeight: 900,
-                marginBottom: "10px",
+                marginBottom: spacing.md,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
                 whiteSpace: "normal",
@@ -387,20 +270,12 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                fontSize: "13px",
+                fontSize: spacing.md,
                 lineHeight: 1.8,
                 color: colors.black,
               }}
             >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+              {clientAddress}
             </div>
           </div>
         </div>
@@ -409,8 +284,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="items-header"
           style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 0.5fr 1fr 1fr",
+            ...gridContainer("2fr 0.5fr 1fr 1fr", 0),
             background: colors.black,
             color: colors.white,
           }}
@@ -419,7 +293,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             className="header-description"
             style={{
               padding: "14px 20px",
-              fontSize: "11px",
+              fontSize: spacing.base,
               textTransform: "uppercase",
               letterSpacing: "2px",
               fontWeight: 900,
@@ -433,7 +307,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             className="header-qty"
             style={{
               padding: "14px 8px",
-              fontSize: "11px",
+              fontSize: spacing.base,
               textTransform: "uppercase",
               letterSpacing: "2px",
               fontWeight: 900,
@@ -445,10 +319,10 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             Qty
           </div>
           <div
-            className="header-rate"
+            className="header-rate rate-cell"
             style={{
               padding: "14px 8px",
-              fontSize: "11px",
+              fontSize: spacing.base,
               textTransform: "uppercase",
               letterSpacing: "2px",
               fontWeight: 900,
@@ -460,10 +334,10 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             Rate
           </div>
           <div
-            className="header-amount"
+            className="header-amount amount-cell"
             style={{
               padding: "14px 8px",
-              fontSize: "11px",
+              fontSize: spacing.base,
               textTransform: "uppercase",
               letterSpacing: "2px",
               fontWeight: 900,
@@ -481,15 +355,14 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             key={item.id || index}
             className="item-row"
             style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 0.5fr 1fr 1fr",
+              ...gridContainer("2fr 0.5fr 1fr 1fr", 0),
               borderBottom: "3px solid " + colors.black,
             }}
           >
             <div
               className="description-cell"
               style={{
-                padding: "16px 20px",
+                padding: `${spacing.base}px ${spacing.lg}px`,
                 background: colors.white,
                 fontWeight: 700,
                 borderRight: "3px solid " + colors.black,
@@ -506,7 +379,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               className="quantity-cell"
               style={{
-                padding: "16px 8px",
+                padding: `${spacing.base}px 8px`,
                 background: [colors.secondary, colors.tertiary, colors.quad][
                   index % 3
                 ],
@@ -521,13 +394,13 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               className="rate-cell"
               style={{
-                padding: "16px 8px",
+                padding: `${spacing.base}px 8px`,
                 background: colors.white,
                 textAlign: "right",
                 fontWeight: 700,
                 borderRight: "3px solid " + colors.black,
                 whiteSpace: "nowrap",
-                fontSize: "12px",
+                fontSize: spacing.md,
                 minWidth: 0,
               }}
             >
@@ -536,13 +409,13 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               className="amount-cell"
               style={{
-                padding: "16px 8px",
+                padding: `${spacing.base}px 8px`,
                 background: colors.primary,
                 color: colors.white,
                 textAlign: "right",
                 fontWeight: 900,
                 whiteSpace: "nowrap",
-                fontSize: "12px",
+                fontSize: spacing.md,
                 minWidth: 0,
               }}
             >
@@ -555,36 +428,36 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="color-pop-grid-totals"
           style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 2fr 1fr",
+            ...gridContainer("2fr 2fr 1fr", 0),
             borderTop: "5px solid " + colors.black,
           }}
         >
           <div
             className="payment-info-section"
             style={{
-              padding: "25px",
+              padding: spacing["2xl"],
               borderRight: "5px solid " + colors.black,
               background: colors.secondary,
             }}
           >
-            <div
-              style={{
-                fontSize: "11px",
+            <Section
+              title="Payment Info"
+              titleStyle={{
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 fontWeight: 900,
-                marginBottom: "10px",
+                marginBottom: spacing.md,
+                color: colors.black,
+              }}
+              contentStyle={{
+                fontSize: spacing.md,
+                lineHeight: 1.7,
                 color: colors.black,
               }}
             >
-              Payment Info
-            </div>
-            <div
-              style={{ fontSize: "12px", lineHeight: 1.7, color: colors.black }}
-            >
               <PaymentInformation profile={profile} invoice={invoice} />
-            </div>
+            </Section>
           </div>
           <div
             className="subtotal-section"
@@ -596,18 +469,17 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
           >
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "15px 20px",
+                ...flexContainer("row", "space-between", "center"),
+                padding: `${spacing.xl}px ${spacing.lg}px`,
                 borderBottom: "2px solid " + colors.black,
-                gap: "10px",
+                gap: spacing.md,
                 boxSizing: "border-box",
                 minWidth: 0,
               }}
             >
               <span
                 style={{
-                  fontSize: "12px",
+                  fontSize: spacing.md,
                   textTransform: "uppercase",
                   letterSpacing: "1px",
                   whiteSpace: "nowrap",
@@ -628,17 +500,16 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "15px 20px",
-                gap: "10px",
+                ...flexContainer("row", "space-between", "center"),
+                padding: `${spacing.xl}px ${spacing.lg}px`,
+                gap: spacing.md,
                 boxSizing: "border-box",
                 minWidth: 0,
               }}
             >
               <span
                 style={{
-                  fontSize: "12px",
+                  fontSize: spacing.md,
                   textTransform: "uppercase",
                   letterSpacing: "1px",
                   whiteSpace: "nowrap",
@@ -662,20 +533,17 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
             className="total-section"
             style={{
               background: colors.primary,
-              padding: "25px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
+              padding: spacing["2xl"],
+              ...flexContainer("column", "center", "center"),
             }}
           >
             <div
               style={{
-                fontSize: "10px",
+                fontSize: spacing.sm,
                 color: colors.white,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               Total
@@ -695,28 +563,28 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
         {invoice.notes && (
           <div
             style={{
-              padding: "20px",
+              padding: spacing.lg,
               borderTop: "5px solid " + colors.black,
               background: colors.tertiary + "30",
             }}
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 fontWeight: 900,
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
               }}
             >
               Notes
             </div>
-            <div style={{ fontSize: "13px", lineHeight: 1.7 }}>
+            <div style={{ fontSize: spacing.md, lineHeight: 1.7 }}>
               {invoice.notes}
             </div>
           </div>
         )}
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

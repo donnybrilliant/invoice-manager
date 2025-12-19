@@ -8,6 +8,10 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, TotalsSection, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -20,24 +24,48 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
     '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="#FDF6E3" width="100" height="100"/><circle fill="#F5E6C8" cx="50" cy="50" r="1"/></svg>'
   );
 
+  const templateCSS = createTemplateStyles("typewriter-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      Tel: {getCompanyInfo(profile, "phone")}
+      <br />
+      {getCompanyInfo(profile, "email")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
+      <style>{templateCSS}</style>
       <style>{`
-        @media (max-width: 634px) {
-          .typewriter-template {
-            padding: 20px !important;
-            overflow-x: visible !important;
-          }
-          .typewriter-header {
-            flex-direction: column !important;
-            gap: 20px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .typewriter-template {
-            padding: 15px !important;
-          }
-        }
         /* Override card borders to dashed for typewriter template */
         @container (max-width: 435px) {
           .typewriter-template [class^="invoice-item-list-"] tr {
@@ -62,18 +90,15 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
           }
         }
       `}</style>
-      <div
+      <InvoiceContainer
         className="typewriter-template"
+        maxWidth={794}
+        padding={{ desktop: 50, tablet: 20, mobile: 15 }}
+        background="#FDF6E3"
         style={{
           fontFamily: "'Courier New', Courier, monospace",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "50px",
-          background: "#FDF6E3",
           backgroundImage: `url('data:image/svg+xml,${svgTexture}')`,
           position: "relative",
-          width: "100%",
-          boxSizing: "border-box",
         }}
       >
         {/* Paper texture overlay */}
@@ -112,14 +137,14 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               textAlign: "center",
               color: "#8B0000",
               fontWeight: "bold",
-              fontSize: "11px",
+              fontSize: spacing.base,
               textTransform: "uppercase",
               letterSpacing: "1px",
             }}
           >
             INVOICE
             <br />
-            <span style={{ fontSize: "9px" }}>ORIGINAL</span>
+            <span style={{ fontSize: spacing.sm }}>ORIGINAL</span>
           </div>
         </div>
 
@@ -128,16 +153,14 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
           className="typewriter-header"
           style={{
             position: "relative",
-            marginBottom: "50px",
-            paddingBottom: "25px",
+            marginBottom: spacing["4xl"],
+            paddingBottom: spacing["2xl"],
             borderBottom: "2px solid #8B7355",
           }}
         >
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "start",
+              ...flexContainer("row", "space-between", "flex-start"),
             }}
           >
             <div>
@@ -148,7 +171,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   style={{
                     maxWidth: "120px",
                     maxHeight: "60px",
-                    marginBottom: "15px",
+                    marginBottom: spacing.lg,
                     filter: "sepia(50%)",
                   }}
                 />
@@ -166,9 +189,9 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "14px",
+                  fontSize: spacing.lg,
                   color: "#8B7355",
-                  marginTop: "8px",
+                  marginTop: spacing.sm,
                   letterSpacing: "4px",
                 }}
               >
@@ -179,9 +202,9 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{
                   fontWeight: "bold",
-                  fontSize: "14px",
+                  fontSize: spacing.lg,
                   color: "#3D2914",
-                  marginBottom: "10px",
+                  marginBottom: spacing.md,
                   textTransform: "uppercase",
                   letterSpacing: "2px",
                 }}
@@ -189,19 +212,13 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {getCompanyInfo(profile, "company_name")}
               </div>
               <div
-                style={{ fontSize: "12px", color: "#5D4E37", lineHeight: 1.8 }}
+                style={{
+                  fontSize: spacing.md,
+                  color: "#5D4E37",
+                  lineHeight: 1.8,
+                }}
               >
-                {formatCompanyAddress(profile)
-                  .split("\n")
-                  .map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line}
-                      <br />
-                    </React.Fragment>
-                  ))}
-                Tel: {getCompanyInfo(profile, "phone")}
-                <br />
-                {getCompanyInfo(profile, "email")}
+                {companyDetails}
               </div>
             </div>
           </div>
@@ -211,10 +228,9 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           style={{
             position: "relative",
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "40px",
-            padding: "25px",
+            ...flexContainer("row", "space-between", "flex-start"),
+            marginBottom: spacing["3xl"],
+            padding: spacing["2xl"],
             background: "rgba(139,115,85,0.08)",
             border: "1px dashed #8B7355",
           }}
@@ -222,22 +238,22 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
           <div style={{ maxWidth: "300px", minWidth: 0 }}>
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 fontWeight: "bold",
                 color: "#8B7355",
                 textTransform: "uppercase",
                 letterSpacing: "3px",
-                marginBottom: "10px",
+                marginBottom: spacing.md,
               }}
             >
               BILLED TO:
             </div>
             <div
               style={{
-                fontSize: "16px",
+                fontSize: spacing.base,
                 fontWeight: "bold",
                 color: "#3D2914",
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
                 textTransform: "uppercase",
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
@@ -248,24 +264,20 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               {client.name}
             </div>
             <div
-              style={{ fontSize: "12px", color: "#5D4E37", lineHeight: 1.8 }}
+              style={{
+                fontSize: spacing.md,
+                color: "#5D4E37",
+                lineHeight: 1.8,
+              }}
             >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+              {clientAddress}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ marginBottom: "18px" }}>
+            <div style={{ marginBottom: spacing["3xl"] }}>
               <div
                 style={{
-                  fontSize: "10px",
+                  fontSize: spacing.sm,
                   color: "#8B7355",
                   textTransform: "uppercase",
                   letterSpacing: "2px",
@@ -275,9 +287,9 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "14px",
+                  fontSize: spacing.lg,
                   color: "#3D2914",
-                  marginTop: "4px",
+                  marginTop: spacing.xs,
                   textDecoration: "underline",
                 }}
               >
@@ -287,7 +299,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div>
               <div
                 style={{
-                  fontSize: "10px",
+                  fontSize: spacing.sm,
                   color: "#8B7355",
                   textTransform: "uppercase",
                   letterSpacing: "2px",
@@ -297,9 +309,9 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "14px",
+                  fontSize: spacing.lg,
                   color: "#8B0000",
-                  marginTop: "4px",
+                  marginTop: spacing.xs,
                   fontWeight: "bold",
                   textDecoration: "underline",
                 }}
@@ -308,10 +320,10 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
-              <div style={{ marginTop: "18px" }}>
+              <div style={{ marginTop: spacing["3xl"] }}>
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     color: "#8B7355",
                     textTransform: "uppercase",
                     letterSpacing: "2px",
@@ -321,9 +333,9 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "14px",
+                    fontSize: spacing.lg,
                     color: "#3D2914",
-                    marginTop: "4px",
+                    marginTop: spacing.xs,
                     textDecoration: "underline",
                   }}
                 >
@@ -337,15 +349,15 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
         {/* Items Table */}
         <div
           className="typewriter-table"
-          style={{ marginBottom: "40px", position: "relative" }}
+          style={{ marginBottom: spacing["3xl"], position: "relative" }}
         >
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
             styles={{
-              headerFontSize: "11px",
-              bodyFontSize: "13px",
-              headerPadding: "12px",
+              headerFontSize: `${spacing.base}px`,
+              bodyFontSize: `${spacing.md}px`,
+              headerPadding: `${spacing.md}px`,
               bodyPadding: "10px 12px",
               headerTextColor: "#5D4E37",
               bodyTextColor: "#3D2914",
@@ -375,180 +387,140 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "40px",
+        <TotalsSection
+          subtotal={{
+            label: "Subtotal",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
           }}
-        >
-          <div
-            style={{
-              width: "280px",
-              border: "2px solid #8B7355",
-              background: "rgba(139,115,85,0.05)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                borderBottom: "1px dashed #8B7355",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "#5D4E37",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                }}
-              >
-                Subtotal
-              </span>
-              <span style={{ color: "#3D2914" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                borderBottom: "1px dashed #8B7355",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "#5D4E37",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                }}
-              >
-                Tax
-              </span>
-              <span style={{ color: "#3D2914" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "16px",
-                background: "#3D2914",
-                color: "#FDF6E3",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "12px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  fontWeight: "bold",
-                  color: "#FDF6E3",
-                }}
-              >
-                TOTAL DUE
-              </span>
-              <span
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  color: "#FDF6E3",
-                }}
-              >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
-              </span>
-            </div>
-          </div>
-        </div>
+          tax={{
+            label: "Tax",
+            amount: formatCurrencyWithCode(
+              invoice.tax_amount,
+              invoice.currency
+            ),
+          }}
+          total={{
+            label: "TOTAL DUE",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          style={{
+            width: "280px",
+            border: "2px solid #8B7355",
+            background: "rgba(139,115,85,0.05)",
+            marginBottom: spacing["3xl"],
+          }}
+          rowStyle={{
+            ...flexContainer("row", "space-between", "center"),
+            padding: `${spacing.md}px ${spacing.base}px`,
+            borderBottom: "1px dashed #8B7355",
+          }}
+          labelStyle={{
+            fontSize: spacing.md,
+            color: "#5D4E37",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+          amountStyle={{
+            ...getCurrencyStyle(),
+            color: "#3D2914",
+          }}
+          totalRowStyle={{
+            padding: spacing.base,
+            background: "#3D2914",
+            color: "#FDF6E3",
+          }}
+          totalLabelStyle={{
+            fontSize: spacing.md,
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+            fontWeight: "bold",
+            color: "#FDF6E3",
+          }}
+          totalAmountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: spacing["3xl"],
+            fontWeight: "bold",
+            color: "#FDF6E3",
+          }}
+        />
 
         {/* Payment Info */}
-        <div
+        <Section
+          title="Payment Instructions:"
           style={{
             position: "relative",
             border: "1px dashed #8B7355",
-            padding: "20px",
-            marginBottom: "25px",
+            padding: spacing.lg,
+            marginBottom: spacing["2xl"],
             background: "rgba(139,115,85,0.05)",
           }}
+          titleStyle={{
+            fontSize: spacing.base,
+            fontWeight: "bold",
+            color: "#5D4E37",
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            marginBottom: spacing.md,
+          }}
+          contentStyle={{
+            fontSize: spacing.md,
+            color: "#3D2914",
+            lineHeight: 1.9,
+          }}
         >
-          <div
+          <PaymentInformation
+            profile={profile}
+            invoice={invoice}
             style={{
-              fontSize: "11px",
+              item: { marginBottom: "4px" },
+            }}
+          />
+        </Section>
+
+        {/* Notes */}
+        {invoice.notes && (
+          <Section
+            title="Memo:"
+            style={{
+              position: "relative",
+              padding: spacing.lg,
+              borderLeft: "4px solid #8B7355",
+              background: "rgba(139,115,85,0.05)",
+            }}
+            titleStyle={{
+              fontSize: spacing.base,
               fontWeight: "bold",
               color: "#5D4E37",
               textTransform: "uppercase",
               letterSpacing: "3px",
-              marginBottom: "12px",
+              marginBottom: spacing.md,
+            }}
+            contentStyle={{
+              fontSize: spacing.md,
+              color: "#3D2914",
+              lineHeight: 1.8,
+              fontStyle: "italic",
             }}
           >
-            Payment Instructions:
-          </div>
-          <div style={{ fontSize: "12px", color: "#3D2914", lineHeight: 1.9 }}>
-            <PaymentInformation
-              profile={profile}
-              invoice={invoice}
-              style={{
-                item: { marginBottom: "4px" },
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Notes */}
-        {invoice.notes && (
-          <div
-            style={{
-              position: "relative",
-              padding: "20px",
-              borderLeft: "4px solid #8B7355",
-              background: "rgba(139,115,85,0.05)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: "bold",
-                color: "#5D4E37",
-                textTransform: "uppercase",
-                letterSpacing: "3px",
-                marginBottom: "10px",
-              }}
-            >
-              Memo:
-            </div>
-            <div
-              style={{
-                fontSize: "12px",
-                color: "#3D2914",
-                lineHeight: 1.8,
-                fontStyle: "italic",
-              }}
-            >
-              {invoice.notes}
-            </div>
-          </div>
+            {invoice.notes}
+          </Section>
         )}
 
         {/* Footer */}
         <div
           style={{
             position: "relative",
-            marginTop: "50px",
+            marginTop: spacing["4xl"],
             textAlign: "center",
             color: "#8B7355",
-            fontSize: "11px",
+            fontSize: spacing.base,
             letterSpacing: "2px",
           }}
         >
           — Thank you for your business —
         </div>
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

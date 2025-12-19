@@ -8,6 +8,10 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, TotalsSection, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,83 +19,69 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("neobrutalist-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "email")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        @media (max-width: 663px) {
-          .neobrutalist-header {
-            flex-direction: column !important;
-            gap: 20px !important;
-            flex-wrap: wrap !important;
-          }
-          .neobrutalist-header > div:first-child {
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-          .neobrutalist-company-profile {
-            margin-top: 20px !important;
-          }
-        }
-        @media (max-width: 768px) {
-          .neobrutalist-template {
-            padding: 25px !important;
-            border-width: 4px !important;
-            box-shadow: 8px 8px 0px #000 !important;
-          }
-          .neobrutalist-table {
-            font-size: 12px !important;
-          }
-          .neobrutalist-table th,
-          .neobrutalist-table td {
-            padding: 8px !important;
-            font-size: 11px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .neobrutalist-template {
-            padding: 15px !important;
-            border-width: 3px !important;
-            box-shadow: 6px 6px 0px #000 !important;
-          }
-          .neobrutalist-table {
-            font-size: 10px !important;
-          }
-          .neobrutalist-table th,
-          .neobrutalist-table td {
-            padding: 6px 4px !important;
-            font-size: 9px !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="neobrutalist-template"
+        maxWidth={794}
+        padding={{ desktop: 50, tablet: 25, mobile: 15 }}
+        background="#E8F5E9"
         style={{
           fontFamily: "'Arial Black', Helvetica, sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "50px",
-          background: "#E8F5E9",
           border: "5px solid #000",
           boxShadow: "12px 12px 0px #000",
-          width: "100%",
-          boxSizing: "border-box",
         }}
       >
         {/* Header */}
         <div
           className="neobrutalist-header"
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "start",
-            marginBottom: "40px",
+            ...flexContainer("row", "space-between", "flex-start"),
+            marginBottom: spacing["3xl"],
           }}
         >
           <div
             style={{
               background: "#FF5722",
               border: "4px solid #000",
-              padding: "25px",
+              padding: spacing["2xl"],
               boxShadow: "8px 8px 0px #000",
               transform: "rotate(-2deg)",
             }}
@@ -109,10 +99,10 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                fontSize: "20px",
+                fontSize: spacing.lg,
                 fontWeight: 900,
                 color: "#FFEB3B",
-                marginTop: "8px",
+                marginTop: spacing.sm,
               }}
             >
               #{invoice.invoice_number}
@@ -123,7 +113,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             style={{
               background: "#fff",
               border: "4px solid #000",
-              padding: "20px",
+              padding: spacing.lg,
               boxShadow: "6px 6px 0px #000",
               maxWidth: "260px",
             }}
@@ -135,53 +125,54 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 style={{
                   maxWidth: "100px",
                   maxHeight: "50px",
-                  marginBottom: "12px",
+                  marginBottom: spacing.md,
                 }}
               />
             )}
             <div
-              style={{ fontWeight: 900, fontSize: "16px", marginBottom: "8px" }}
+              style={{
+                fontWeight: 900,
+                fontSize: spacing.base,
+                marginBottom: spacing.sm,
+              }}
             >
               {getCompanyInfo(profile, "company_name")}
             </div>
             <div
               style={{
-                fontSize: "11px",
+                fontSize: spacing.base,
                 lineHeight: 1.7,
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "email")}
+              {companyDetails}
             </div>
           </div>
         </div>
 
         {/* Info Cards */}
-        <div style={{ display: "flex", gap: "20px", marginBottom: "40px" }}>
+        <div
+          style={{
+            ...flexContainer("row", "flex-start", "stretch", spacing.lg),
+            marginBottom: spacing["3xl"],
+          }}
+        >
           <div
             style={{
               flex: 1,
               minWidth: 0,
               background: "#2196F3",
               border: "4px solid #000",
-              padding: "20px",
+              padding: spacing.lg,
               boxShadow: "6px 6px 0px #000",
             }}
           >
             <div
               style={{
-                fontSize: "12px",
+                fontSize: spacing.md,
                 fontWeight: 900,
                 color: "#fff",
-                marginBottom: "10px",
+                marginBottom: spacing.md,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
               }}
@@ -190,10 +181,10 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: spacing["3xl"],
                 fontWeight: 900,
                 color: "#FFEB3B",
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
                 whiteSpace: "normal",
@@ -204,35 +195,27 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                fontSize: "12px",
+                fontSize: spacing.md,
                 color: "#fff",
                 lineHeight: 1.7,
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+              {clientAddress}
             </div>
           </div>
           <div
             style={{
               background: "#FFEB3B",
               border: "4px solid #000",
-              padding: "20px",
+              padding: spacing.lg,
               boxShadow: "6px 6px 0px #000",
             }}
           >
-            <div style={{ marginBottom: "15px" }}>
+            <div style={{ marginBottom: spacing.lg }}>
               <div
                 style={{
-                  fontSize: "10px",
+                  fontSize: spacing.sm,
                   fontWeight: 900,
                   textTransform: "uppercase",
                   letterSpacing: "2px",
@@ -241,7 +224,11 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 ISSUED
               </div>
               <div
-                style={{ fontSize: "16px", fontWeight: 900, marginTop: "4px" }}
+                style={{
+                  fontSize: spacing.base,
+                  fontWeight: 900,
+                  marginTop: spacing.xs,
+                }}
               >
                 {formatDate(invoice.issue_date)}
               </div>
@@ -249,7 +236,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div>
               <div
                 style={{
-                  fontSize: "10px",
+                  fontSize: spacing.sm,
                   fontWeight: 900,
                   textTransform: "uppercase",
                   letterSpacing: "2px",
@@ -259,9 +246,9 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "16px",
+                  fontSize: spacing.base,
                   fontWeight: 900,
-                  marginTop: "4px",
+                  marginTop: spacing.xs,
                   color: "#D32F2F",
                 }}
               >
@@ -269,10 +256,10 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
-              <div style={{ marginTop: "15px" }}>
+              <div style={{ marginTop: spacing.lg }}>
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     fontWeight: 900,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
@@ -282,9 +269,9 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: spacing.base,
                     fontWeight: 900,
-                    marginTop: "4px",
+                    marginTop: spacing.xs,
                   }}
                 >
                   {formatDate(invoice.sent_date)}
@@ -300,7 +287,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             background: "#fff",
             border: "4px solid #000",
             boxShadow: "8px 8px 0px #000",
-            marginBottom: "40px",
+            marginBottom: spacing["3xl"],
             overflow: "hidden",
           }}
         >
@@ -313,9 +300,9 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               amount: "Total",
             }}
             styles={{
-              headerFontSize: "12px",
-              bodyFontSize: "13px",
-              headerPadding: "16px",
+              headerFontSize: `${spacing.md}px`,
+              bodyFontSize: `${spacing.md}px`,
+              headerPadding: `${spacing.base}px`,
               bodyPadding: "14px 16px",
               headerTextColor: "#fff",
               headerBgColor: "#9C27B0",
@@ -329,9 +316,6 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               bodyFontWeight: "normal",
               amountFontWeight: 900,
               amountColor: "#fff",
-              // Note: Component applies alternatingRowColor to even rows (0, 2, 4...)
-              // For NeoBrutalist, we want odd rows (1, 3, 5...) colored, so pattern is inverted
-              // This is acceptable as the visual effect is similar
               fontFamily: "'Arial Black', sans-serif",
               descriptionCellStyle: {
                 border: "3px solid #000",
@@ -368,164 +352,124 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "40px",
+        <TotalsSection
+          subtotal={{
+            label: "Subtotal",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
           }}
-        >
-          <div
-            style={{
-              background: "#000",
-              border: "4px solid #000",
-              boxShadow: "8px 8px 0px #FF5722",
-              padding: 0,
-              minWidth: "300px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "14px 20px",
-                borderBottom: "3px solid #333",
-                color: "#fff",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "13px",
-                  textTransform: "uppercase",
-                  color: "#fff",
-                }}
-              >
-                Subtotal
-              </span>
-              <span style={{ fontWeight: 900, color: "#fff" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "14px 20px",
-                borderBottom: "3px solid #333",
-                color: "#fff",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "13px",
-                  textTransform: "uppercase",
-                  color: "#fff",
-                }}
-              >
-                Tax
-              </span>
-              <span style={{ fontWeight: 900, color: "#fff" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "20px",
-                background: "#FFEB3B",
-                color: "#000",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "16px",
-                  textTransform: "uppercase",
-                  fontWeight: 900,
-                  color: "#000",
-                }}
-              >
-                TOTAL DUE
-              </span>
-              <span
-                style={{ fontSize: "28px", fontWeight: 900, color: "#000" }}
-              >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
-              </span>
-            </div>
-          </div>
-        </div>
+          tax={{
+            label: "Tax",
+            amount: formatCurrencyWithCode(
+              invoice.tax_amount,
+              invoice.currency
+            ),
+          }}
+          total={{
+            label: "TOTAL DUE",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          style={{
+            background: "#000",
+            border: "4px solid #000",
+            boxShadow: "8px 8px 0px #FF5722",
+            padding: 0,
+            minWidth: "300px",
+            marginBottom: spacing["3xl"],
+          }}
+          rowStyle={{
+            ...flexContainer("row", "space-between", "center"),
+            padding: "14px 20px",
+            borderBottom: "3px solid #333",
+            color: "#fff",
+          }}
+          labelStyle={{
+            fontSize: spacing.md,
+            textTransform: "uppercase",
+            color: "#fff",
+          }}
+          amountStyle={{
+            ...getCurrencyStyle(),
+            fontWeight: 900,
+            color: "#fff",
+          }}
+          totalRowStyle={{
+            padding: spacing.lg,
+            background: "#FFEB3B",
+            color: "#000",
+          }}
+          totalLabelStyle={{
+            fontSize: spacing.base,
+            textTransform: "uppercase",
+            fontWeight: 900,
+            color: "#000",
+          }}
+          totalAmountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: "28px",
+            fontWeight: 900,
+            color: "#000",
+          }}
+        />
 
         {/* Payment */}
-        <div
+        <Section
+          title="💰 Payment Details"
           style={{
             background: "#fff",
             border: "4px solid #000",
-            padding: "20px",
+            padding: spacing.lg,
             boxShadow: "6px 6px 0px #2196F3",
           }}
+          titleStyle={{
+            fontSize: spacing.md,
+            fontWeight: 900,
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+            marginBottom: spacing.md,
+          }}
+          contentStyle={{
+            fontSize: spacing.md,
+            lineHeight: 1.8,
+            fontFamily: "Arial, sans-serif",
+          }}
         >
-          <div
+          <PaymentInformation
+            profile={profile}
+            invoice={invoice}
             style={{
-              fontSize: "12px",
+              item: { marginBottom: "4px" },
+            }}
+          />
+        </Section>
+
+        {/* Notes */}
+        {invoice.notes && (
+          <Section
+            title="📝 Notes"
+            style={{
+              marginTop: spacing.lg,
+              background: "#FFEB3B",
+              border: "4px dashed #000",
+              padding: spacing.lg,
+            }}
+            titleStyle={{
+              fontSize: spacing.md,
               fontWeight: 900,
               textTransform: "uppercase",
               letterSpacing: "2px",
-              marginBottom: "10px",
+              marginBottom: spacing.md,
             }}
-          >
-            💰 Payment Details
-          </div>
-          <div
-            style={{
-              fontSize: "13px",
+            contentStyle={{
+              fontSize: spacing.md,
               lineHeight: 1.8,
               fontFamily: "Arial, sans-serif",
             }}
           >
-            <PaymentInformation
-              profile={profile}
-              invoice={invoice}
-              style={{
-                item: { marginBottom: "4px" },
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Notes */}
-        {invoice.notes && (
-          <div
-            style={{
-              marginTop: "20px",
-              background: "#FFEB3B",
-              border: "4px dashed #000",
-              padding: "20px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: 900,
-                textTransform: "uppercase",
-                letterSpacing: "2px",
-                marginBottom: "10px",
-              }}
-            >
-              📝 Notes
-            </div>
-            <div
-              style={{
-                fontSize: "13px",
-                lineHeight: 1.8,
-                fontFamily: "Arial, sans-serif",
-              }}
-            >
-              {invoice.notes}
-            </div>
-          </div>
+            {invoice.notes}
+          </Section>
         )}
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

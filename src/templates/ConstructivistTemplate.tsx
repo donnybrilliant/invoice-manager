@@ -8,6 +8,9 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, flexContainer } from "./design-system";
 
 const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,30 +18,57 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("constructivist-template", {
+    padding: true,
+    layout: "flex",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "email")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .constructivist-template {
-            padding: 40px 25px !important;
-          }
-          .constructivist-header {
-            flex-direction: column !important;
-          }
-          .constructivist-info-section {
-            flex-direction: column !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="constructivist-template"
+        maxWidth={794}
+        padding={{ desktop: 80, tablet: 40, mobile: 40 }}
+        background="#F5F0E1"
         style={{
           fontFamily: "'Impact', 'Arial Black', sans-serif",
-          maxWidth: "794px",
-          margin: "0 auto",
-          background: "#F5F0E1",
           position: "relative",
           overflow: "hidden",
+          paddingTop: "80px",
+          paddingLeft: "50px",
+          paddingRight: "50px",
+          paddingBottom: "50px",
         }}
       >
         {/* Diagonal stripe decoration */}
@@ -55,15 +85,13 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           }}
         />
 
-        <div style={{ position: "relative", padding: "80px 50px 50px" }}>
+        <div style={{ position: "relative" }}>
           {/* Header */}
           <div
             className="constructivist-header"
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "start",
-              marginBottom: "50px",
+              ...flexContainer("row", "space-between", "flex-start"),
+              marginBottom: spacing["4xl"],
             }}
           >
             <div>
@@ -79,7 +107,12 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               >
                 INV<span style={{ color: "#000" }}>OICE</span>
               </div>
-              <div style={{ display: "flex", gap: "15px", marginTop: "20px" }}>
+              <div
+                style={{
+                  ...flexContainer("row", "flex-start", "center", spacing.lg),
+                  marginTop: spacing.lg,
+                }}
+              >
                 <div
                   style={{
                     background: "#000",
@@ -90,7 +123,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 >
                   <span
                     style={{
-                      fontSize: "12px",
+                      fontSize: spacing.md,
                       letterSpacing: "3px",
                       color: "#F5F0E1",
                     }}
@@ -103,10 +136,10 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div style={{ textAlign: "right", maxWidth: "250px" }}>
               <div
                 style={{
-                  fontSize: "18px",
+                  fontSize: spacing["3xl"],
                   fontWeight: 900,
                   textTransform: "uppercase",
-                  marginBottom: "10px",
+                  marginBottom: spacing.md,
                   color: "#CC0000",
                 }}
               >
@@ -114,20 +147,12 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: spacing.base,
                   lineHeight: 1.8,
                   fontFamily: "'Courier New', monospace",
                 }}
               >
-                {formatCompanyAddress(profile)
-                  .split("\n")
-                  .map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line}
-                      <br />
-                    </React.Fragment>
-                  ))}
-                {getCompanyInfo(profile, "email")}
+                {companyDetails}
               </div>
             </div>
           </div>
@@ -135,22 +160,25 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           {/* Info Section with diagonal cut */}
           <div
             className="constructivist-info-section"
-            style={{ display: "flex", marginBottom: "50px" }}
+            style={{
+              ...flexContainer("row", "flex-start", "stretch"),
+              marginBottom: spacing["4xl"],
+            }}
           >
             <div
               style={{
                 flex: 1,
                 background: "#CC0000",
                 color: "#fff",
-                padding: "25px",
+                padding: spacing["2xl"],
                 clipPath: "polygon(0 0, 100% 0, 95% 100%, 0 100%)",
               }}
             >
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: spacing.base,
                   letterSpacing: "4px",
-                  marginBottom: "15px",
+                  marginBottom: spacing.lg,
                   opacity: 0.8,
                 }}
               >
@@ -158,10 +186,10 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "22px",
+                  fontSize: spacing.lg,
                   fontWeight: 900,
                   textTransform: "uppercase",
-                  marginBottom: "10px",
+                  marginBottom: spacing.md,
                   wordWrap: "break-word",
                   overflowWrap: "break-word",
                   whiteSpace: "normal",
@@ -171,20 +199,12 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: spacing.base,
                   lineHeight: 1.8,
                   fontFamily: "'Courier New', monospace",
                 }}
               >
-                {formatClientAddress(client)
-                  .split("\n")
-                  .map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line}
-                      <br />
-                    </React.Fragment>
-                  ))}
-                {client.email}
+                {clientAddress}
               </div>
             </div>
             <div
@@ -192,15 +212,15 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 width: "200px",
                 background: "#000",
                 color: "#F5F0E1",
-                padding: "25px",
+                padding: spacing["2xl"],
                 marginLeft: "-20px",
                 clipPath: "polygon(15% 0, 100% 0, 100% 100%, 0 100%)",
               }}
             >
-              <div style={{ marginBottom: "20px" }}>
+              <div style={{ marginBottom: spacing.lg }}>
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     letterSpacing: "3px",
                     opacity: 0.6,
                     color: "#F5F0E1",
@@ -210,9 +230,9 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: spacing.base,
                     fontWeight: 900,
-                    marginTop: "5px",
+                    marginTop: spacing.xs,
                     color: "#F5F0E1",
                   }}
                 >
@@ -222,7 +242,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div>
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: spacing.sm,
                     letterSpacing: "3px",
                     opacity: 0.6,
                     color: "#F5F0E1",
@@ -232,9 +252,9 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "16px",
+                    fontSize: spacing.base,
                     fontWeight: 900,
-                    marginTop: "5px",
+                    marginTop: spacing.xs,
                     color: "#CC0000",
                   }}
                 >
@@ -247,25 +267,27 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           {/* Items */}
           <div
             style={{
-              marginBottom: "50px",
-              marginLeft: "-30px",
-              marginRight: "-30px",
+              marginBottom: spacing["4xl"],
+              marginLeft: `-${spacing["2xl"]}px`,
+              marginRight: `-${spacing["2xl"]}px`,
             }}
           >
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "15px",
-                marginBottom: "20px",
+                ...flexContainer("row", "flex-start", "center", spacing.lg),
+                marginBottom: spacing.lg,
               }}
             >
               <div
-                style={{ width: "40px", height: "4px", background: "#CC0000" }}
+                style={{
+                  width: "40px",
+                  height: "4px",
+                  background: "#CC0000",
+                }}
               />
               <span
                 style={{
-                  fontSize: "12px",
+                  fontSize: spacing.md,
                   letterSpacing: "4px",
                   textTransform: "uppercase",
                 }}
@@ -284,10 +306,10 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 amount: "AMOUNT",
               }}
               styles={{
-                headerFontSize: "11px",
-                bodyFontSize: "13px",
-                headerPadding: "16px",
-                bodyPadding: "14px",
+                headerFontSize: `${spacing.base}px`,
+                bodyFontSize: `${spacing.md}px`,
+                headerPadding: `${spacing.base}px`,
+                bodyPadding: `${spacing.lg}px`,
                 headerTextColor: "#fff",
                 headerBgColor: "transparent",
                 bodyTextColor: "#000",
@@ -309,7 +331,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 },
                 quantityCellStyle: {
                   fontWeight: 900,
-                  fontSize: "16px",
+                  fontSize: spacing.base,
                 },
                 amountCellStyle: {
                   background: "#CC0000",
@@ -329,23 +351,21 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           {/* Totals */}
           <div
             style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: "50px",
+              ...flexContainer("row", "flex-end", "flex-start"),
+              marginBottom: spacing["4xl"],
             }}
           >
             <div style={{ minWidth: "320px" }}>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "12px 0",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: `${spacing.md}px 0`,
                   borderBottom: "2px solid #000",
                 }}
               >
                 <span
                   style={{
-                    fontSize: "13px",
+                    fontSize: spacing.md,
                     letterSpacing: "2px",
                     fontFamily: "'Courier New', monospace",
                   }}
@@ -358,15 +378,14 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "12px 0",
+                  ...flexContainer("row", "space-between", "center"),
+                  padding: `${spacing.md}px 0`,
                   borderBottom: "2px solid #000",
                 }}
               >
                 <span
                   style={{
-                    fontSize: "13px",
+                    fontSize: spacing.md,
                     letterSpacing: "2px",
                     fontFamily: "'Courier New', monospace",
                   }}
@@ -381,22 +400,20 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 style={{
                   background: "linear-gradient(90deg, #CC0000, #000)",
                   color: "#fff",
-                  padding: "20px",
-                  marginTop: "15px",
+                  padding: spacing.lg,
+                  marginTop: spacing.lg,
                   transform: "skewX(-3deg)",
                 }}
               >
                 <div
                   style={{
                     transform: "skewX(3deg)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    ...flexContainer("row", "space-between", "center"),
                   }}
                 >
                   <span
                     style={{
-                      fontSize: "14px",
+                      fontSize: spacing.lg,
                       letterSpacing: "3px",
                       color: "#fff",
                     }}
@@ -414,64 +431,52 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           </div>
 
           {/* Payment */}
-          <div
+          <Section
+            title="PAYMENT INFORMATION"
             style={{
               border: "3px solid #000",
               borderLeft: "8px solid #CC0000",
-              padding: "25px",
+              padding: spacing["2xl"],
               background: "#fff",
             }}
+            titleStyle={{
+              fontSize: spacing.base,
+              fontWeight: 900,
+              letterSpacing: "4px",
+              marginBottom: spacing.lg,
+            }}
+            contentStyle={{
+              fontSize: spacing.md,
+              lineHeight: 1.9,
+              fontFamily: "'Courier New', monospace",
+            }}
           >
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 900,
-                letterSpacing: "4px",
-                marginBottom: "15px",
-              }}
-            >
-              PAYMENT INFORMATION
-            </div>
-            <div
-              style={{
-                fontSize: "13px",
-                lineHeight: 1.9,
-                fontFamily: "'Courier New', monospace",
-              }}
-            >
-              <PaymentInformation profile={profile} invoice={invoice} />
-            </div>
-          </div>
+            <PaymentInformation profile={profile} invoice={invoice} />
+          </Section>
 
           {invoice.notes && (
-            <div
+            <Section
+              title="NOTES"
               style={{
-                marginTop: "25px",
-                padding: "20px",
+                marginTop: spacing["2xl"],
+                padding: spacing.lg,
                 background: "#000",
                 color: "#F5F0E1",
               }}
+              titleStyle={{
+                fontSize: spacing.base,
+                letterSpacing: "3px",
+                marginBottom: spacing.md,
+                color: "#CC0000",
+              }}
+              contentStyle={{
+                fontSize: spacing.md,
+                lineHeight: 1.8,
+                fontFamily: "'Courier New', monospace",
+              }}
             >
-              <div
-                style={{
-                  fontSize: "11px",
-                  letterSpacing: "3px",
-                  marginBottom: "10px",
-                  color: "#CC0000",
-                }}
-              >
-                NOTES
-              </div>
-              <div
-                style={{
-                  fontSize: "13px",
-                  lineHeight: 1.8,
-                  fontFamily: "'Courier New', monospace",
-                }}
-              >
-                {invoice.notes}
-              </div>
-            </div>
+              {invoice.notes}
+            </Section>
           )}
         </div>
 
@@ -481,9 +486,12 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             height: "30px",
             background:
               "repeating-linear-gradient(45deg, #CC0000, #CC0000 20px, #000 20px, #000 40px)",
+            marginTop: spacing["4xl"],
+            marginLeft: `-${spacing["4xl"]}px`,
+            marginRight: `-${spacing["4xl"]}px`,
           }}
         />
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

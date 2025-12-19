@@ -8,6 +8,10 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import { InvoiceContainer, TotalsSection, Section } from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing, gridContainer, flexContainer } from "./design-system";
+import { getCurrencyStyle } from "./design-system/text";
 
 const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,91 +19,65 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
+  const templateCSS = createTemplateStyles("brutalist-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
+
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "phone")}
+      <br />
+      {getCompanyInfo(profile, "email")}
+    </>
+  );
+
+  // Format client address
+  const clientAddress = (
+    <>
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {client.email}
+    </>
+  );
+
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .brutalist-template {
-            padding: 20px !important;
-            border-width: 4px !important;
-          }
-          .brutalist-header {
-            flex-direction: column !important;
-            gap: 20px !important;
-          }
-          .brutalist-title {
-            font-size: 48px !important;
-            line-height: 0.9 !important;
-          }
-          .brutalist-company-box {
-            max-width: 100% !important;
-            text-align: left !important;
-          }
-          .brutalist-info-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .brutalist-info-grid > div:first-child {
-            border-right: none !important;
-            border-bottom: 3px solid #000 !important;
-          }
-          .brutalist-table {
-            font-size: 10px !important;
-          }
-          .brutalist-table th,
-          .brutalist-table td {
-            padding: 8px !important;
-            font-size: 9px !important;
-          }
-          .brutalist-totals {
-            width: 100% !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .brutalist-template {
-            padding: 15px !important;
-            border-width: 3px !important;
-          }
-          .brutalist-title {
-            font-size: 36px !important;
-          }
-          .brutalist-invoice-number {
-            font-size: 18px !important;
-            padding: 6px 12px !important;
-          }
-          .brutalist-table {
-            font-size: 9px !important;
-          }
-          .brutalist-table th,
-          .brutalist-table td {
-            padding: 6px 4px !important;
-            font-size: 8px !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="brutalist-template"
+        maxWidth={794}
+        padding={{ desktop: 40, tablet: 20, mobile: 15 }}
+        background="#fff"
         style={{
           fontFamily: "'Courier New', Courier, monospace",
-          maxWidth: "794px",
-          margin: "0 auto",
-          padding: "40px",
-          background: "#fff",
           border: "6px solid #000",
-          width: "100%",
-          boxSizing: "border-box",
         }}
       >
         {/* Header */}
         <div
           className="brutalist-header"
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "start",
-            marginBottom: "40px",
-            paddingBottom: "30px",
+            ...flexContainer("row", "space-between", "flex-start", spacing.lg),
+            marginBottom: spacing["3xl"],
+            paddingBottom: spacing["2xl"],
             borderBottom: "6px solid #000",
-            gap: "20px",
           }}
         >
           <div>
@@ -120,9 +98,9 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               className="brutalist-invoice-number"
               style={{
-                fontSize: "24px",
+                fontSize: `${spacing["4xl"]}px`,
                 fontWeight: 900,
-                marginTop: "10px",
+                marginTop: spacing.md,
                 background: "#000",
                 color: "#fff",
                 padding: "8px 16px",
@@ -137,7 +115,7 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             style={{
               textAlign: "right",
               border: "3px solid #000",
-              padding: "20px",
+              padding: `${spacing.lg}px`,
               maxWidth: "280px",
               boxSizing: "border-box",
             }}
@@ -149,7 +127,7 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 style={{
                   maxWidth: "120px",
                   maxHeight: "60px",
-                  marginBottom: "15px",
+                  marginBottom: spacing.lg,
                   filter: "grayscale(100%)",
                 }}
               />
@@ -157,32 +135,22 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <div
               style={{
                 fontWeight: 900,
-                fontSize: "16px",
+                fontSize: `${spacing.base}px`,
                 textTransform: "uppercase",
                 letterSpacing: "2px",
-                marginBottom: "12px",
+                marginBottom: spacing.md,
               }}
             >
               {getCompanyInfo(profile, "company_name")}
             </div>
             <div
               style={{
-                fontSize: "11px",
+                fontSize: `${spacing.base}px`,
                 lineHeight: 1.8,
                 textTransform: "uppercase",
               }}
             >
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "phone")}
-              <br />
-              {getCompanyInfo(profile, "email")}
+              {companyDetails}
             </div>
           </div>
         </div>
@@ -191,16 +159,14 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         <div
           className="brutalist-info-grid"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 0,
-            marginBottom: "40px",
+            ...gridContainer("1fr 1fr", 0),
+            marginBottom: spacing["3xl"],
             border: "3px solid #000",
           }}
         >
           <div
             style={{
-              padding: "20px",
+              padding: `${spacing.lg}px`,
               borderRight: "3px solid #000",
               maxWidth: "300px",
               minWidth: 0,
@@ -208,11 +174,11 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
           >
             <div
               style={{
-                fontSize: "11px",
+                fontSize: `${spacing.base}px`,
                 fontWeight: 900,
                 textTransform: "uppercase",
                 letterSpacing: "3px",
-                marginBottom: "12px",
+                marginBottom: spacing.md,
                 background: "#000",
                 color: "#fff",
                 padding: "6px 10px",
@@ -223,10 +189,10 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: `${spacing["3xl"]}px`,
                 fontWeight: 900,
                 textTransform: "uppercase",
-                marginBottom: "8px",
+                marginBottom: spacing.sm,
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
                 whiteSpace: "normal",
@@ -237,34 +203,24 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
             </div>
             <div
               style={{
-                fontSize: "12px",
+                fontSize: `${spacing.md}px`,
                 lineHeight: 1.8,
                 textTransform: "uppercase",
               }}
             >
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {client.email}
+              {clientAddress}
             </div>
           </div>
-          <div style={{ padding: "20px" }}>
+          <div style={{ padding: `${spacing.lg}px` }}>
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "15px",
+                ...gridContainer("1fr 1fr", spacing.lg),
               }}
             >
               <div>
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: `${spacing.sm}px`,
                     fontWeight: 900,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
@@ -275,9 +231,9 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "14px",
+                    fontSize: `${spacing.lg}px`,
                     fontWeight: 900,
-                    marginTop: "4px",
+                    marginTop: spacing.xs,
                   }}
                 >
                   {formatDate(invoice.issue_date)}
@@ -286,7 +242,7 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div>
                 <div
                   style={{
-                    fontSize: "10px",
+                    fontSize: `${spacing.sm}px`,
                     fontWeight: 900,
                     textTransform: "uppercase",
                     letterSpacing: "2px",
@@ -297,9 +253,9 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 </div>
                 <div
                   style={{
-                    fontSize: "14px",
+                    fontSize: `${spacing.lg}px`,
                     fontWeight: 900,
-                    marginTop: "4px",
+                    marginTop: spacing.xs,
                   }}
                 >
                   {formatDate(invoice.due_date)}
@@ -309,7 +265,7 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <div>
                   <div
                     style={{
-                      fontSize: "10px",
+                      fontSize: `${spacing.sm}px`,
                       fontWeight: 900,
                       textTransform: "uppercase",
                       letterSpacing: "2px",
@@ -320,9 +276,9 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   </div>
                   <div
                     style={{
-                      fontSize: "14px",
+                      fontSize: `${spacing.lg}px`,
                       fontWeight: 900,
-                      marginTop: "4px",
+                      marginTop: spacing.xs,
                     }}
                   >
                     {formatDate(invoice.sent_date)}
@@ -334,7 +290,10 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Items Table */}
-        <div className="brutalist-table" style={{ marginBottom: "40px" }}>
+        <div
+          className="brutalist-table"
+          style={{ marginBottom: spacing["3xl"] }}
+        >
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
@@ -345,9 +304,9 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               amount: "AMOUNT",
             }}
             styles={{
-              headerFontSize: "11px",
-              bodyFontSize: "13px",
-              headerPadding: "16px",
+              headerFontSize: `${spacing.base}px`,
+              bodyFontSize: `${spacing.md}px`,
+              headerPadding: `${spacing.base}px`,
               bodyPadding: "12px 16px",
               headerTextColor: "#fff",
               headerBgColor: "#000",
@@ -363,23 +322,23 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               amountColor: "#fff",
               fontFamily: "'Courier New', monospace",
               descriptionCellStyle: {
-                    border: "3px solid #000",
-                    textTransform: "uppercase",
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                    maxWidth: 0,
+                border: "3px solid #000",
+                textTransform: "uppercase",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+                maxWidth: 0,
               },
               quantityCellStyle: {
-                    border: "3px solid #000",
-                    fontWeight: 900,
+                border: "3px solid #000",
+                fontWeight: 900,
               },
               unitPriceCellStyle: {
-                    border: "3px solid #000",
+                border: "3px solid #000",
               },
               amountCellStyle: {
-                    border: "3px solid #000",
-                    background: "#000",
+                border: "3px solid #000",
+                background: "#000",
               },
               headerStyle: {
                 border: "3px solid #000",
@@ -392,148 +351,117 @@ const BrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "40px",
+        <TotalsSection
+          subtotal={{
+            label: "SUBTOTAL",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
           }}
-        >
-          <div
-            className="brutalist-totals"
-            style={{
-              width: "320px",
-              border: "6px solid #000",
-              maxWidth: "100%",
-              boxSizing: "border-box",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                borderBottom: "3px solid #000",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "12px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                }}
-              >
-                SUBTOTAL
-              </span>
-              <span style={{ fontWeight: 900 }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                borderBottom: "3px solid #000",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "12px",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                }}
-              >
-                TAX
-              </span>
-              <span style={{ fontWeight: 900 }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "20px 16px",
-                background: "#000",
-                color: "#fff",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "14px",
-                  textTransform: "uppercase",
-                  letterSpacing: "3px",
-                  fontWeight: 900,
-                  color: "#fff",
-                }}
-              >
-                TOTAL
-              </span>
-              <span
-                style={{ fontSize: "24px", fontWeight: 900, color: "#fff" }}
-              >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
-              </span>
-            </div>
-          </div>
-        </div>
+          tax={{
+            label: "TAX",
+            amount: formatCurrencyWithCode(
+              invoice.tax_amount,
+              invoice.currency
+            ),
+          }}
+          total={{
+            label: "TOTAL",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          className="brutalist-totals"
+          style={{
+            width: "320px",
+            border: "6px solid #000",
+            maxWidth: "100%",
+            marginBottom: spacing["3xl"],
+          }}
+          rowStyle={{
+            ...flexContainer("row", "space-between", "center"),
+            padding: `${spacing.md}px ${spacing.base}px`,
+            borderBottom: "3px solid #000",
+          }}
+          labelStyle={{
+            fontSize: `${spacing.md}px`,
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+          }}
+          amountStyle={{
+            ...getCurrencyStyle(),
+            fontWeight: 900,
+          }}
+          totalRowStyle={{
+            padding: `${spacing.lg}px ${spacing.base}px`,
+            background: "#000",
+            color: "#fff",
+          }}
+          totalLabelStyle={{
+            fontSize: `${spacing.lg}px`,
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            fontWeight: 900,
+            color: "#fff",
+          }}
+          totalAmountStyle={{
+            ...getCurrencyStyle(),
+            fontSize: `${spacing["4xl"]}px`,
+            fontWeight: 900,
+            color: "#fff",
+          }}
+        />
 
         {/* Payment Info */}
-        <div
+        <Section
+          title="PAYMENT INFORMATION"
           style={{
             border: "3px solid #000",
-            padding: "20px",
-            marginBottom: "30px",
+            padding: `${spacing.lg}px`,
+            marginBottom: spacing["2xl"],
+          }}
+          titleStyle={{
+            fontSize: `${spacing.base}px`,
+            fontWeight: 900,
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            marginBottom: spacing.md,
+          }}
+          contentStyle={{
+            fontSize: `${spacing.md}px`,
+            lineHeight: 1.8,
           }}
         >
-          <div
+          <PaymentInformation
+            profile={profile}
+            invoice={invoice}
             style={{
-              fontSize: "11px",
-              fontWeight: 900,
-              textTransform: "uppercase",
-              letterSpacing: "3px",
-              marginBottom: "12px",
+              item: { marginBottom: "4px" },
             }}
-          >
-            PAYMENT INFORMATION
-          </div>
-          <div style={{ fontSize: "13px", lineHeight: 1.8 }}>
-            <PaymentInformation
-              profile={profile}
-              invoice={invoice}
-              style={{
-                item: { marginBottom: "4px" },
-              }}
-            />
-          </div>
-        </div>
+          />
+        </Section>
 
         {/* Notes */}
         {invoice.notes && (
-          <div
+          <Section
+            title="NOTES"
             style={{
               border: "3px dashed #000",
-              padding: "20px",
+              padding: `${spacing.lg}px`,
+            }}
+            titleStyle={{
+              fontSize: `${spacing.base}px`,
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "3px",
+              marginBottom: spacing.md,
+            }}
+            contentStyle={{
+              fontSize: `${spacing.md}px`,
+              lineHeight: 1.8,
             }}
           >
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 900,
-                textTransform: "uppercase",
-                letterSpacing: "3px",
-                marginBottom: "12px",
-              }}
-            >
-              NOTES
-            </div>
-            <div style={{ fontSize: "13px", lineHeight: 1.8 }}>
-              {invoice.notes}
-            </div>
-          </div>
+            {invoice.notes}
+          </Section>
         )}
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

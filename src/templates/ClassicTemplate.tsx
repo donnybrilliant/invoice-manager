@@ -8,6 +8,16 @@ import {
 } from "./utils";
 import { PaymentInformation } from "./utils/PaymentInformation";
 import { InvoiceItemList } from "../components/InvoiceItemList";
+import {
+  InvoiceContainer,
+  InvoiceHeader,
+  AddressSection,
+  InvoiceDetails,
+  TotalsSection,
+  Section,
+} from "./design-system";
+import { createTemplateStyles } from "./design-system/template-helpers";
+import { spacing } from "./design-system/tokens";
 
 const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
   invoice,
@@ -15,282 +25,142 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
   client,
   profile,
 }) => {
-  const containerStyle: React.CSSProperties = {
-    fontFamily: "Arial, sans-serif",
-    maxWidth: "794px",
-    margin: "0 auto",
-    padding: "40px",
-    background: "white",
-  };
+  const templateCSS = createTemplateStyles("classic-template", {
+    padding: true,
+    table: true,
+    layout: "flex",
+  });
 
-  const headerStyle: React.CSSProperties = {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "start",
-    gap: "20px",
-    marginBottom: "40px",
-    borderBottom: "3px solid #1f2937",
-    paddingBottom: "20px",
-  };
+  // Format company details
+  const companyDetails = (
+    <>
+      {formatCompanyAddress(profile)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      {getCompanyInfo(profile, "phone")}
+      <br />
+      {getCompanyInfo(profile, "email")}
+      {profile?.website && (
+        <>
+          <br />
+          {profile.website}
+        </>
+      )}
+      {profile?.organization_number && (
+        <>
+          <br />
+          Org: {profile.organization_number}
+        </>
+      )}
+      {profile?.tax_number && (
+        <>
+          <br />
+          Tax: {profile.tax_number}
+        </>
+      )}
+    </>
+  );
 
-  const titleStyle: React.CSSProperties = {
-    margin: 0,
-    fontSize: "32px",
-    color: "#1f2937",
-  };
-
-  const companyNameStyle: React.CSSProperties = {
-    fontWeight: "bold",
-    fontSize: "18px",
-    color: "#1f2937",
-    marginBottom: "8px",
-  };
-
-  const companyDetailsStyle: React.CSSProperties = {
-    color: "#6b7280",
-    fontSize: "14px",
-    lineHeight: 1.6,
-  };
-
-  const detailsSectionStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: "40px",
-  };
-
-  const sectionTitleStyle: React.CSSProperties = {
-    margin: "0 0 10px 0",
-    color: "#1f2937",
-    fontSize: "14px",
-    textTransform: "uppercase",
-  };
-
-  const clientInfoStyle: React.CSSProperties = {
-    color: "#374151",
-    lineHeight: 1.6,
-    maxWidth: "300px",
-    wordWrap: "break-word",
-    overflowWrap: "break-word",
-  };
-
-  const thStyle: React.CSSProperties = {
-    padding: "12px",
-    textAlign: "left",
-    fontWeight: 600,
-    color: "#1f2937",
-    borderBottom: "2px solid #d1d5db",
-    backgroundColor: "#f3f4f6",
-  };
-
-  const tdStyle: React.CSSProperties = {
-    padding: "12px",
-    borderBottom: "1px solid #e5e7eb",
-  };
-
-  const totalsContainerStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "flex-end",
-    marginBottom: "40px",
-  };
-
-  const totalsTableStyle: React.CSSProperties = {
-    width: "300px",
-  };
-
-  const totalsRowStyle: React.CSSProperties = {
-    padding: "8px 12px 8px 0",
-    color: "#6b7280",
-    fontWeight: 600,
-  };
-
-  const totalsValueStyle: React.CSSProperties = {
-    padding: "8px 0",
-    textAlign: "right",
-    color: "#1f2937",
-  };
-
-  const totalRowStyle: React.CSSProperties = {
-    borderTop: "2px solid #d1d5db",
-  };
-
-  const totalLabelStyle: React.CSSProperties = {
-    padding: "12px 12px 12px 0",
-    color: "#1f2937",
-    fontWeight: 700,
-    fontSize: "18px",
-  };
-
-  const totalValueStyle: React.CSSProperties = {
-    padding: "12px 0",
-    textAlign: "right",
-    color: "#1f2937",
-    fontWeight: 700,
-    fontSize: "18px",
-  };
-
-  const notesStyle: React.CSSProperties = {
-    marginBottom: "40px",
-  };
-
-  const notesTitleStyle: React.CSSProperties = {
-    margin: "0 0 10px 0",
-    color: "#1f2937",
-    fontSize: "14px",
-    textTransform: "uppercase",
-  };
-
-  const notesContentStyle: React.CSSProperties = {
-    color: "#6b7280",
-    lineHeight: 1.6,
-    margin: 0,
-  };
-
-  const footerStyle: React.CSSProperties = {
-    backgroundColor: "#fef3c7",
-    padding: "24px",
-    borderRadius: "8px",
-    marginTop: "40px",
-  };
-
-  const footerTitleStyle: React.CSSProperties = {
-    margin: "0 0 12px 0",
-    color: "#92400e",
-    fontSize: "16px",
-    fontWeight: 700,
-  };
-
-  const footerContentStyle: React.CSSProperties = {
-    color: "#78350f",
-    lineHeight: 1.8,
-    fontSize: "14px",
-  };
-
-  const paymentInstructionsStyle: React.CSSProperties = {
-    marginTop: "12px",
-    color: "#78350f",
-    fontSize: "14px",
-    lineHeight: 1.6,
-  };
+  // Format client address
+  const clientAddress = (
+    <>
+      {client.email || ""}
+      <br />
+      {client.phone || ""}
+      <br />
+      {formatClientAddress(client)
+        .split("\n")
+        .map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+    </>
+  );
 
   return (
     <>
-      <style>{`
-        @media (max-width: 768px) {
-          .classic-template {
-            padding: 20px !important;
-          }
-          .classic-header {
-            flex-wrap: wrap !important;
-          }
-          .classic-header > div:last-child {
-            text-align: right !important;
-            width: 100% !important;
-          }
-          .classic-title {
-            font-size: 24px !important;
-          }
-          .classic-info-section {
-            flex-direction: column !important;
-            gap: 20px !important;
-          }
-          .classic-table {
-            font-size: 12px !important;
-          }
-          .classic-table table th,
-          .classic-table table td {
-            padding: 8px !important;
-            font-size: 11px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .classic-template {
-            padding: 15px !important;
-          }
-          .classic-title {
-            font-size: 20px !important;
-          }
-          .classic-table {
-            font-size: 10px !important;
-          }
-          .classic-table table th,
-          .classic-table table td {
-            padding: 6px 4px !important;
-            font-size: 9px !important;
-          }
-        }
-      `}</style>
-      <div
+      <style>{templateCSS}</style>
+      <InvoiceContainer
         className="classic-template"
-        style={{ ...containerStyle, width: "100%", boxSizing: "border-box" }}
+        maxWidth={794}
+        padding={{ desktop: 40, tablet: 20, mobile: 15 }}
+        style={{ fontFamily: "Arial, sans-serif" }}
       >
         {/* Header */}
-        <div className="classic-header" style={headerStyle}>
-          <div>
-            {profile?.logo_url && (
-              <img
-                src={profile.logo_url}
-                alt="Company Logo"
-                style={{
-                  maxWidth: "150px",
-                  maxHeight: "80px",
-                  marginBottom: "10px",
-                }}
-              />
-            )}
-            <h1 className="classic-title" style={titleStyle}>
-              INVOICE
-            </h1>
-          </div>
-          <div
-            style={{
-              textAlign: "right",
-              flex: "1 1 auto",
-              minWidth: "200px",
-            }}
-          >
-            <div style={companyNameStyle}>
-              {getCompanyInfo(profile, "company_name")}
-            </div>
-            <div style={companyDetailsStyle}>
-              {formatCompanyAddress(profile)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              {getCompanyInfo(profile, "phone")}
-              <br />
-              {getCompanyInfo(profile, "email")}
-              {profile?.website && (
-                <>
-                  <br />
-                  {profile.website}
-                </>
-              )}
-              {profile?.organization_number && (
-                <>
-                  <br />
-                  Org: {profile.organization_number}
-                </>
-              )}
-              {profile?.tax_number && (
-                <>
-                  <br />
-                  Tax: {profile.tax_number}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <InvoiceHeader
+          className="classic-header"
+          logo={
+            profile?.logo_url
+              ? {
+                  url: profile.logo_url,
+                  alt: "Company Logo",
+                  maxWidth: 150,
+                  maxHeight: 80,
+                }
+              : undefined
+          }
+          title="INVOICE"
+          invoiceNumber={invoice.invoice_number}
+          companyInfo={{
+            name: getCompanyInfo(profile, "company_name"),
+            details: companyDetails,
+          }}
+          layout="side-by-side"
+          style={{
+            marginBottom: spacing['3xl'],
+            borderBottom: "3px solid #1f2937",
+            paddingBottom: spacing.lg,
+          }}
+          titleStyle={{
+            margin: 0,
+            fontSize: "32px",
+            color: "#1f2937",
+          }}
+          invoiceNumberStyle={{ display: "none" }}
+          companyInfoStyle={{
+            textAlign: "right",
+            flex: "1 1 auto",
+            minWidth: "200px",
+          }}
+        />
 
-        {/* Invoice Details */}
-        <div className="classic-info-section" style={detailsSectionStyle}>
+        {/* Invoice Details Section */}
+        <div
+          className="classic-info-section"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: spacing.lg,
+            marginBottom: spacing['3xl'],
+          }}
+        >
           <div style={{ maxWidth: "300px", minWidth: 0 }}>
-            <h3 style={sectionTitleStyle}>Bill To:</h3>
-            <div style={clientInfoStyle}>
+            <h3
+              style={{
+                margin: "0 0 10px 0",
+                color: "#1f2937",
+                fontSize: spacing.lg,
+                textTransform: "uppercase",
+              }}
+            >
+              Bill To:
+            </h3>
+            <div
+              style={{
+                color: "#374151",
+                lineHeight: 1.6,
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+              }}
+            >
               <strong
                 style={{
                   wordWrap: "break-word",
@@ -302,109 +172,51 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 {client.name}
               </strong>
               <br />
-              {client.email || ""}
-              <br />
-              {client.phone || ""}
-              <br />
-              {formatClientAddress(client)
-                .split("\n")
-                .map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
+              {clientAddress}
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <table style={{ marginLeft: "auto" }}>
-              <tbody>
-                <tr>
-                  <td
-                    style={{
-                      padding: "4px 12px 4px 0",
-                      color: "#6b7280",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Invoice #:
-                  </td>
-                  <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                    {invoice.invoice_number}
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    style={{
-                      padding: "4px 12px 4px 0",
-                      color: "#6b7280",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Issue Date:
-                  </td>
-                  <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                    {formatDate(invoice.issue_date)}
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    style={{
-                      padding: "4px 12px 4px 0",
-                      color: "#6b7280",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Due Date:
-                  </td>
-                  <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                    {formatDate(invoice.due_date)}
-                  </td>
-                </tr>
-                {invoice.status === "sent" && invoice.sent_date && (
-                  <tr>
-                    <td
-                      style={{
-                        padding: "4px 12px 4px 0",
-                        color: "#6b7280",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Sent Date:
-                    </td>
-                    <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                      {formatDate(invoice.sent_date)}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div style={{ textAlign: "right", minWidth: 0, flexShrink: 1 }}>
+            <InvoiceDetails
+              issueDate={formatDate(invoice.issue_date)}
+              dueDate={formatDate(invoice.due_date)}
+              sentDate={
+                invoice.status === "sent" && invoice.sent_date
+                  ? formatDate(invoice.sent_date)
+                  : undefined
+              }
+              layout="table"
+              style={{ marginLeft: "auto" }}
+              className="invoice-details-right"
+              labelStyle={{
+                padding: "4px 12px 4px 0",
+                color: "#6b7280",
+                fontWeight: 600,
+              }}
+              valueStyle={{
+                padding: "4px 0",
+                color: "#1f2937",
+              }}
+            />
           </div>
         </div>
 
         {/* Items Table */}
-        <div className="classic-table" style={{ marginBottom: "30px" }}>
+        <div className="classic-table" style={{ marginBottom: spacing['2xl'] }}>
           <InvoiceItemList
             items={items}
             currency={invoice.currency}
             styles={{
-              headerFontSize: thStyle.fontSize || "14px",
-              bodyFontSize: tdStyle.fontSize || "14px",
+              headerFontSize: "14px",
+              bodyFontSize: "14px",
               headerPadding: "12px",
               bodyPadding: "12px",
-              headerTextColor: thStyle.color || "#1f2937",
-              headerBgColor: thStyle.backgroundColor || "#f3f4f6",
-              bodyTextColor: tdStyle.color || "#374151",
+              headerTextColor: "#1f2937",
+              headerBgColor: "#f3f4f6",
+              bodyTextColor: "#374151",
               borderColor: "#e5e7eb",
-              headerBorderBottom:
-                typeof thStyle.borderBottom === "string"
-                  ? thStyle.borderBottom
-                  : "2px solid #d1d5db",
-              rowBorderBottom:
-                typeof tdStyle.borderBottom === "string"
-                  ? tdStyle.borderBottom
-                  : "1px solid #e5e7eb",
-              headerFontWeight: thStyle.fontWeight || 600,
+              headerBorderBottom: "2px solid #d1d5db",
+              rowBorderBottom: "1px solid #e5e7eb",
+              headerFontWeight: 600,
               bodyFontWeight: "normal",
               amountFontWeight: 600,
               tableLayout: "fixed",
@@ -427,43 +239,100 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
         </div>
 
         {/* Totals */}
-        <div style={totalsContainerStyle}>
-          <table style={totalsTableStyle}>
-            <tbody>
-              <tr>
-                <td style={totalsRowStyle}>Subtotal:</td>
-                <td style={totalsValueStyle}>
-                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
-                </td>
-              </tr>
-              <tr>
-                <td style={totalsRowStyle}>Tax ({invoice.tax_rate}%):</td>
-                <td style={totalsValueStyle}>
-                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
-                </td>
-              </tr>
-              <tr style={totalRowStyle}>
-                <td style={totalLabelStyle}>Total:</td>
-                <td style={totalValueStyle}>
-                  {formatCurrencyWithCode(invoice.total, invoice.currency)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <TotalsSection
+          subtotal={{
+            label: "Subtotal:",
+            amount: formatCurrencyWithCode(invoice.subtotal, invoice.currency),
+          }}
+          tax={{
+            label: "Tax",
+            amount: formatCurrencyWithCode(invoice.tax_amount, invoice.currency),
+            rate: invoice.tax_rate,
+          }}
+          total={{
+            label: "Total:",
+            amount: formatCurrencyWithCode(invoice.total, invoice.currency),
+          }}
+          layout="right-aligned"
+          style={{
+            width: "300px",
+            marginBottom: spacing['3xl'],
+          }}
+          rowStyle={{
+            padding: "8px 12px 8px 0",
+            color: "#6b7280",
+            fontWeight: 600,
+          }}
+          amountStyle={{
+            padding: "8px 0",
+            color: "#1f2937",
+          }}
+          totalRowStyle={{
+            borderTop: "2px solid #d1d5db",
+          }}
+          totalLabelStyle={{
+            padding: "12px 12px 12px 0",
+            color: "#1f2937",
+            fontWeight: 700,
+            fontSize: spacing['3xl'],
+          }}
+          totalAmountStyle={{
+            padding: "12px 0",
+            color: "#1f2937",
+            fontWeight: 700,
+            fontSize: spacing['3xl'],
+          }}
+        />
 
         {/* Notes */}
         {invoice.notes && (
-          <div style={notesStyle}>
-            <h3 style={notesTitleStyle}>Notes:</h3>
-            <p style={notesContentStyle}>{invoice.notes}</p>
-          </div>
+          <Section
+            title="Notes:"
+            style={{
+              marginBottom: spacing['3xl'],
+            }}
+            titleStyle={{
+              margin: "0 0 10px 0",
+              color: "#1f2937",
+              fontSize: spacing.lg,
+              textTransform: "uppercase",
+            }}
+            contentStyle={{
+              color: "#6b7280",
+              lineHeight: 1.6,
+              margin: 0,
+            }}
+          >
+            {invoice.notes}
+          </Section>
         )}
 
         {/* Yellow Footer with Payment Information */}
-        <div style={footerStyle}>
-          <h3 style={footerTitleStyle}>Payment Information</h3>
-          <div style={footerContentStyle}>
+        <div
+          style={{
+            backgroundColor: "#fef3c7",
+            padding: spacing.xl,
+            borderRadius: spacing.sm,
+            marginTop: spacing['3xl'],
+          }}
+        >
+          <h3
+            style={{
+              margin: "0 0 12px 0",
+              color: "#92400e",
+              fontSize: spacing.base,
+              fontWeight: 700,
+            }}
+          >
+            Payment Information
+          </h3>
+          <div
+            style={{
+              color: "#78350f",
+              lineHeight: 1.8,
+              fontSize: spacing.lg,
+            }}
+          >
             <PaymentInformation
               profile={profile}
               invoice={invoice}
@@ -473,12 +342,19 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
             />
           </div>
           {profile?.payment_instructions && (
-            <div style={paymentInstructionsStyle}>
+            <div
+              style={{
+                marginTop: spacing.md,
+                color: "#78350f",
+                fontSize: spacing.lg,
+                lineHeight: 1.6,
+              }}
+            >
               {profile.payment_instructions}
             </div>
           )}
         </div>
-      </div>
+      </InvoiceContainer>
     </>
   );
 };

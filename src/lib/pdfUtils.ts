@@ -96,7 +96,7 @@ async function prepareElementAndCaptureCanvas(
 
   // Capture the HTML element as a canvas
   return await html2canvas(element, {
-    scale: 2, // Higher scale for better quality
+    scale: 1.2, // Reduced scale for smaller file size (was 2)
     useCORS: true, // Allow cross-origin images (for logos)
     logging: false,
     backgroundColor: "#ffffff", // Ensure white background
@@ -113,6 +113,18 @@ async function prepareElementAndCaptureCanvas(
         // Force layout recalculation
         void clonedElement.offsetHeight;
 
+        // Ensure shadows are preserved - html2canvas should capture them, but ensure they're visible
+        // Add padding to prevent shadow clipping
+        const computedStyle =
+          clonedDoc.defaultView?.getComputedStyle(clonedElement);
+        if (computedStyle) {
+          const boxShadow = computedStyle.boxShadow;
+          if (boxShadow && boxShadow !== "none") {
+            const currentPadding = parseInt(computedStyle.padding || "0", 10);
+            clonedElement.style.padding = `${Math.max(currentPadding, 20)}px`;
+          }
+        }
+
         // Disable font ligatures for better text rendering accuracy
         // This helps with negative letter-spacing and prevents character overlap
         const allElements = clonedElement.querySelectorAll("*");
@@ -122,6 +134,20 @@ async function prepareElementAndCaptureCanvas(
             el.style.fontVariantLigatures = "none";
             // Improve text rendering for canvas
             el.style.textRendering = "geometricPrecision";
+
+            // Ensure box-shadows are preserved (html2canvas should capture them, but ensure they're visible)
+            const elComputedStyle = clonedDoc.defaultView?.getComputedStyle(el);
+            if (elComputedStyle) {
+              const elBoxShadow = elComputedStyle.boxShadow;
+              if (
+                elBoxShadow &&
+                elBoxShadow !== "none" &&
+                !el.style.boxShadow
+              ) {
+                // Preserve computed box-shadow if not already set inline
+                el.style.boxShadow = elBoxShadow;
+              }
+            }
           }
         });
 
@@ -183,12 +209,12 @@ function createPDFWithSmartScaling(
   config: Required<PDFOptions>,
   compress: boolean = false
 ): jsPDF {
-  // Create PDF
+  // Create PDF with compression always enabled for smaller file size
   const pdf = new jsPDF({
     orientation: config.orientation,
     unit: "mm",
     format: config.format,
-    compress,
+    compress: true, // Always compress for smaller file size
   });
 
   // Calculate dimensions using PDF's actual page size
@@ -198,10 +224,11 @@ function createPDFWithSmartScaling(
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
   const pageHeight = pdfHeight - config.margins.top - config.margins.bottom;
 
-  // Get image data (use quality 1.0 for base64, default for download)
+  // Get image data - use JPEG with quality for smaller file size
+  // JPEG quality: 0.85 for download (good balance), 0.9 for base64 (slightly better for email)
   const imgData = compress
-    ? canvas.toDataURL("image/png", 1.0)
-    : canvas.toDataURL("image/png");
+    ? canvas.toDataURL("image/jpeg", 0.9)
+    : canvas.toDataURL("image/jpeg", 0.85);
 
   // Smart scaling: If content is within 1.5x page height, scale to fit on one page
   // This prevents payment info from being split while avoiding tiny text on very long invoices
@@ -211,7 +238,7 @@ function createPDFWithSmartScaling(
     // Content fits naturally on one page - center it horizontally
     pdf.addImage(
       imgData,
-      "PNG",
+      "JPEG",
       (pdfWidth - imgWidth) / 2, // Center horizontally
       config.margins.top,
       imgWidth,
@@ -226,7 +253,7 @@ function createPDFWithSmartScaling(
 
     pdf.addImage(
       imgData,
-      "PNG",
+      "JPEG",
       config.margins.left + (imgWidth - scaledWidth) / 2, // Center horizontally
       config.margins.top,
       scaledWidth,
@@ -264,12 +291,12 @@ function createPDFWithSmartScaling(
           sourceHeight // destination
         );
 
-        const pageImgData = pageCanvas.toDataURL("image/png");
+        const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.85);
         const pageImgHeight = pageContentHeight;
 
         pdf.addImage(
           pageImgData,
-          "PNG",
+          "JPEG",
           config.margins.left,
           yPosition,
           imgWidth,
@@ -382,6 +409,3 @@ export function printElement(element: HTMLElement): void {
   // Reload to restore React event listeners
   window.location.reload();
 }
-
-// Re-export for backward compatibility
-export { generateInvoiceFilename } from "./utils";

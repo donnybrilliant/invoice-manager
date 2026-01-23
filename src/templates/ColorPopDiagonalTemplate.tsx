@@ -271,6 +271,17 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
               >
                 From
               </div>
+              {profile?.logo_url && (
+                <img
+                  src={profile.logo_url}
+                  alt="Company Logo"
+                  style={{
+                    maxWidth: "120px",
+                    maxHeight: "60px",
+                    marginBottom: "12px",
+                  }}
+                />
+              )}
               <div
                 style={{
                   fontSize: "16px",
@@ -375,7 +386,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
               alternatingRowColor: colors.quad + "20",
               quantityCellStyle: { fontWeight: 800 },
               bodyStyle: { marginBottom: 0 },
-                    }}
+            }}
           />
 
           {/* Totals */}

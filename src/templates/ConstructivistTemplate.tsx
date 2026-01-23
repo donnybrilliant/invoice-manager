@@ -101,6 +101,19 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               </div>
             </div>
             <div style={{ textAlign: "right", maxWidth: "250px" }}>
+              {profile?.logo_url && (
+                <img
+                  src={profile.logo_url}
+                  alt="Company Logo"
+                  style={{
+                    maxWidth: "120px",
+                    maxHeight: "60px",
+                    marginBottom: "10px",
+                    marginLeft: "auto",
+                    display: "block",
+                  }}
+                />
+              )}
               <div
                 style={{
                   fontSize: "18px",

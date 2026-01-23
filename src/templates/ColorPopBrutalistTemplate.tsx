@@ -364,8 +364,21 @@ const ColorPopBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               gap: "10px",
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: "18px" }}>
-              {getCompanyInfo(profile, "company_name")}
+            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+              {profile?.logo_url && (
+                <img
+                  src={profile.logo_url}
+                  alt="Company Logo"
+                  style={{
+                    maxWidth: "120px",
+                    maxHeight: "60px",
+                    objectFit: "contain",
+                  }}
+                />
+              )}
+              <div style={{ fontWeight: 900, fontSize: "18px" }}>
+                {getCompanyInfo(profile, "company_name")}
+              </div>
             </div>
             <div
               style={{

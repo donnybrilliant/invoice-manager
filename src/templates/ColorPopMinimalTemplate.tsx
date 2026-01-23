@@ -187,6 +187,17 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               From
             </div>
+            {profile?.logo_url && (
+              <img
+                src={profile.logo_url}
+                alt="Company Logo"
+                style={{
+                  maxWidth: "120px",
+                  maxHeight: "60px",
+                  marginBottom: "12px",
+                }}
+              />
+            )}
             <div
               style={{
                 fontSize: "18px",

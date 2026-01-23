@@ -206,15 +206,29 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               alignItems: "center",
             }}
           >
-            <div
-              style={{
-                fontFamily: "'Arial Black', sans-serif",
-                fontSize: "16px",
-                textTransform: "uppercase",
-                color: "#fff",
-              }}
-            >
-              {getCompanyInfo(profile, "company_name")}
+            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+              {profile?.logo_url && (
+                <img
+                  src={profile.logo_url}
+                  alt="Company Logo"
+                  style={{
+                    maxWidth: "100px",
+                    maxHeight: "50px",
+                    objectFit: "contain",
+                    filter: "brightness(0) invert(1)",
+                  }}
+                />
+              )}
+              <div
+                style={{
+                  fontFamily: "'Arial Black', sans-serif",
+                  fontSize: "16px",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                }}
+              >
+                {getCompanyInfo(profile, "company_name")}
+              </div>
             </div>
             <div
               style={{
@@ -407,24 +421,24 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               bodyFontWeight: "normal",
               amountFontWeight: 900,
               headerStyle: {
-                  background: "linear-gradient(90deg, #1A535C, #004E89)",
+                background: "linear-gradient(90deg, #1A535C, #004E89)",
               },
               descriptionCellStyle: {
-                      fontFamily: "'Times New Roman', serif",
-                      wordWrap: "break-word",
-                      overflowWrap: "break-word",
-                      whiteSpace: "normal",
-                      maxWidth: 0,
+                fontFamily: "'Times New Roman', serif",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "normal",
+                maxWidth: 0,
               },
               quantityCellStyle: {
-                      fontFamily: "'Courier New', monospace",
-                      fontWeight: 900,
+                fontFamily: "'Courier New', monospace",
+                fontWeight: 900,
               },
               unitPriceCellStyle: {
-                      fontFamily: "'Courier New', monospace",
+                fontFamily: "'Courier New', monospace",
               },
               amountCellStyle: {
-                      fontFamily: "'Courier New', monospace",
+                fontFamily: "'Courier New', monospace",
                 background: "#FFE4B5",
               },
               bodyStyle: {

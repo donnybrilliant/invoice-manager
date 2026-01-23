@@ -176,6 +176,17 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   From
                 </div>
                 <div>
+                  {profile?.logo_url && (
+                    <img
+                      src={profile.logo_url}
+                      alt="Company Logo"
+                      style={{
+                        maxWidth: "120px",
+                        maxHeight: "60px",
+                        marginBottom: "12px",
+                      }}
+                    />
+                  )}
                   <div
                     style={{
                       fontSize: "20px",

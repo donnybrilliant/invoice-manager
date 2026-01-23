@@ -64,7 +64,24 @@ DECLARE
   issue_date_var date;
   due_date_var date;
   template_var text;
-  templates text[] := ARRAY['classic', 'modern', 'professional', 'brutalist', 'dark-mode', 'minimal-japanese', 'neo-brutalist', 'swiss', 'typewriter'];
+  templates text[] := ARRAY[
+    'classic', 
+    'modern', 
+    'professional', 
+    'brutalist', 
+    'dark-mode', 
+    'minimal-japanese', 
+    'neo-brutalist', 
+    'swiss', 
+    'typewriter',
+    'cutout-brutalist',
+    'constructivist',
+    'color-pop-stacked',
+    'color-pop-minimal',
+    'color-pop-grid',
+    'color-pop-diagonal',
+    'color-pop-brutalist'
+  ];
   
   -- Invoice item variables (used in nested loop)
   item_desc text;
@@ -305,6 +322,9 @@ BEGIN
   WHERE user_id = test_user_id;
   
   -- Create 40 invoices
+  -- Strategy: The first N invoices (where N = number of templates) will get unique templates
+  -- and more recent dates, so they appear at the top of the invoice list for easy testing.
+  -- The remaining invoices will have random templates and older dates.
   FOR i IN 1..40 LOOP
     -- Select random client
     client_id_var := client_ids[1 + floor(random() * array_length(client_ids, 1))::int];
@@ -316,21 +336,50 @@ BEGIN
     currency_var := currencies[1 + floor(random() * array_length(currencies, 1))::int];
     
     -- Select template
-    template_var := templates[1 + floor(random() * array_length(templates, 1))::int];
+    -- For the first N invoices (where N = number of templates), assign one template each
+    -- This ensures all templates are represented in the latest invoices for easy testing
+    -- For remaining invoices, assign templates randomly
+    IF i <= array_length(templates, 1) THEN
+      -- Assign unique template to each of the first invoices (one per template)
+      template_var := templates[i];
+    ELSE
+      -- Randomly assign templates to remaining invoices
+      template_var := templates[1 + floor(random() * array_length(templates, 1))::int];
+    END IF;
     
     -- Generate dates based on status
-    IF status_var = 'paid' THEN
-      issue_date_var := CURRENT_DATE - (30 + floor(random() * 60)::int);
-      due_date_var := issue_date_var + 14;
-    ELSIF status_var = 'overdue' THEN
-      issue_date_var := CURRENT_DATE - (60 + floor(random() * 30)::int);
-      due_date_var := issue_date_var + 14;
-    ELSIF status_var = 'sent' THEN
-      issue_date_var := CURRENT_DATE - (7 + floor(random() * 14)::int);
-      due_date_var := CURRENT_DATE + (7 + floor(random() * 14)::int);
-    ELSE -- draft
-      issue_date_var := CURRENT_DATE - floor(random() * 30)::int;
-      due_date_var := CURRENT_DATE + (14 + floor(random() * 14)::int);
+    -- For the first N invoices (with unique templates), use more recent dates so they appear at the top
+    -- For remaining invoices, use older dates
+    IF i <= array_length(templates, 1) THEN
+      -- First invoices with unique templates: use recent dates (within last 30 days)
+      IF status_var = 'paid' THEN
+        issue_date_var := CURRENT_DATE - (1 + floor(random() * 20)::int);
+        due_date_var := issue_date_var + 14;
+      ELSIF status_var = 'overdue' THEN
+        issue_date_var := CURRENT_DATE - (15 + floor(random() * 15)::int);
+        due_date_var := issue_date_var + 14;
+      ELSIF status_var = 'sent' THEN
+        issue_date_var := CURRENT_DATE - (1 + floor(random() * 7)::int);
+        due_date_var := CURRENT_DATE + (7 + floor(random() * 14)::int);
+      ELSE -- draft
+        issue_date_var := CURRENT_DATE - floor(random() * 7)::int;
+        due_date_var := CURRENT_DATE + (14 + floor(random() * 14)::int);
+      END IF;
+    ELSE
+      -- Remaining invoices: use older dates (spread over last 180 days)
+      IF status_var = 'paid' THEN
+        issue_date_var := CURRENT_DATE - (30 + floor(random() * 60)::int);
+        due_date_var := issue_date_var + 14;
+      ELSIF status_var = 'overdue' THEN
+        issue_date_var := CURRENT_DATE - (60 + floor(random() * 30)::int);
+        due_date_var := issue_date_var + 14;
+      ELSIF status_var = 'sent' THEN
+        issue_date_var := CURRENT_DATE - (7 + floor(random() * 14)::int);
+        due_date_var := CURRENT_DATE + (7 + floor(random() * 14)::int);
+      ELSE -- draft
+        issue_date_var := CURRENT_DATE - floor(random() * 30)::int;
+        due_date_var := CURRENT_DATE + (14 + floor(random() * 14)::int);
+      END IF;
     END IF;
     
     -- Generate tax rate based on currency

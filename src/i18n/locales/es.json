@@ -1,0 +1,50 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "language": "Idioma",
+    "locale": "Región",
+    "currency": "Moneda",
+    "dashboard": "Panel"
+  },
+  "dashboard": {
+    "statsTitle": "Estadísticas del panel",
+    "paidInvoices": "Facturas pagadas",
+    "unpaidInvoices": "Facturas pendientes",
+    "totalInvoices": "Facturas totales",
+    "totalClients": "Clientes totales",
+    "showStats": "Mostrar estadísticas",
+    "hideStats": "Ocultar estadísticas",
+    "filters": {
+      "currency": "Moneda",
+      "bankAccount": "Cuenta bancaria"
+    }
+  },
+  "invoices": {
+    "invoiceLanguage": "Idioma de factura",
+    "invoiceLocale": "Región de factura",
+    "bankAccount": "Cuenta bancaria",
+    "bankAccountRequired": "Selecciona una cuenta bancaria para esta moneda",
+    "currencyMismatch": "La moneda de la factura debe coincidir con la moneda de la cuenta bancaria"
+  },
+  "clients": {
+    "preferredLanguage": "Idioma preferido",
+    "preferredLocale": "Región preferida",
+    "preferredCurrency": "Moneda preferida"
+  },
+  "settings": {
+    "uiLanguage": "Idioma de la interfaz",
+    "uiLocale": "Región de la interfaz",
+    "defaultInvoiceLanguage": "Idioma predeterminado de factura",
+    "defaultInvoiceLocale": "Región predeterminada de factura",
+    "bankAccounts": "Cuentas bancarias"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalid": "Valor no válido"
+  }
+}
+

@@ -57,7 +57,7 @@ interface InvoiceTemplate {
 <div style={{ background: "#3D2914", color: "#FDF6E3" }}>
   <span style={{ fontSize: "12px", color: "#FDF6E3" }}>TOTAL DUE</span>
   <span style={{ fontSize: "18px", color: "#FDF6E3" }}>
-    {formatCurrencyWithCode(invoice.total, invoice.currency)}
+    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
   </span>
 </div>
 ```
@@ -70,7 +70,7 @@ interface InvoiceTemplate {
     TOTAL DUE {/* Missing explicit color - will be dark text! */}
   </span>
   <span style={{ fontSize: "18px" }}>
-    {formatCurrencyWithCode(invoice.total, invoice.currency)}{" "}
+    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}{" "}
     {/* Missing explicit color - will be dark text! */}
   </span>
 </div>

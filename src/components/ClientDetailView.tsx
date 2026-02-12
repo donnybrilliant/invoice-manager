@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Client, Invoice } from "../types";
 import { useClientInvoices } from "../hooks/useClientInvoices";
+import { useTheme } from "../contexts/ThemeContext";
 import { formatCurrencyWithCode, formatDate } from "../lib/formatting";
 
 interface ClientDetailViewProps {
@@ -29,8 +30,21 @@ export default function ClientDetailView({
   const { data: invoices = [], isLoading: loading } = useClientInvoices(
     client.id
   );
+  const { isBrutalist } = useTheme();
 
   const getStatusColor = (status: Invoice["status"]) => {
+    if (isBrutalist) {
+      switch (status) {
+        case "paid":
+          return "bg-[hsl(137,79%,54%)] text-[var(--brutalist-fg)] brutalist-border";
+        case "sent":
+          return "bg-[hsl(201,100%,70%)] text-[var(--brutalist-fg)] brutalist-border";
+        case "overdue":
+          return "bg-[hsl(358,100%,67%)] text-white brutalist-border";
+        default:
+          return "bg-[hsl(44,100%,68%)] text-[var(--brutalist-fg)] brutalist-border";
+      }
+    }
     switch (status) {
       case "paid":
         return "bg-green-100 text-green-800";
@@ -44,16 +58,16 @@ export default function ClientDetailView({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+    <div className={`fixed inset-0 flex items-center justify-center p-4 z-50 ${isBrutalist ? "bg-black/70" : "bg-black bg-opacity-50"}`}>
+      <div className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8 ${isBrutalist ? "brutalist-border brutalist-shadow-lg bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-xl shadow-2xl"}`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className={`flex items-center justify-between p-6 border-b ${isBrutalist ? "border-[var(--brutalist-border-color)]" : "border-slate-200 dark:border-slate-700"}`}>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+            <h2 className={`text-2xl font-bold ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
               {client.name}
             </h2>
             {client.client_number && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              <p className={`text-sm mt-1 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-600 dark:text-slate-400"}`}>
                 Client #{client.client_number}
               </p>
             )}
@@ -61,14 +75,18 @@ export default function ClientDetailView({
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEdit(client)}
-              className="flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition font-medium"
+              className={`flex items-center gap-2 px-4 py-2 font-medium transition ${
+                isBrutalist
+                  ? "brutalist-border bg-[hsl(var(--brutalist-cyan))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                  : "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg"
+              }`}
             >
               <Edit2 className="w-4 h-4" />
               Edit
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition"
+              className={`p-2 transition ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-red))]" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"}`}
             >
               <X className="w-6 h-6" />
             </button>
@@ -221,16 +239,26 @@ export default function ClientDetailView({
                     <div className="text-slate-600 dark:text-slate-400">
                       <span>Issue: </span>
                       <span className="text-slate-900 dark:text-white">
-                        {formatDate(invoice.issue_date)}
+                        {formatDate(invoice.issue_date, {
+                          locale: invoice.locale,
+                          language: invoice.language,
+                        })}
                       </span>
                       <span className="mx-2">•</span>
                       <span>Due: </span>
                       <span className="text-slate-900 dark:text-white">
-                        {formatDate(invoice.due_date)}
+                        {formatDate(invoice.due_date, {
+                          locale: invoice.locale,
+                          language: invoice.language,
+                        })}
                       </span>
                     </div>
                     <div className="font-semibold text-slate-900 dark:text-white">
-                      {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                      {formatCurrencyWithCode(
+                        invoice.total,
+                        invoice.currency,
+                        invoice.locale
+                      )}
                     </div>
                   </div>
                 </div>

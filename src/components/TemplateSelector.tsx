@@ -16,6 +16,14 @@ interface TemplateSelectorProps {
       due_date: string;
       tax_rate: number;
       currency: string;
+      language: string;
+      locale: string;
+      bank_account_id: string;
+      payment_account_label: string | null;
+      payment_account_number: string | null;
+      payment_iban: string | null;
+      payment_swift_bic: string | null;
+      payment_currency: string | null;
       notes: string;
       show_account_number: boolean;
       show_iban: boolean;
@@ -66,6 +74,14 @@ const createTemplateData = (
     tax_amount,
     total,
     currency: formData.currency,
+    language: formData.language,
+    locale: formData.locale,
+    bank_account_id: formData.bank_account_id,
+    payment_account_label: formData.payment_account_label,
+    payment_account_number: formData.payment_account_number,
+    payment_iban: formData.payment_iban,
+    payment_swift_bic: formData.payment_swift_bic,
+    payment_currency: formData.payment_currency,
     notes: formData.notes || null,
     template: templateId,
     show_account_number: formData.show_account_number,

@@ -12,32 +12,57 @@ import {
 import { createRoot } from "react-dom/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
-import { Invoice, InvoiceItem, CompanyProfile } from "../types";
+import { Invoice, InvoiceItem, CompanyProfile, BankAccount } from "../types";
 import { getTemplate } from "../templates";
 import { generatePDFFromElement } from "../lib/pdfUtils";
 import { generateInvoiceFilenameForDownload } from "../lib/utils";
 import { useInvoices, useUpdateInvoiceStatus } from "../hooks/useInvoices";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { formatDate, formatCurrencyWithCode } from "../lib/formatting";
 import { InvoiceContainer } from "./InvoiceContainer";
 
 interface InvoiceListProps {
+  invoices?: Invoice[];
+  filters?: {
+    searchTerm: string;
+    status: string;
+    currency: string;
+    bankAccountId: string;
+  };
+  onFiltersChange?: (filters: {
+    searchTerm: string;
+    status: string;
+    currency: string;
+    bankAccountId: string;
+  }) => void;
+  bankAccounts?: BankAccount[];
   onViewInvoice: (invoice: Invoice) => void;
   onEditInvoice?: (invoice: Invoice) => void;
 }
 
 export default function InvoiceList({
+  invoices: providedInvoices,
+  filters,
+  onFiltersChange,
+  bankAccounts = [],
   onViewInvoice,
   onEditInvoice,
 }: InvoiceListProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { data: invoices = [], isLoading: loading } = useInvoices();
+  const { isBrutalist } = useTheme();
+  const { data: queriedInvoices = [], isLoading: loading } = useInvoices({
+    enabled: !providedInvoices,
+  });
   const updateStatusMutation = useUpdateInvoiceStatus();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [localSearchTerm, setLocalSearchTerm] = useState("");
+  const [localStatusFilter, setLocalStatusFilter] = useState<string>("all");
+  const [localCurrencyFilter, setLocalCurrencyFilter] = useState<string>("all");
+  const [localBankAccountFilter, setLocalBankAccountFilter] =
+    useState<string>("all");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
@@ -46,10 +71,86 @@ export default function InvoiceList({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
+  const sourceInvoices = providedInvoices ?? queriedInvoices;
+  const isControlled = !!filters && !!onFiltersChange;
+  const searchTerm = isControlled ? filters.searchTerm : localSearchTerm;
+  const statusFilter = isControlled ? filters.status : localStatusFilter;
+  const currencyFilter = isControlled ? filters.currency : localCurrencyFilter;
+  const bankAccountFilter = isControlled
+    ? filters.bankAccountId
+    : localBankAccountFilter;
+
+  const setSearchTerm = (value: string) => {
+    if (isControlled && filters && onFiltersChange) {
+      onFiltersChange({
+        ...filters,
+        searchTerm: value,
+      });
+      return;
+    }
+    setLocalSearchTerm(value);
+  };
+
+  const setStatusFilter = (value: string) => {
+    if (isControlled && filters && onFiltersChange) {
+      onFiltersChange({
+        ...filters,
+        status: value,
+      });
+      return;
+    }
+    setLocalStatusFilter(value);
+  };
+
+  const setCurrencyFilter = (value: string) => {
+    if (isControlled && filters && onFiltersChange) {
+      const nextBankAccountId =
+        value === "all"
+          ? filters.bankAccountId
+          : filters.bankAccountId !== "all" &&
+            bankAccounts.find(
+              (account) =>
+                account.id === filters.bankAccountId && account.currency === value
+            )
+          ? filters.bankAccountId
+          : "all";
+
+      onFiltersChange({
+        ...filters,
+        currency: value,
+        bankAccountId: nextBankAccountId,
+      });
+      return;
+    }
+
+    setLocalCurrencyFilter(value);
+    if (
+      value !== "all" &&
+      localBankAccountFilter !== "all" &&
+      !bankAccounts.find(
+        (account) =>
+          account.id === localBankAccountFilter && account.currency === value
+      )
+    ) {
+      setLocalBankAccountFilter("all");
+    }
+  };
+
+  const setBankAccountFilter = (value: string) => {
+    if (isControlled && filters && onFiltersChange) {
+      onFiltersChange({
+        ...filters,
+        bankAccountId: value,
+      });
+      return;
+    }
+    setLocalBankAccountFilter(value);
+  };
+
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
       // Check current invoice status
-      const currentInvoice = invoices.find((inv) => inv.id === id);
+      const currentInvoice = sourceInvoices.find((inv) => inv.id === id);
 
       // Prevent any status changes for paid invoices
       if (currentInvoice?.status === "paid") {
@@ -122,15 +223,22 @@ export default function InvoiceList({
   };
 
   const filteredInvoices = useMemo(() => {
-    let filtered = invoices.filter((invoice) => {
+    let filtered = sourceInvoices.filter((invoice) => {
       const matchesSearch =
         invoice.invoice_number
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        invoice.client?.name.toLowerCase().includes(searchTerm.toLowerCase());
+        (invoice.client?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
       const matchesStatus =
         statusFilter === "all" || invoice.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesCurrency =
+        currencyFilter === "all" || invoice.currency === currencyFilter;
+      const matchesBankAccount =
+        bankAccountFilter === "all" ||
+        invoice.bank_account_id === bankAccountFilter;
+      return matchesSearch && matchesStatus && matchesCurrency && matchesBankAccount;
     });
 
     // Apply sorting
@@ -171,7 +279,15 @@ export default function InvoiceList({
     }
 
     return filtered;
-  }, [invoices, searchTerm, statusFilter, sortColumn, sortDirection]);
+  }, [
+    sourceInvoices,
+    searchTerm,
+    statusFilter,
+    currencyFilter,
+    bankAccountFilter,
+    sortColumn,
+    sortDirection,
+  ]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
@@ -183,7 +299,14 @@ export default function InvoiceList({
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, sortColumn, sortDirection]);
+  }, [
+    searchTerm,
+    statusFilter,
+    currencyFilter,
+    bankAccountFilter,
+    sortColumn,
+    sortDirection,
+  ]);
 
   // Reset to page 1 when items per page changes
   useEffect(() => {
@@ -217,6 +340,18 @@ export default function InvoiceList({
   };
 
   const getStatusColor = (status: string) => {
+    if (isBrutalist) {
+      switch (status) {
+        case "paid":
+          return "bg-[hsl(137,79%,54%)] text-[var(--brutalist-fg)] brutalist-border";
+        case "sent":
+          return "bg-[hsl(201,100%,70%)] text-[var(--brutalist-fg)] brutalist-border";
+        case "overdue":
+          return "bg-[hsl(358,100%,67%)] text-white brutalist-border";
+        default:
+          return "bg-[hsl(44,100%,68%)] text-[var(--brutalist-fg)] brutalist-border";
+      }
+    }
     switch (status) {
       case "paid":
         return "bg-green-100 text-green-800";
@@ -343,7 +478,7 @@ export default function InvoiceList({
     }
   };
 
-  if (loading) {
+  if (!providedInvoices && loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-slate-600 dark:text-slate-400">
@@ -357,19 +492,27 @@ export default function InvoiceList({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5" />
+          <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-400 dark:text-slate-500"}`} />
           <input
             type="text"
             placeholder="Search invoices..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+            className={`w-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
+              isBrutalist
+                ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+                : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+            }`}
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+          className={`px-4 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
+            isBrutalist
+              ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+              : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+          }`}
         >
           <option value="all">All Status</option>
           <option value="draft">Draft</option>
@@ -377,26 +520,78 @@ export default function InvoiceList({
           <option value="paid">Paid</option>
           <option value="overdue">Overdue</option>
         </select>
+        <select
+          value={currencyFilter}
+          onChange={(e) => setCurrencyFilter(e.target.value)}
+          className={`px-4 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
+            isBrutalist
+              ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+              : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+          }`}
+        >
+          <option value="all">All Currencies</option>
+          {Array.from(new Set(sourceInvoices.map((invoice) => invoice.currency)))
+            .sort((a, b) => a.localeCompare(b))
+            .map((currency) => (
+              <option key={currency} value={currency}>
+                {currency}
+              </option>
+            ))}
+        </select>
+        <select
+          value={bankAccountFilter}
+          onChange={(e) => setBankAccountFilter(e.target.value)}
+          className={`px-4 py-2 focus:outline-none focus:ring-2 focus:border-transparent ${
+            isBrutalist
+              ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+              : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+          }`}
+        >
+          <option value="all">All Bank Accounts</option>
+          {bankAccounts
+            .filter(
+              (account) =>
+                currencyFilter === "all" || account.currency === currencyFilter
+            )
+            .map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.display_name} ({account.currency})
+              </option>
+            ))}
+        </select>
       </div>
 
       {filteredInvoices.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600">
-          <FileText className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-300 mb-2">
+        <div className={`text-center py-12 ${isBrutalist ? "brutalist-border bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600"}`}>
+          <FileText className={`w-12 h-12 mx-auto mb-4 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-400 dark:text-slate-500"}`} />
+          <p className={`mb-2 ${isBrutalist ? "brutalist-text text-[var(--brutalist-fg)]" : "text-slate-600 dark:text-slate-300"}`}>
             No invoices found
           </p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className={`text-sm ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-500 dark:text-slate-400"}`}>
             Create your first invoice to get started
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+        <div className={isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-card)] overflow-hidden" : "bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden"}>
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed border-collapse border-spacing-0">
-              <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+            <table
+              key={isBrutalist ? "invoice-table-brutalist" : "invoice-table-default"}
+              className="w-full table-fixed border-collapse border-spacing-0"
+            >
+              <thead
+                className={
+                  isBrutalist
+                    ? "bg-[hsl(var(--brutalist-yellow))] border-b border-[var(--brutalist-border-color)]"
+                    : "bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700"
+                }
+              >
                 <tr>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-36"
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer transition w-36 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-fg)] bg-[hsl(var(--brutalist-yellow))] border-b-[3px] border-[var(--brutalist-border-color)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("invoice");
@@ -407,7 +602,11 @@ export default function InvoiceList({
                     </span>
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-48"
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer transition w-48 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-fg)] bg-[hsl(var(--brutalist-yellow))] border-b-[3px] border-[var(--brutalist-border-color)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("client");
@@ -418,7 +617,11 @@ export default function InvoiceList({
                     </span>
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-32"
+                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer transition w-32 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-fg)] bg-[hsl(var(--brutalist-yellow))] border-b-[3px] border-[var(--brutalist-border-color)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("amount");
@@ -429,7 +632,11 @@ export default function InvoiceList({
                     </span>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-28"
+                    className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer transition w-28 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-fg)] bg-[hsl(var(--brutalist-yellow))] border-b-[3px] border-[var(--brutalist-border-color)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("due_date");
@@ -440,7 +647,11 @@ export default function InvoiceList({
                     </span>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition w-28"
+                    className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer transition w-28 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-fg)] bg-[hsl(var(--brutalist-yellow))] border-b-[3px] border-[var(--brutalist-border-color)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSort("status");
@@ -450,45 +661,96 @@ export default function InvoiceList({
                       Status {getSortIcon("status")}
                     </span>
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-700 dark:text-slate-300 uppercase tracking-wider w-24">
+                  <th
+                    className={`px-4 py-3 text-right text-xs font-medium uppercase tracking-wider w-24 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-fg)] bg-[hsl(var(--brutalist-yellow))] border-b-[3px] border-[var(--brutalist-border-color)]"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                    }`}
+                  >
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="border-t border-b border-slate-200 dark:border-slate-700">
+              <tbody
+                className={
+                  isBrutalist
+                    ? "border-t border-b border-[var(--brutalist-border-color)]"
+                    : "border-t border-b border-slate-200 dark:border-slate-700"
+                }
+              >
                 {paginatedInvoices.map((invoice) => (
                   <tr
                     key={invoice.id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer border-b last:border-b-0 border-slate-200 dark:border-slate-700"
+                    className={`transition cursor-pointer border-b last:border-b-0 ${
+                      isBrutalist
+                        ? "hover:bg-[hsl(var(--brutalist-cyan)/0.2)] border-[var(--brutalist-border-color)]"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700"
+                    }`}
                     onClick={() => onViewInvoice(invoice)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap w-36">
-                      <div className="text-sm font-medium text-slate-900 dark:text-white">
+                      <div
+                        className={`text-sm font-medium ${
+                          isBrutalist
+                            ? "brutalist-text text-[var(--brutalist-fg)]"
+                            : "text-slate-900 dark:text-white"
+                        }`}
+                      >
                         {invoice.invoice_number}
                       </div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">
-                        {formatDate(invoice.issue_date)}
+                      <div
+                        className={`text-sm ${
+                          isBrutalist
+                            ? "text-[var(--brutalist-muted-fg)]"
+                            : "text-slate-500 dark:text-slate-400"
+                        }`}
+                      >
+                        {formatDate(invoice.issue_date, {
+                          locale: invoice.locale,
+                          language: invoice.language,
+                        })}
                       </div>
                     </td>
                     <td className="px-6 py-4 w-48">
                       <div
-                        className="text-sm text-slate-900 dark:text-white truncate"
+                        className={`text-sm truncate ${
+                          isBrutalist
+                            ? "text-[var(--brutalist-fg)]"
+                            : "text-slate-900 dark:text-white"
+                        }`}
                         title={invoice.client?.name}
                       >
                         {invoice.client?.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap w-32">
-                      <div className="text-sm font-medium text-slate-900 dark:text-white">
+                      <div
+                        className={`text-sm font-medium ${
+                          isBrutalist
+                            ? "brutalist-text text-[var(--brutalist-fg)]"
+                            : "text-slate-900 dark:text-white"
+                        }`}
+                      >
                         {formatCurrencyWithCode(
                           invoice.total,
-                          invoice.currency
+                          invoice.currency,
+                          invoice.locale
                         )}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap w-28">
-                      <div className="text-sm text-slate-900 dark:text-white">
-                        {formatDate(invoice.due_date)}
+                      <div
+                        className={`text-sm ${
+                          isBrutalist
+                            ? "text-[var(--brutalist-fg)]"
+                            : "text-slate-900 dark:text-white"
+                        }`}
+                      >
+                        {formatDate(invoice.due_date, {
+                          locale: invoice.locale,
+                          language: invoice.language,
+                        })}
                       </div>
                     </td>
                     <td
@@ -501,9 +763,9 @@ export default function InvoiceList({
                           handleUpdateStatus(invoice.id, e.target.value)
                         }
                         disabled={invoice.status === "paid"}
-                        className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${getStatusColor(
-                          invoice.status
-                        )} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        className={`text-xs font-medium px-3 py-1 border-0 ${
+                          isBrutalist ? "rounded-none brutalist-text" : "rounded-full"
+                        } ${getStatusColor(invoice.status)} disabled:opacity-50 disabled:cursor-not-allowed`}
                         title={
                           invoice.status === "paid"
                             ? "Paid invoices cannot be changed"
@@ -529,7 +791,11 @@ export default function InvoiceList({
                                 e.stopPropagation();
                                 onEditInvoice(invoice);
                               }}
-                              className="text-blue-600 hover:text-blue-800 transition p-2"
+                              className={`transition p-2 ${
+                                isBrutalist
+                                  ? "brutalist-border bg-[hsl(var(--brutalist-cyan))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))]"
+                                  : "text-blue-600 hover:text-blue-800"
+                              }`}
                               title="Edit"
                             >
                               <Edit className="w-5 h-5" />
@@ -541,7 +807,11 @@ export default function InvoiceList({
                             handleDownload(invoice);
                           }}
                           disabled={downloadingId === invoice.id}
-                          className="text-green-600 hover:text-green-800 transition p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className={`transition p-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            isBrutalist
+                              ? "brutalist-border bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))]"
+                              : "text-green-600 hover:text-green-800"
+                          }`}
                           title="Download PDF"
                         >
                           <Download className="w-5 h-5" />
@@ -553,9 +823,21 @@ export default function InvoiceList({
               </tbody>
             </table>
           </div>
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div
+            className={`px-6 py-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${
+              isBrutalist
+                ? "border-[var(--brutalist-border-color)] bg-[hsl(var(--brutalist-yellow)/0.3)]"
+                : "border-slate-200 dark:border-slate-700"
+            }`}
+          >
             <div className="flex items-center gap-4">
-              <div className="text-sm text-slate-600 dark:text-slate-400">
+              <div
+                className={`text-sm ${
+                  isBrutalist
+                    ? "brutalist-text text-[var(--brutalist-fg)]"
+                    : "text-slate-600 dark:text-slate-400"
+                }`}
+              >
                 {showPagination ? (
                   <>
                     Showing {startIndex + 1} to{" "}
@@ -570,13 +852,23 @@ export default function InvoiceList({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
+                <label
+                  className={`text-sm ${
+                    isBrutalist
+                      ? "brutalist-text text-[var(--brutalist-fg)]"
+                      : "text-slate-600 dark:text-slate-400"
+                  }`}
+                >
                   Show:
                 </label>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent"
+                  className={`px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${
+                    isBrutalist
+                      ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))] brutalist-text"
+                      : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+                  }`}
                 >
                   <option value="10">10</option>
                   <option value="25">25</option>
@@ -592,7 +884,11 @@ export default function InvoiceList({
                     setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
                   disabled={currentPage === 1}
-                  className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`p-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isBrutalist
+                      ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                      : "border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                  }`}
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -613,10 +909,14 @@ export default function InvoiceList({
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+                        className={`px-3 py-1 text-sm font-medium transition ${
                           currentPage === pageNum
-                            ? "bg-slate-900 dark:bg-slate-700 text-white"
-                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                            ? isBrutalist
+                              ? "brutalist-border brutalist-text bg-[var(--brutalist-fg)] text-[var(--brutalist-bg)]"
+                              : "rounded-lg bg-slate-900 dark:bg-slate-700 text-white"
+                            : isBrutalist
+                            ? "brutalist-border brutalist-text bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                            : "rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                         }`}
                       >
                         {pageNum}
@@ -629,7 +929,11 @@ export default function InvoiceList({
                     setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`p-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isBrutalist
+                      ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-cyan))]"
+                      : "border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                  }`}
                   aria-label="Next page"
                 >
                   <ChevronRight className="w-5 h-5" />

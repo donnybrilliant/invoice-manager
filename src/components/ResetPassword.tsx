@@ -1,6 +1,7 @@
 import { useState, useEffect, useActionState } from "react";
 import { CheckCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { useThemeSafe } from "../contexts/ThemeContext";
 
 interface ResetPasswordProps {
   onSuccess: () => void;
@@ -15,6 +16,7 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [validToken, setValidToken] = useState(true);
+  const { isBrutalist } = useThemeSafe();
 
   useEffect(() => {
     let mounted = true;
@@ -121,19 +123,23 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
 
   if (!validToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${isBrutalist ? "bg-[var(--brutalist-bg)]" : "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"}`}>
         <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+          <div className={`p-8 text-center ${isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-2xl shadow-xl"}`}>
+            <h1 className={`text-2xl font-bold mb-2 ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
               Invalid or expired link
             </h1>
-            <p className="text-slate-600 dark:text-slate-300 mb-6">
+            <p className={`mb-6 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-600 dark:text-slate-300"}`}>
               This password reset link has expired or is invalid. Please request
               a new one.
             </p>
             <button
               onClick={onSuccess}
-              className="w-full px-4 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium"
+              className={`w-full px-4 py-3 font-medium transition ${
+                isBrutalist
+                  ? "brutalist-border brutalist-shadow bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                  : "bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600"
+              }`}
             >
               Back to Sign In
             </button>
@@ -145,24 +151,28 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${isBrutalist ? "bg-[var(--brutalist-bg)]" : "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"}`}>
         <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
+          <div className={`p-8 text-center ${isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-2xl shadow-xl"}`}>
             <div className="flex justify-center mb-6">
-              <CheckCircle className="w-16 h-16 text-green-600 dark:text-green-500" />
+              <CheckCircle className={`w-16 h-16 ${isBrutalist ? "text-[hsl(var(--brutalist-green))]" : "text-green-600 dark:text-green-500"}`} />
             </div>
 
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            <h1 className={`text-2xl font-bold mb-2 ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
               Password reset successful
             </h1>
-            <p className="text-slate-600 dark:text-slate-300 mb-6">
+            <p className={`mb-6 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-600 dark:text-slate-300"}`}>
               Your password has been updated. You can now sign in with your new
               password.
             </p>
 
             <button
               onClick={onSuccess}
-              className="w-full px-4 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium"
+              className={`w-full px-4 py-3 font-medium transition ${
+                isBrutalist
+                  ? "brutalist-border brutalist-shadow bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                  : "bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600"
+              }`}
             >
               Sign In
             </button>
@@ -173,13 +183,13 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${isBrutalist ? "bg-[var(--brutalist-bg)]" : "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"}`}>
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+        <div className={`p-8 ${isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-2xl shadow-xl"}`}>
+          <h1 className={`text-3xl font-bold mb-2 ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
             Set new password
           </h1>
-          <p className="text-slate-600 dark:text-slate-300 mb-8">
+          <p className={`mb-8 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-600 dark:text-slate-300"}`}>
             Enter a new password for your account.
           </p>
 
@@ -187,7 +197,7 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className={`block text-sm font-medium mb-2 ${isBrutalist ? "brutalist-text text-[var(--brutalist-fg)]" : "text-slate-700 dark:text-slate-300"}`}
               >
                 New Password
               </label>
@@ -199,7 +209,11 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent transition"
+                className={`w-full px-4 py-3 focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                  isBrutalist
+                    ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+                    : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+                }`}
                 placeholder="••••••••"
               />
             </div>
@@ -207,7 +221,7 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className={`block text-sm font-medium mb-2 ${isBrutalist ? "brutalist-text text-[var(--brutalist-fg)]" : "text-slate-700 dark:text-slate-300"}`}
               >
                 Confirm Password
               </label>
@@ -219,13 +233,17 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent transition"
+                className={`w-full px-4 py-3 focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                  isBrutalist
+                    ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+                    : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+                }`}
                 placeholder="••••••••"
               />
             </div>
 
             {state?.error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+              <div className={`px-4 py-3 text-sm ${isBrutalist ? "brutalist-border bg-[hsl(var(--brutalist-red))] text-white" : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg"}`}>
                 {state.error}
               </div>
             )}
@@ -233,7 +251,11 @@ export default function ResetPassword({ onSuccess }: ResetPasswordProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-slate-900 dark:bg-slate-700 text-white py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full py-3 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                isBrutalist
+                  ? "brutalist-border brutalist-shadow bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text focus:ring-[hsl(var(--brutalist-yellow))]"
+                  : "bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 focus:ring-slate-900 dark:focus:ring-slate-500"
+              }`}
             >
               {isPending ? "Updating..." : "Update Password"}
             </button>

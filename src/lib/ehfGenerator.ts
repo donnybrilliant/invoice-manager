@@ -329,26 +329,35 @@ export function generateEHFXML(
   const paymentId = invoice.kid_number || invoice.invoice_number;
   ele(paymentMeans, CBC_NS, "PaymentID", paymentId);
 
-  // Payee Financial Account
-  if (profile.iban || profile.account_number) {
+  // Payee Financial Account (invoice snapshot fields, immutable after invoice creation)
+  const paymentIban = invoice.payment_iban
+    ? sanitizeIBAN(invoice.payment_iban)
+    : null;
+  const paymentAccountNumber = invoice.payment_account_number;
+  const paymentSwiftBic = invoice.payment_swift_bic;
+
+  if (paymentIban || paymentAccountNumber) {
     const payeeAccount = ele(paymentMeans, CAC_NS, "PayeeFinancialAccount");
-    if (profile.iban) {
-      // Remove spaces from IBAN for PEPPOL compliance
-      const sanitizedIBAN = sanitizeIBAN(profile.iban);
-      ele(payeeAccount, CBC_NS, "ID", sanitizedIBAN);
-    } else if (profile.account_number) {
-      ele(payeeAccount, CBC_NS, "ID", profile.account_number);
+    if (paymentIban) {
+      ele(payeeAccount, CBC_NS, "ID", paymentIban);
+    } else if (paymentAccountNumber) {
+      ele(payeeAccount, CBC_NS, "ID", paymentAccountNumber);
     }
-    if (profile.company_name) {
-      ele(payeeAccount, CBC_NS, "Name", profile.company_name);
+    if (invoice.payment_account_label || profile.company_name) {
+      ele(
+        payeeAccount,
+        CBC_NS,
+        "Name",
+        invoice.payment_account_label || profile.company_name || ""
+      );
     }
     // Financial Institution Branch (BIC/SWIFT)
-    if (profile.swift_bic) {
+    if (paymentSwiftBic) {
       ele(
         ele(payeeAccount, CAC_NS, "FinancialInstitutionBranch"),
         CBC_NS,
         "ID",
-        profile.swift_bic
+        paymentSwiftBic
       );
     }
   }

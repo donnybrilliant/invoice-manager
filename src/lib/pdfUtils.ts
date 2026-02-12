@@ -209,12 +209,12 @@ function createPDFWithSmartScaling(
   config: Required<PDFOptions>,
   compress: boolean = false
 ): jsPDF {
-  // Create PDF with compression always enabled for smaller file size
+  // Create PDF - use compress parameter to control PDF compression
   const pdf = new jsPDF({
     orientation: config.orientation,
     unit: "mm",
     format: config.format,
-    compress: true, // Always compress for smaller file size
+    compress,
   });
 
   // Calculate dimensions using PDF's actual page size
@@ -225,10 +225,10 @@ function createPDFWithSmartScaling(
   const pageHeight = pdfHeight - config.margins.top - config.margins.bottom;
 
   // Get image data - use JPEG with quality for smaller file size
-  // JPEG quality: 0.85 for download (good balance), 0.9 for base64 (slightly better for email)
+  // JPEG quality: 0.92 for downloads (higher quality), 0.8 for email/base64 (smaller file size)
   const imgData = compress
-    ? canvas.toDataURL("image/jpeg", 0.9)
-    : canvas.toDataURL("image/jpeg", 0.85);
+    ? canvas.toDataURL("image/jpeg", 0.8)
+    : canvas.toDataURL("image/jpeg", 0.92);
 
   // Smart scaling: If content is within 1.5x page height, scale to fit on one page
   // This prevents payment info from being split while avoiding tiny text on very long invoices

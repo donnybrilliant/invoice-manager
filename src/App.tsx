@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LocaleProvider } from "./contexts/LocaleContext";
 import { queryClient } from "./lib/queryClient";
 import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard";
@@ -194,7 +196,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <AuthProvider>
-          <AppContent />
+          <LocaleProvider>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </LocaleProvider>
         </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>

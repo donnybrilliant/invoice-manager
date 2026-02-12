@@ -245,7 +245,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
               Issue Date
             </div>
             <div style={{ fontSize: "20px", fontWeight: 900 }}>
-              {formatDate(invoice.issue_date)}
+              {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
             </div>
           </div>
           <div
@@ -267,7 +267,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
               Due Date
             </div>
             <div style={{ fontSize: "20px", fontWeight: 900 }}>
-              {formatDate(invoice.due_date)}
+              {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
             </div>
           </div>
           <div
@@ -288,7 +288,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
               Total Due
             </div>
             <div style={{ fontSize: "20px", fontWeight: 900 }}>
-              {formatCurrencyWithCode(invoice.total, invoice.currency)}
+              {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
             </div>
           </div>
         </div>
@@ -542,7 +542,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 minWidth: 0,
               }}
             >
-              {formatCurrencyWithCode(item.unit_price, invoice.currency)}
+              {formatCurrencyWithCode(item.unit_price, invoice.currency, invoice.locale)}
             </div>
             <div
               className="amount-cell"
@@ -557,7 +557,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 minWidth: 0,
               }}
             >
-              {formatCurrencyWithCode(item.amount, invoice.currency)}
+              {formatCurrencyWithCode(item.amount, invoice.currency, invoice.locale)}
             </div>
           </div>
         ))}
@@ -634,7 +634,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   flexShrink: 0,
                 }}
               >
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -665,7 +665,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   flexShrink: 0,
                 }}
               >
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>
@@ -698,7 +698,7 @@ const ColorPopGridTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 color: colors.white,
               }}
             >
-              {formatCurrencyWithCode(invoice.total, invoice.currency)}
+              {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
             </div>
           </div>
         </div>

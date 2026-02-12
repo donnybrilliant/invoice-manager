@@ -1,6 +1,51 @@
 @import "tailwindcss";
 @import "./styles/invoice.css";
 
+/* Import Space Mono font for brutalist theme */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+/* ============================================================================
+   BRUTALIST THEME CSS VARIABLES
+   ============================================================================ */
+
+:root {
+    /* Brutalist color palette */
+    --brutalist-red: 358 100% 67%;
+    --brutalist-yellow: 44 100% 68%;
+    --brutalist-green: 137 79% 54%;
+    --brutalist-cyan: 201 100% 70%;
+    
+    /* Brutalist styling tokens */
+    --brutalist-border: 3px;
+    --brutalist-shadow: 6px 6px 0px hsl(0, 0%, 4%);
+    --brutalist-shadow-accent: 6px 6px 0px hsl(var(--brutalist-yellow));
+    --brutalist-shadow-sm: 4px 4px 0px hsl(0, 0%, 4%);
+    --brutalist-shadow-lg: 8px 8px 0px hsl(0, 0%, 4%);
+    
+    /* Brutalist light mode colors */
+    --brutalist-bg: hsl(0 0% 98%);
+    --brutalist-fg: hsl(0 0% 4%);
+    --brutalist-card: hsl(0 0% 100%);
+    --brutalist-muted: hsl(0 0% 88%);
+    --brutalist-muted-fg: hsl(0 0% 40%);
+    --brutalist-border-color: hsl(0 0% 4%);
+}
+
+/* Brutalist dark mode colors */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --brutalist-bg: hsl(0 0% 4%);
+        --brutalist-fg: hsl(0 0% 98%);
+        --brutalist-card: hsl(0 0% 7%);
+        --brutalist-muted: hsl(0 0% 15%);
+        --brutalist-muted-fg: hsl(0 0% 60%);
+        --brutalist-border-color: hsl(0 0% 98%);
+        --brutalist-shadow: 6px 6px 0px hsl(var(--brutalist-yellow));
+        --brutalist-shadow-sm: 4px 4px 0px hsl(var(--brutalist-yellow));
+        --brutalist-shadow-lg: 8px 8px 0px hsl(var(--brutalist-yellow));
+    }
+}
+
 @keyframes slideInRight {
     from {
         transform: translateX(100%);
@@ -21,6 +66,247 @@
             color-scheme: dark;
         }
     }
+
+    /* Consistent click affordance across themes */
+    a[href],
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    select:not(:disabled),
+    summary {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    [aria-disabled="true"],
+    [disabled] {
+        cursor: not-allowed;
+    }
+}
+
+/* ============================================================================
+   BRUTALIST THEME UTILITY CLASSES
+   ============================================================================ */
+
+@layer utilities {
+    /* Brutalist border utility */
+    .brutalist-border {
+        border: var(--brutalist-border) solid var(--brutalist-border-color);
+    }
+    
+    /* Brutalist shadow utilities */
+    .brutalist-shadow {
+        box-shadow: var(--brutalist-shadow);
+    }
+    
+    .brutalist-shadow-sm {
+        box-shadow: var(--brutalist-shadow-sm);
+    }
+    
+    .brutalist-shadow-lg {
+        box-shadow: var(--brutalist-shadow-lg);
+    }
+    
+    .brutalist-shadow-accent {
+        box-shadow: var(--brutalist-shadow-accent);
+    }
+    
+    /* Brutalist hover lift effect */
+    .brutalist-hover-lift {
+        transition: transform 200ms, box-shadow 200ms;
+    }
+    
+    .brutalist-hover-lift:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 9px 9px 0px var(--brutalist-border-color);
+    }
+    
+    /* Brutalist text styles */
+    .brutalist-text {
+        font-family: 'Space Mono', monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .brutalist-heading {
+        font-family: 'Space Mono', monospace;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+}
+
+/* ============================================================================
+   BRUTALIST FORM CONSISTENCY
+   ============================================================================
+*/
+
+.brutalist-theme .brutalist-form label,
+.brutalist-theme .brutalist-form h3 {
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--brutalist-fg) !important;
+}
+
+.brutalist-theme .brutalist-form p.text-xs {
+    color: var(--brutalist-muted-fg) !important;
+}
+
+.brutalist-theme .brutalist-form input:not([type="checkbox"]):not([type="file"]),
+.brutalist-theme .brutalist-form select,
+.brutalist-theme .brutalist-form textarea {
+    border: var(--brutalist-border) solid var(--brutalist-border-color) !important;
+    border-radius: 0 !important;
+    background: var(--brutalist-card) !important;
+    color: var(--brutalist-fg) !important;
+    font-family: 'Space Mono', monospace;
+}
+
+.brutalist-theme .brutalist-form input::placeholder,
+.brutalist-theme .brutalist-form textarea::placeholder {
+    color: var(--brutalist-muted-fg) !important;
+}
+
+.brutalist-theme .brutalist-form input:focus,
+.brutalist-theme .brutalist-form select:focus,
+.brutalist-theme .brutalist-form textarea:focus {
+    outline: none;
+    box-shadow: 4px 4px 0 hsl(var(--brutalist-yellow));
+}
+
+.brutalist-theme .brutalist-form input[type="checkbox"] {
+    border: 2px solid var(--brutalist-border-color) !important;
+    border-radius: 0 !important;
+    background: var(--brutalist-card) !important;
+}
+
+.brutalist-theme .brutalist-form .brutalist-form-section {
+    border-top: var(--brutalist-border) solid var(--brutalist-border-color) !important;
+}
+
+.brutalist-theme .brutalist-form .brutalist-form-panel {
+    border: var(--brutalist-border) solid var(--brutalist-border-color) !important;
+    border-radius: 0 !important;
+    background: var(--brutalist-card) !important;
+}
+
+.brutalist-theme .brutalist-form .brutalist-form-warning {
+    border: var(--brutalist-border) solid var(--brutalist-border-color) !important;
+    border-radius: 0 !important;
+    background: hsl(var(--brutalist-yellow)) !important;
+    color: var(--brutalist-fg) !important;
+}
+
+.brutalist-theme .brutalist-form .brutalist-form-error {
+    border: var(--brutalist-border) solid var(--brutalist-border-color) !important;
+    border-radius: 0 !important;
+    background: hsl(var(--brutalist-red)) !important;
+    color: white !important;
+}
+
+/* ============================================================================
+   BRUTALIST MICRO-INTERACTIONS + TYPOGRAPHY
+   ============================================================================
+*/
+
+.brutalist-theme .brutalist-text {
+    line-height: 1.2;
+}
+
+.brutalist-theme .brutalist-heading {
+    line-height: 1.1;
+    text-wrap: balance;
+}
+
+.brutalist-theme .tabular-nums {
+    font-family: 'Space Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+.brutalist-theme .brutalist-form input,
+.brutalist-theme .brutalist-form select,
+.brutalist-theme .brutalist-form textarea {
+    font-size: 0.92rem;
+    line-height: 1.35;
+}
+
+.brutalist-theme button[class*="brutalist-border"] {
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease, color 120ms ease;
+    box-shadow: var(--brutalist-shadow-sm);
+}
+
+.brutalist-theme button[class*="brutalist-border"]:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--brutalist-shadow);
+}
+
+.brutalist-theme button[class*="brutalist-border"]:active:not(:disabled) {
+    transform: translate(0, 0);
+    box-shadow: 2px 2px 0 var(--brutalist-border-color);
+}
+
+.brutalist-theme button[class*="brutalist-border"]:focus-visible {
+    outline: 3px solid hsl(var(--brutalist-cyan));
+    outline-offset: 2px;
+}
+
+.brutalist-theme button[class*="brutalist-border"] .lucide {
+    stroke-width: 2.4;
+}
+
+/* ============================================================================
+   CRITICAL: INVOICE ISOLATION PROTECTION
+   ============================================================================
+   
+   Brutalist styling must NEVER affect invoice rendering, PDF generation, or printing.
+   These rules ensure invoice containers are completely isolated from brutalist theme.
+   
+   DO NOT MODIFY these rules without understanding the impact on invoice rendering!
+   ============================================================================ */
+
+/* Reset brutalist styling inside invoice containers */
+.invoice-container .brutalist-border,
+.invoice-light-mode .brutalist-border,
+.pdf-generation-temp .brutalist-border {
+    border: revert !important;
+}
+
+.invoice-container .brutalist-shadow,
+.invoice-container .brutalist-shadow-sm,
+.invoice-container .brutalist-shadow-lg,
+.invoice-container .brutalist-shadow-accent,
+.invoice-light-mode .brutalist-shadow,
+.invoice-light-mode .brutalist-shadow-sm,
+.invoice-light-mode .brutalist-shadow-lg,
+.invoice-light-mode .brutalist-shadow-accent,
+.pdf-generation-temp .brutalist-shadow,
+.pdf-generation-temp .brutalist-shadow-sm,
+.pdf-generation-temp .brutalist-shadow-lg,
+.pdf-generation-temp .brutalist-shadow-accent {
+    box-shadow: revert !important;
+}
+
+.invoice-container .brutalist-text,
+.invoice-container .brutalist-heading,
+.invoice-light-mode .brutalist-text,
+.invoice-light-mode .brutalist-heading,
+.pdf-generation-temp .brutalist-text,
+.pdf-generation-temp .brutalist-heading {
+    font-family: revert !important;
+    text-transform: revert !important;
+    letter-spacing: revert !important;
+}
+
+/* Ensure brutalist theme class on html doesn't affect invoice containers */
+.brutalist-theme .invoice-container,
+.brutalist-theme .invoice-container *,
+.brutalist-theme .invoice-light-mode,
+.brutalist-theme .invoice-light-mode *,
+.brutalist-theme .pdf-generation-temp,
+.brutalist-theme .pdf-generation-temp * {
+    /* Preserve invoice isolation - do not apply brutalist styles */
+    font-family: inherit;
 }
 
 @layer utilities {

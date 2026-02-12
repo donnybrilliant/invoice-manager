@@ -20,12 +20,20 @@ function replaceTemplateVariables(
     currency: string;
     issueDate: string;
     dueDate: string;
+    locale?: string;
+    language?: string;
     message?: string;
     companyEmail?: string;
   }
 ): string {
-  const formattedIssueDate = formatDate(data.issueDate);
-  const formattedDueDate = formatDate(data.dueDate);
+  const formattedIssueDate = formatDate(data.issueDate, {
+    locale: data.locale,
+    language: data.language,
+  });
+  const formattedDueDate = formatDate(data.dueDate, {
+    locale: data.locale,
+    language: data.language,
+  });
   const formattedMessage = data.message
     ? data.message.replace(/\n/g, "<br>")
     : "";
@@ -80,6 +88,8 @@ export function renderEmailTemplate(data: {
   currency: string;
   issueDate: string;
   dueDate: string;
+  locale?: string;
+  language?: string;
   message?: string;
   companyEmail?: string;
   useCustomTemplate?: boolean;
@@ -105,6 +115,8 @@ export function renderEmailTemplate(data: {
     currency: data.currency,
     issueDate: data.issueDate,
     dueDate: data.dueDate,
+    locale: data.locale,
+    language: data.language,
     message: data.message,
     companyEmail: data.companyEmail,
   });

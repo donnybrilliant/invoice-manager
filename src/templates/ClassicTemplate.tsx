@@ -344,7 +344,7 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     Issue Date:
                   </td>
                   <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                    {formatDate(invoice.issue_date)}
+                    {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
                   </td>
                 </tr>
                 <tr>
@@ -358,7 +358,7 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     Due Date:
                   </td>
                   <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                    {formatDate(invoice.due_date)}
+                    {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
                   </td>
                 </tr>
                 {invoice.status === "sent" && invoice.sent_date && (
@@ -373,7 +373,7 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       Sent Date:
                     </td>
                     <td style={{ padding: "4px 0", color: "#1f2937" }}>
-                      {formatDate(invoice.sent_date)}
+                      {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                     </td>
                   </tr>
                 )}
@@ -433,19 +433,19 @@ const ClassicTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <tr>
                 <td style={totalsRowStyle}>Subtotal:</td>
                 <td style={totalsValueStyle}>
-                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                 </td>
               </tr>
               <tr>
                 <td style={totalsRowStyle}>Tax ({invoice.tax_rate}%):</td>
                 <td style={totalsValueStyle}>
-                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
                 </td>
               </tr>
               <tr style={totalRowStyle}>
                 <td style={totalLabelStyle}>Total:</td>
                 <td style={totalValueStyle}>
-                  {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                 </td>
               </tr>
             </tbody>

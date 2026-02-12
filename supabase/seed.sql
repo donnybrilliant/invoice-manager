@@ -55,6 +55,12 @@ DECLARE
   status_var text;
   currencies text[] := ARRAY['NOK', 'EUR', 'USD', 'NOK', 'EUR'];
   currency_var text;
+  language_var text;
+  locale_var text;
+  bank_account_id_var uuid;
+  bank_account_nok_id uuid;
+  bank_account_eur_id uuid;
+  bank_account_usd_id uuid;
   subtotal_var numeric;
   tax_rate_var numeric;
   tax_amount_var numeric;
@@ -201,11 +207,13 @@ BEGIN
     city,
     state,
     country,
-    account_number,
-    iban,
-    swift_bic,
+    ui_language,
+    ui_locale,
+    default_invoice_language,
+    default_invoice_locale,
     currency,
     payment_instructions,
+    use_brutalist_theme,
     created_at,
     updated_at
   ) VALUES (
@@ -221,16 +229,81 @@ BEGIN
     'Oslo',
     NULL,
     'Norway',
-    '1234.56.78901',
-    'NO93 1234 5678 901',
-    'DABANO22',
+    'nb',
+    'nb-NO',
+    'nb',
+    'nb-NO',
     'NOK',
     'Payment due within 14 days. Please include invoice number in payment reference.',
+    false,
     NOW(),
     NOW()
   ) ON CONFLICT (user_id) DO UPDATE SET
     company_name = EXCLUDED.company_name,
     updated_at = NOW();
+
+  -- Replace bank accounts for deterministic seed output
+  DELETE FROM bank_accounts WHERE user_id = test_user_id;
+
+  INSERT INTO bank_accounts (
+    user_id,
+    display_name,
+    currency,
+    account_number,
+    iban,
+    swift_bic,
+    is_default_for_currency,
+    is_active
+  ) VALUES (
+    test_user_id,
+    'NOK Main Account',
+    'NOK',
+    '1234.56.78901',
+    'NO93 1234 5678 901',
+    'DABANO22',
+    true,
+    true
+  ) RETURNING id INTO bank_account_nok_id;
+
+  INSERT INTO bank_accounts (
+    user_id,
+    display_name,
+    currency,
+    account_number,
+    iban,
+    swift_bic,
+    is_default_for_currency,
+    is_active
+  ) VALUES (
+    test_user_id,
+    'EUR Settlement Account',
+    'EUR',
+    NULL,
+    'NO16 8601 1117 945',
+    'DABANO22',
+    true,
+    true
+  ) RETURNING id INTO bank_account_eur_id;
+
+  INSERT INTO bank_accounts (
+    user_id,
+    display_name,
+    currency,
+    account_number,
+    iban,
+    swift_bic,
+    is_default_for_currency,
+    is_active
+  ) VALUES (
+    test_user_id,
+    'USD International Account',
+    'USD',
+    NULL,
+    'NO90 1111 2222 333',
+    'DABANO22',
+    true,
+    true
+  ) RETURNING id INTO bank_account_usd_id;
   
   -- ============================================================================
   -- CLIENTS (20 clients)
@@ -308,6 +381,26 @@ BEGIN
     country,
     NOW() - (random() * interval '180 days')
   FROM temp_clients;
+
+  -- Add mixed localization and currency preferences for defaulting tests
+  UPDATE clients
+  SET
+    preferred_language = CASE
+      WHEN substring(client_number from '[0-9]+')::int % 3 = 0 THEN 'es'
+      WHEN substring(client_number from '[0-9]+')::int % 2 = 0 THEN 'en'
+      ELSE 'nb'
+    END,
+    preferred_locale = CASE
+      WHEN substring(client_number from '[0-9]+')::int % 3 = 0 THEN 'es-ES'
+      WHEN substring(client_number from '[0-9]+')::int % 2 = 0 THEN 'en-US'
+      ELSE 'nb-NO'
+    END,
+    preferred_currency = CASE
+      WHEN substring(client_number from '[0-9]+')::int % 3 = 0 THEN 'USD'
+      WHEN substring(client_number from '[0-9]+')::int % 2 = 0 THEN 'EUR'
+      ELSE 'NOK'
+    END
+  WHERE user_id = test_user_id;
   
   DROP TABLE temp_clients;
   
@@ -395,6 +488,29 @@ BEGIN
     ELSE
       discount_pct_var := 0;
     END IF;
+
+    -- Resolve bank account by invoice currency
+    bank_account_id_var := CASE currency_var
+      WHEN 'NOK' THEN bank_account_nok_id
+      WHEN 'EUR' THEN bank_account_eur_id
+      WHEN 'USD' THEN bank_account_usd_id
+      ELSE bank_account_eur_id
+    END;
+
+    -- Resolve invoice language/locale defaults from client preferences
+    SELECT
+      COALESCE(c.preferred_language, 'nb'),
+      COALESCE(
+        c.preferred_locale,
+        CASE COALESCE(c.preferred_language, 'nb')
+          WHEN 'en' THEN 'en-US'
+          WHEN 'es' THEN 'es-ES'
+          ELSE 'nb-NO'
+        END
+      )
+    INTO language_var, locale_var
+    FROM clients c
+    WHERE c.id = client_id_var;
     
     -- Insert invoice with initial values (will be updated after items are created)
     -- We'll set subtotal to 0 initially and calculate it from items
@@ -402,6 +518,7 @@ BEGIN
         invoice_number,
         client_id,
         user_id,
+        bank_account_id,
         issue_date,
         due_date,
         sent_date,
@@ -413,6 +530,8 @@ BEGIN
         tax_amount,
         total,
         currency,
+        language,
+        locale,
         template,
         show_account_number,
         show_iban,
@@ -425,6 +544,7 @@ BEGIN
         'INV-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || LPAD(invoice_num::text, 4, '0'),
         client_id_var,
         test_user_id,
+        bank_account_id_var,
         issue_date_var,
         due_date_var,
         CASE 
@@ -438,23 +558,25 @@ BEGIN
         tax_rate_var,
         0, -- tax_amount (will be calculated after items)
         0, -- total (will be calculated after items)
-      currency_var,
-      template_var,
-      true,
-      true,
-      true,
-      CASE 
-        WHEN random() < 0.3 THEN 'Payment due within 14 days. Thank you for your business!'
-        WHEN random() < 0.5 THEN 'Please include invoice number in payment reference.'
-        ELSE NULL
-      END,
-      CASE 
-        WHEN random() < 0.4 THEN LPAD(floor(random() * 10000000000)::text, 10, '0')
-        ELSE NULL
-      END,
-      issue_date_var::timestamptz,
-      issue_date_var::timestamptz
-    ) RETURNING id INTO invoice_id_var;
+        currency_var,
+        language_var,
+        locale_var,
+        template_var,
+        true,
+        true,
+        true,
+        CASE 
+          WHEN random() < 0.3 THEN 'Payment due within 14 days. Thank you for your business!'
+          WHEN random() < 0.5 THEN 'Please include invoice number in payment reference.'
+          ELSE NULL
+        END,
+        CASE 
+          WHEN random() < 0.4 THEN LPAD(floor(random() * 10000000000)::text, 10, '0')
+          ELSE NULL
+        END,
+        issue_date_var::timestamptz,
+        issue_date_var::timestamptz
+      ) RETURNING id INTO invoice_id_var;
     
     -- Create 2-5 invoice items per invoice
     FOR j IN 1..(2 + floor(random() * 4)::int) LOOP
@@ -534,4 +656,3 @@ BEGIN
   RAISE NOTICE '2. You should see all the seeded clients and invoices';
   RAISE NOTICE '========================================';
 END $$;
-

@@ -1,7 +1,9 @@
 import { useState, useEffect, useActionState, useRef } from "react";
-import { X, Plus, Trash2, AlertCircle, Lock } from "lucide-react";
+import { X, Plus, Trash2, AlertCircle, Lock, FileText } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
+import { useLocale } from "../contexts/LocaleContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { supabase } from "../lib/supabase";
 import { Client, Invoice } from "../types";
 import ClientForm from "./ClientForm";
@@ -9,12 +11,14 @@ import TemplateSelector from "./TemplateSelector";
 import { useClients } from "../hooks/useClients";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
+import { useBankAccounts } from "../hooks/useBankAccounts";
 import {
   useCreateInvoice,
   useUpdateInvoice,
   useDeleteInvoice,
 } from "../hooks/useInvoices";
 import { formatCurrencyWithCode } from "../lib/formatting";
+import { getDefaultLocaleForLanguage } from "../i18n/config";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -36,9 +40,12 @@ export default function InvoiceForm({
   invoice,
 }: InvoiceFormProps) {
   const { user } = useAuth();
+  const { language: appLanguage, locale: appLocale } = useLocale();
+  const { isBrutalist } = useTheme();
   const queryClient = useQueryClient();
   const { data: clients = [] } = useClients();
   const { data: companyProfile = null } = useCompanyProfile();
+  const { data: bankAccounts = [] } = useBankAccounts();
   const { data: invoiceItemsData = [] } = useInvoiceItems(invoice?.id);
   const createInvoiceMutation = useCreateInvoice();
   const updateInvoiceMutation = useUpdateInvoice();
@@ -73,6 +80,22 @@ export default function InvoiceForm({
         .split("T")[0],
     tax_rate: invoice?.tax_rate || 0,
     currency: invoice?.currency || "EUR",
+    language:
+      invoice?.language ||
+      companyProfile?.default_invoice_language ||
+      appLanguage ||
+      "en",
+    locale:
+      invoice?.locale ||
+      companyProfile?.default_invoice_locale ||
+      appLocale ||
+      "en-US",
+    bank_account_id: invoice?.bank_account_id || "",
+    payment_account_label: invoice?.payment_account_label || null,
+    payment_account_number: invoice?.payment_account_number || null,
+    payment_iban: invoice?.payment_iban || null,
+    payment_swift_bic: invoice?.payment_swift_bic || null,
+    payment_currency: invoice?.payment_currency || null,
     notes: invoice?.notes || "",
     template: invoice?.template || "classic",
     show_account_number: invoice?.show_account_number ?? true,
@@ -80,6 +103,37 @@ export default function InvoiceForm({
     show_swift_bic: invoice?.show_swift_bic ?? false,
     kid_number: invoice?.kid_number || "",
   });
+
+  const currencyBankAccounts = bankAccounts.filter(
+    (account) => account.is_active && account.currency === formData.currency
+  );
+
+  const getDefaultBankAccountForCurrency = (currency: string) =>
+    bankAccounts.find(
+      (account) =>
+        account.is_active &&
+        account.currency === currency &&
+        account.is_default_for_currency
+    ) ||
+    bankAccounts.find(
+      (account) => account.is_active && account.currency === currency
+    ) ||
+    null;
+
+  const applyBankAccount = (bankAccountId: string) => {
+    const selectedAccount =
+      bankAccounts.find((account) => account.id === bankAccountId) || null;
+
+    setFormData((prev) => ({
+      ...prev,
+      bank_account_id: bankAccountId,
+      payment_account_label: selectedAccount?.display_name || null,
+      payment_account_number: selectedAccount?.account_number || null,
+      payment_iban: selectedAccount?.iban || null,
+      payment_swift_bic: selectedAccount?.swift_bic || null,
+      payment_currency: selectedAccount?.currency || null,
+    }));
+  };
 
   const [items, setItems] = useState<LineItem[]>([
     {
@@ -91,12 +145,35 @@ export default function InvoiceForm({
     },
   ]);
 
-  // Set default currency from company profile for new invoices
+  // Initialize defaults for new invoices from company preferences
   useEffect(() => {
-    if (!invoice && companyProfile?.currency) {
-      setFormData((prev) => ({ ...prev, currency: companyProfile.currency }));
-    }
-  }, [companyProfile, invoice]);
+    if (invoice || !companyProfile) return;
+
+    const defaultLanguage =
+      companyProfile.default_invoice_language ||
+      companyProfile.ui_language ||
+      appLanguage ||
+      "en";
+    const defaultLocale =
+      companyProfile.default_invoice_locale ||
+      companyProfile.ui_locale ||
+      getDefaultLocaleForLanguage(defaultLanguage);
+    const defaultCurrency = companyProfile.currency || "EUR";
+    const defaultBankAccount = getDefaultBankAccountForCurrency(defaultCurrency);
+
+    setFormData((prev) => ({
+      ...prev,
+      currency: defaultCurrency,
+      language: defaultLanguage,
+      locale: defaultLocale,
+      bank_account_id: defaultBankAccount?.id || "",
+      payment_account_label: defaultBankAccount?.display_name || null,
+      payment_account_number: defaultBankAccount?.account_number || null,
+      payment_iban: defaultBankAccount?.iban || null,
+      payment_swift_bic: defaultBankAccount?.swift_bic || null,
+      payment_currency: defaultBankAccount?.currency || null,
+    }));
+  }, [invoice, companyProfile, appLanguage, bankAccounts]);
 
   // Load invoice items when editing
   useEffect(() => {
@@ -113,22 +190,72 @@ export default function InvoiceForm({
     }
   }, [invoice, invoiceItemsData]);
 
-  // When client is selected, pre-fill KID number from client if invoice doesn't have one
+  // When client is selected, pre-fill KID and localization/currency defaults
   useEffect(() => {
-    if (formData.client_id && !invoice?.kid_number && clients.length > 0) {
-      const selectedClient = clients.find((c) => c.id === formData.client_id);
-      if (selectedClient?.kid_number && !formData.kid_number) {
-        setFormData((prev) => ({
-          ...prev,
-          kid_number: selectedClient.kid_number || "",
-        }));
-      } else if (!selectedClient?.kid_number && !formData.kid_number) {
-        // Clear KID if client doesn't have one and form doesn't have one
-        setFormData((prev) => ({ ...prev, kid_number: "" }));
-      }
+    if (!formData.client_id || clients.length === 0) return;
+
+    const selectedClient = clients.find((c) => c.id === formData.client_id);
+    if (!selectedClient) return;
+
+    setFormData((prev) => {
+      const nextCurrency =
+        !invoice && selectedClient.preferred_currency
+          ? selectedClient.preferred_currency
+          : prev.currency;
+      const bankAccount = getDefaultBankAccountForCurrency(nextCurrency);
+
+      return {
+        ...prev,
+        kid_number: !invoice
+          ? selectedClient.kid_number || prev.kid_number || ""
+          : prev.kid_number,
+        language:
+          !invoice && selectedClient.preferred_language
+            ? selectedClient.preferred_language
+            : prev.language,
+        locale:
+          !invoice && selectedClient.preferred_locale
+            ? selectedClient.preferred_locale
+            : !invoice && selectedClient.preferred_language
+            ? getDefaultLocaleForLanguage(selectedClient.preferred_language)
+            : prev.locale,
+        currency: nextCurrency,
+        bank_account_id: bankAccount?.id || prev.bank_account_id || "",
+        payment_account_label:
+          bankAccount?.display_name || prev.payment_account_label,
+        payment_account_number:
+          bankAccount?.account_number || prev.payment_account_number,
+        payment_iban: bankAccount?.iban || prev.payment_iban,
+        payment_swift_bic:
+          bankAccount?.swift_bic || prev.payment_swift_bic,
+        payment_currency: bankAccount?.currency || prev.payment_currency,
+      };
+    });
+  }, [formData.client_id, clients, invoice, bankAccounts]);
+
+  // When currency changes, keep selected bank account aligned by currency.
+  useEffect(() => {
+    const selectedAccount = bankAccounts.find(
+      (account) => account.id === formData.bank_account_id
+    );
+    if (selectedAccount && selectedAccount.currency === formData.currency) return;
+
+    const defaultAccount = getDefaultBankAccountForCurrency(formData.currency);
+    if (defaultAccount) {
+      applyBankAccount(defaultAccount.id);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.client_id, clients]);
+
+    setFormData((prev) => ({
+      ...prev,
+      bank_account_id: "",
+      payment_account_label: null,
+      payment_account_number: null,
+      payment_iban: null,
+      payment_swift_bic: null,
+      payment_currency: null,
+    }));
+  }, [formData.currency, bankAccounts]);
 
   // Refs to access current state in action
   const formDataRef = useRef(formData);
@@ -247,8 +374,25 @@ export default function InvoiceForm({
         return { error: "Please select a client" };
       }
 
+      if (!formDataRef.current.bank_account_id) {
+        return { error: "Please select a bank account for this invoice" };
+      }
+
       try {
         const currentFormData = formDataRef.current;
+        const selectedBankAccount = bankAccounts.find(
+          (account) => account.id === currentFormData.bank_account_id
+        );
+        if (!selectedBankAccount) {
+          return { error: "Selected bank account no longer exists" };
+        }
+        if (selectedBankAccount.currency !== currentFormData.currency) {
+          return {
+            error:
+              "Invoice currency must match the selected bank account currency",
+          };
+        }
+
         const currentItems = itemsRef.current;
         const { subtotal, tax_amount, total } = calculateTotals(
           currentItems,
@@ -264,6 +408,9 @@ export default function InvoiceForm({
           tax_amount,
           total,
           currency: currentFormData.currency,
+          language: currentFormData.language,
+          locale: currentFormData.locale,
+          bank_account_id: currentFormData.bank_account_id,
           notes: currentFormData.notes || null,
           template: currentFormData.template,
           show_account_number: currentFormData.show_account_number ?? true,
@@ -310,23 +457,34 @@ export default function InvoiceForm({
   const isSent = invoice?.status === "sent";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 my-8">
+    <div className={`fixed inset-0 flex items-center justify-center p-4 z-50 ${isBrutalist ? "bg-black/70" : "bg-black bg-opacity-50"}`}>
+      <div className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 my-8 ${isBrutalist ? "brutalist-border brutalist-shadow-lg bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-xl shadow-2xl"}`}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h2
+            className={`text-2xl font-bold flex items-center gap-2 ${
+              isBrutalist
+                ? "brutalist-heading text-[var(--brutalist-fg)]"
+                : "text-slate-900 dark:text-white"
+            }`}
+          >
+            <FileText className="w-6 h-6" />
             {invoice ? "Edit Invoice" : "New Invoice"}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition"
+            className={`transition p-2 ${
+              isBrutalist
+                ? "brutalist-border bg-[hsl(var(--brutalist-red))] text-white hover:bg-[hsl(var(--brutalist-yellow))] hover:text-[var(--brutalist-fg)]"
+                : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+            }`}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Warning banner for sent invoices */}
         {isSent && !isPaid && (
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start gap-3">
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start gap-3 brutalist-form-warning">
             <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
@@ -350,7 +508,7 @@ export default function InvoiceForm({
           </div>
         )}
 
-        <form action={submitAction} className="space-y-6">
+        <form action={submitAction} className="space-y-6 brutalist-form">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -404,6 +562,80 @@ export default function InvoiceForm({
                 <option value="SEK">SEK (kr)</option>
                 <option value="DKK">DKK (kr)</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Invoice Language *
+              </label>
+              <select
+                value={formData.language}
+                onChange={(e) => {
+                  const language = e.target.value;
+                  setFormData({
+                    ...formData,
+                    language,
+                    locale: getDefaultLocaleForLanguage(language),
+                  });
+                }}
+                required
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="en">English</option>
+                <option value="nb">Norwegian (Bokmal)</option>
+                <option value="es">Spanish</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Invoice Locale *
+              </label>
+              <select
+                value={formData.locale}
+                onChange={(e) =>
+                  setFormData({ ...formData, locale: e.target.value })
+                }
+                required
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="en-US">English (United States)</option>
+                <option value="nb-NO">Norwegian (Norway)</option>
+                <option value="es-ES">Spanish (Spain)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Bank Account *
+              </label>
+              <select
+                value={formData.bank_account_id}
+                onChange={(e) => applyBankAccount(e.target.value)}
+                required
+                disabled={isPaid}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {currencyBankAccounts.length > 0
+                    ? "Select bank account"
+                    : "No bank accounts for selected currency"}
+                </option>
+                {currencyBankAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.display_name}
+                    {account.is_default_for_currency ? " (Default)" : ""}
+                  </option>
+                ))}
+              </select>
+              {currencyBankAccounts.length === 0 && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  Add a {formData.currency} bank account in Settings before
+                  creating this invoice.
+                </p>
+              )}
             </div>
 
             <div>
@@ -502,7 +734,11 @@ export default function InvoiceForm({
                 type="button"
                 onClick={addItem}
                 disabled={isPaid}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex items-center gap-2 px-3 py-2 text-sm transition font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isBrutalist
+                    ? "brutalist-border bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg"
+                }`}
               >
                 <Plus className="w-5 h-5" />
                 Add Item
@@ -673,7 +909,7 @@ export default function InvoiceForm({
             </div>
           </div>
 
-          <div className="border-t pt-4">
+          <div className="border-t pt-4 brutalist-form-section">
             <div className="flex justify-end">
               <div className="w-64 space-y-2">
                 <div className="flex justify-between text-sm">
@@ -706,7 +942,7 @@ export default function InvoiceForm({
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               Banking Details to Display
             </label>
-            <div className="space-y-2 bg-slate-50 dark:bg-slate-700 p-4 rounded-lg border border-slate-200 dark:border-slate-600">
+            <div className="space-y-2 bg-slate-50 dark:bg-slate-700 p-4 rounded-lg border border-slate-200 dark:border-slate-600 brutalist-form-panel">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -775,18 +1011,22 @@ export default function InvoiceForm({
           </div>
 
           {(state?.error || deleteError) && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm brutalist-form-error">
               {state?.error || deleteError}
             </div>
           )}
 
           {invoice && invoice.status === "draft" && (
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700 brutalist-form-section">
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={deleteInvoiceMutation.isPending}
-                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className={`w-full px-4 py-2 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                  isBrutalist
+                    ? "brutalist-border bg-[hsl(var(--brutalist-red))] text-white hover:bg-[hsl(var(--brutalist-yellow))] hover:text-[var(--brutalist-fg)] brutalist-text"
+                    : "bg-red-600 text-white rounded-lg hover:bg-red-700"
+                }`}
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Invoice
@@ -798,14 +1038,22 @@ export default function InvoiceForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium"
+              className={`flex-1 px-4 py-3 transition font-medium ${
+                isBrutalist
+                  ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-cyan))] brutalist-text"
+                  : "border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+              }`}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending || isPaid}
-              className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 px-4 py-3 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+                isBrutalist
+                  ? "brutalist-border brutalist-shadow-sm bg-[var(--brutalist-fg)] text-[var(--brutalist-bg)] hover:bg-[hsl(var(--brutalist-green))] hover:text-[var(--brutalist-fg)] brutalist-text"
+                  : "bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+              }`}
             >
               {isPending
                 ? invoice
@@ -827,12 +1075,13 @@ export default function InvoiceForm({
       )}
 
       {showDeleteConfirm && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 rounded-xl">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-sm w-full p-6">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+        <div className={`absolute inset-0 flex items-center justify-center p-4 ${isBrutalist ? "bg-black/70" : "bg-black bg-opacity-50"} rounded-xl`}>
+          <div className={`max-w-sm w-full p-6 ${isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-lg shadow-xl"}`}>
+            <h3 className={`text-lg font-bold mb-2 flex items-center gap-2 ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
+              <AlertCircle className="w-5 h-5" />
               Delete Invoice?
             </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+            <p className={`${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-600 dark:text-slate-400"} mb-6`}>
               This will permanently delete this invoice and all associated
               items. This action cannot be undone.
             </p>
@@ -841,7 +1090,11 @@ export default function InvoiceForm({
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleteInvoiceMutation.isPending}
-                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition font-medium disabled:opacity-50"
+                className={`flex-1 px-4 py-2 transition font-medium disabled:opacity-50 ${
+                  isBrutalist
+                    ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-cyan))] brutalist-text"
+                    : "border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                }`}
               >
                 Cancel
               </button>
@@ -849,7 +1102,11 @@ export default function InvoiceForm({
                 type="button"
                 onClick={handleDelete}
                 disabled={deleteInvoiceMutation.isPending}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex-1 px-4 py-2 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isBrutalist
+                    ? "brutalist-border bg-[hsl(var(--brutalist-red))] text-white hover:bg-[hsl(var(--brutalist-yellow))] hover:text-[var(--brutalist-fg)] brutalist-text"
+                    : "bg-red-600 text-white rounded-lg hover:bg-red-700"
+                }`}
               >
                 {deleteInvoiceMutation.isPending ? "Deleting..." : "Delete"}
               </button>

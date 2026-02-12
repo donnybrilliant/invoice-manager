@@ -2,11 +2,11 @@
   # Invoice Manager - Initial Database Schema
   
   Complete database schema for the Invoice Manager application.
-  Designed for Norwegian and European businesses with support for:
-  - Multi-currency invoicing (EUR, NOK, USD, etc.)
-  - International banking (IBAN, SWIFT/BIC)
-  - Norwegian KID numbers
-  - Tax/VAT/MVA compliance
+  Designed for localization and multi-currency invoicing with support for:
+  - UI and invoice language/locale preferences
+  - Multi-bank accounts per currency
+  - Invoice-level immutable payment snapshots
+  - Norwegian KID numbers and tax/VAT compliance
   - Organization/company registration numbers
   
   ## Tables
@@ -16,7 +16,10 @@
   Protected from deletion if they have invoices that are not in draft status.
   
   ### invoices
-  Invoice records with automatic numbering, multi-currency, and discount support
+  Invoice records with automatic numbering, localization, and payment snapshots
+
+  ### bank_accounts
+  Multiple payment accounts per user, scoped by currency with default selection
   
   ### invoice_items
   Line items for each invoice
@@ -60,6 +63,15 @@ CREATE TABLE clients (
   city text,
   state text,
   country text,
+
+  -- Localization and currency preferences
+  preferred_language text CHECK (
+    preferred_language IS NULL OR preferred_language IN ('en', 'nb', 'es')
+  ),
+  preferred_locale text,
+  preferred_currency text CHECK (
+    preferred_currency IS NULL OR char_length(preferred_currency) = 3
+  ),
   
   created_at timestamptz DEFAULT now()
 );
@@ -165,6 +177,55 @@ CREATE TRIGGER prevent_client_deletion_trigger
   EXECUTE FUNCTION public.prevent_client_deletion_with_non_draft_invoices();
 
 -- ============================================================================
+-- BANK ACCOUNTS TABLE
+-- ============================================================================
+
+CREATE TABLE bank_accounts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name text NOT NULL,
+  currency text NOT NULL CHECK (currency = upper(currency) AND char_length(currency) = 3),
+  account_number text,
+  iban text,
+  swift_bic text,
+  is_default_for_currency boolean NOT NULL DEFAULT false,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT bank_accounts_identifier_required
+    CHECK (account_number IS NOT NULL OR iban IS NOT NULL)
+);
+
+ALTER TABLE bank_accounts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own bank accounts"
+  ON bank_accounts FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT auth.uid()));
+
+CREATE POLICY "Users can insert own bank accounts"
+  ON bank_accounts FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+CREATE POLICY "Users can update own bank accounts"
+  ON bank_accounts FOR UPDATE
+  TO authenticated
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+CREATE POLICY "Users can delete own bank accounts"
+  ON bank_accounts FOR DELETE
+  TO authenticated
+  USING (user_id = (SELECT auth.uid()));
+
+CREATE INDEX idx_bank_accounts_user_id ON bank_accounts(user_id);
+CREATE INDEX idx_bank_accounts_user_currency ON bank_accounts(user_id, currency);
+CREATE UNIQUE INDEX idx_bank_accounts_default_per_currency
+  ON bank_accounts(user_id, currency)
+  WHERE is_default_for_currency = true AND is_active = true;
+
+-- ============================================================================
 -- INVOICES TABLE
 -- ============================================================================
 
@@ -173,6 +234,7 @@ CREATE TABLE invoices (
   invoice_number text UNIQUE NOT NULL,
   client_id uuid NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
   user_id uuid NOT NULL,
+  bank_account_id uuid NOT NULL REFERENCES bank_accounts(id) ON DELETE RESTRICT,
   
   -- Dates
   issue_date date NOT NULL DEFAULT CURRENT_DATE,
@@ -190,8 +252,17 @@ CREATE TABLE invoices (
   tax_amount numeric(10,2) NOT NULL DEFAULT 0 CHECK (tax_amount >= 0),
   total numeric(10,2) NOT NULL DEFAULT 0 CHECK (total >= 0),
   
-  -- Currency (EUR, NOK, USD, etc.)
-  currency text DEFAULT 'EUR' CHECK (char_length(currency) = 3),
+  -- Localization and currency
+  currency text NOT NULL DEFAULT 'EUR' CHECK (currency = upper(currency) AND char_length(currency) = 3),
+  language text NOT NULL DEFAULT 'en' CHECK (language IN ('en', 'nb', 'es')),
+  locale text NOT NULL DEFAULT 'en-US',
+  
+  -- Snapshot of selected payment details at invoice creation/update time
+  payment_account_label text,
+  payment_account_number text,
+  payment_iban text,
+  payment_swift_bic text,
+  payment_currency text CHECK (payment_currency IS NULL OR (payment_currency = upper(payment_currency) AND char_length(payment_currency) = 3)),
   
   -- Template selection
   template text DEFAULT 'classic' CHECK (template IN ('classic', 'modern', 'professional', 'brutalist', 'dark-mode', 'minimal-japanese', 'neo-brutalist', 'swiss', 'typewriter', 'cutout-brutalist', 'constructivist', 'color-pop-stacked', 'color-pop-minimal', 'color-pop-grid', 'color-pop-diagonal', 'color-pop-brutalist')),
@@ -237,6 +308,55 @@ CREATE POLICY "Users can delete own invoices"
 -- Indexes
 CREATE INDEX idx_invoices_user_id ON invoices(user_id);
 CREATE INDEX idx_invoices_client_id ON invoices(client_id);
+CREATE INDEX idx_invoices_currency ON invoices(currency);
+CREATE INDEX idx_invoices_bank_account_id ON invoices(bank_account_id);
+
+CREATE OR REPLACE FUNCTION public.sync_invoice_payment_snapshot()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_bank_account bank_accounts%ROWTYPE;
+BEGIN
+  SELECT *
+  INTO v_bank_account
+  FROM bank_accounts
+  WHERE id = NEW.bank_account_id;
+
+  IF v_bank_account.id IS NULL THEN
+    RAISE EXCEPTION 'Selected bank account does not exist';
+  END IF;
+
+  IF v_bank_account.user_id <> NEW.user_id THEN
+    RAISE EXCEPTION 'Selected bank account does not belong to the invoice owner';
+  END IF;
+
+  IF v_bank_account.is_active = false THEN
+    RAISE EXCEPTION 'Selected bank account is inactive';
+  END IF;
+
+  IF v_bank_account.currency <> NEW.currency THEN
+    RAISE EXCEPTION 'Invoice currency must match selected bank account currency';
+  END IF;
+
+  NEW.payment_account_label := v_bank_account.display_name;
+  NEW.payment_account_number := v_bank_account.account_number;
+  NEW.payment_iban := v_bank_account.iban;
+  NEW.payment_swift_bic := v_bank_account.swift_bic;
+  NEW.payment_currency := v_bank_account.currency;
+  NEW.updated_at := now();
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER set_invoice_payment_snapshot
+  BEFORE INSERT OR UPDATE OF bank_account_id, currency, user_id
+  ON invoices
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_invoice_payment_snapshot();
 
 -- ============================================================================
 -- INVOICE ITEMS TABLE
@@ -335,17 +455,21 @@ CREATE TABLE company_profiles (
   state text,
   country text,
   
-  -- International banking
-  account_number text,
-  iban text,
-  swift_bic text,
+  -- App localization defaults
+  ui_language text NOT NULL DEFAULT 'en' CHECK (ui_language IN ('en', 'nb', 'es')),
+  ui_locale text NOT NULL DEFAULT 'en-US',
+  default_invoice_language text NOT NULL DEFAULT 'en' CHECK (default_invoice_language IN ('en', 'nb', 'es')),
+  default_invoice_locale text NOT NULL DEFAULT 'en-US',
   
   -- Currency and payment
-  currency text DEFAULT 'EUR' CHECK (char_length(currency) = 3),
+  currency text NOT NULL DEFAULT 'EUR' CHECK (currency = upper(currency) AND char_length(currency) = 3),
   payment_instructions text,
   
   -- Branding
   logo_url text,
+
+  -- Theme
+  use_brutalist_theme boolean NOT NULL DEFAULT false,
   
   -- Email template customization
   use_custom_email_template boolean DEFAULT false, -- If true, use custom email template. If false, use email template matching the invoice template.
@@ -636,6 +760,7 @@ RETURNS TABLE (
   client_id uuid,
   issue_date date,
   due_date date,
+  sent_date date,
   status text,
   subtotal numeric,
   discount_percentage numeric,
@@ -644,6 +769,14 @@ RETURNS TABLE (
   tax_amount numeric,
   total numeric,
   currency text,
+  language text,
+  locale text,
+  bank_account_id uuid,
+  payment_account_label text,
+  payment_account_number text,
+  payment_iban text,
+  payment_swift_bic text,
+  payment_currency text,
   notes text,
   template text,
   show_account_number boolean,
@@ -684,6 +817,7 @@ BEGIN
     i.client_id,
     i.issue_date,
     i.due_date,
+    i.sent_date,
     i.status,
     i.subtotal,
     i.discount_percentage,
@@ -692,6 +826,14 @@ BEGIN
     i.tax_amount,
     i.total,
     i.currency,
+    i.language,
+    i.locale,
+    i.bank_account_id,
+    i.payment_account_label,
+    i.payment_account_number,
+    i.payment_iban,
+    i.payment_swift_bic,
+    i.payment_currency,
     i.notes,
     i.template,
     i.show_account_number,
@@ -727,11 +869,11 @@ GRANT EXECUTE ON FUNCTION validate_invoice_share_token(text) TO authenticated;
   - Password leak protection should be enabled in Supabase Auth settings
   - Database-level protection prevents deletion of clients with non-draft invoices
   
-  Norwegian/European Features:
-  - KID numbers for Norwegian banking
-  - Organization and tax numbers
-  - IBAN and SWIFT/BIC for international banking
-  - European address format (postal code + city)
+  Localization/Currency Features:
+  - UI language/locale and default invoice language/locale per company
+  - Client-level preferred language/locale/currency
+  - Multi-bank accounts with one active default per currency
+  - Invoice payment snapshots (account label/number/IBAN/SWIFT/currency)
   - Multi-currency support (EUR default)
   - Tax/VAT/MVA calculations
   

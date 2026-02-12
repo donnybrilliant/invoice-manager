@@ -261,7 +261,7 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       fontWeight: 500,
                     }}
                   >
-                    {formatDate(invoice.issue_date)}
+                    {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
                   </td>
                 </tr>
                 <tr>
@@ -283,7 +283,7 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       fontWeight: 500,
                     }}
                   >
-                    {formatDate(invoice.due_date)}
+                    {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
                   </td>
                 </tr>
                 {invoice.status === "sent" && invoice.sent_date && (
@@ -306,7 +306,7 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                         fontWeight: 500,
                       }}
                     >
-                      {formatDate(invoice.sent_date)}
+                      {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                     </td>
                   </tr>
                 )}
@@ -428,7 +428,7 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       minWidth: "100px",
                     }}
                   >
-                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                   </td>
                 </tr>
                 <tr>
@@ -486,7 +486,7 @@ const ProfessionalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       minWidth: "120px",
                     }}
                   >
-                    {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                   </td>
                 </tr>
               </tbody>

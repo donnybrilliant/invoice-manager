@@ -37,6 +37,9 @@ interface CreateClientData {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  preferred_language?: string | null;
+  preferred_locale?: string | null;
+  preferred_currency?: string | null;
 }
 
 export function useCreateClient() {
@@ -83,6 +86,9 @@ interface UpdateClientData {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  preferred_language?: string | null;
+  preferred_locale?: string | null;
+  preferred_currency?: string | null;
 }
 
 export function useUpdateClient() {

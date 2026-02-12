@@ -40,14 +40,16 @@ interface UpdateCompanyProfileData {
   city?: string | null;
   state?: string | null;
   country?: string | null;
-  account_number?: string | null;
-  iban?: string | null;
-  swift_bic?: string | null;
+  ui_language?: string;
+  ui_locale?: string;
+  default_invoice_language?: string;
+  default_invoice_locale?: string;
   currency?: string;
   payment_instructions?: string | null;
   logo_url?: string | null;
   use_custom_email_template?: boolean;
   email_template?: string | null;
+  use_brutalist_theme?: boolean;
 }
 
 export function useUpdateCompanyProfile() {

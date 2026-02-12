@@ -13,6 +13,9 @@ export interface Client {
   organization_number: string | null;
   tax_number: string | null;
   kid_number: string | null;
+  preferred_language: string | null;
+  preferred_locale: string | null;
+  preferred_currency: string | null;
   created_at: string;
 }
 
@@ -32,6 +35,14 @@ export interface Invoice {
   tax_amount: number;
   total: number;
   currency: string;
+  language: string;
+  locale: string;
+  bank_account_id: string;
+  payment_account_label: string | null;
+  payment_account_number: string | null;
+  payment_iban: string | null;
+  payment_swift_bic: string | null;
+  payment_currency: string | null;
   notes: string | null;
   template: string;
   show_account_number?: boolean;
@@ -71,14 +82,16 @@ export interface CompanyProfile {
   city: string | null;
   state: string | null;
   country: string | null;
-  account_number: string | null;
-  iban: string | null;
-  swift_bic: string | null;
+  ui_language: string;
+  ui_locale: string;
+  default_invoice_language: string;
+  default_invoice_locale: string;
   currency: string;
   payment_instructions: string | null;
   logo_url: string | null;
   use_custom_email_template: boolean;
   email_template: string | null;
+  use_brutalist_theme: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -90,4 +103,18 @@ export interface InvoiceShare {
   expires_at: string;
   created_at: string;
   viewed_at: string | null;
+}
+
+export interface BankAccount {
+  id: string;
+  user_id: string;
+  display_name: string;
+  currency: string;
+  account_number: string | null;
+  iban: string | null;
+  swift_bic: string | null;
+  is_default_for_currency: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }

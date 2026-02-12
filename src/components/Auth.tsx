@@ -1,5 +1,6 @@
 import { useState, useActionState, useRef, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useThemeSafe } from "../contexts/ThemeContext";
 import { LogIn, CheckCircle } from "lucide-react";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
@@ -17,6 +18,7 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const { signIn, signUp, clearSignupEmail } = useAuth();
+  const { isBrutalist } = useThemeSafe();
 
   // Use a ref to track the current isLogin value so the action function always has the latest value
   const isLoginRef = useRef(isLogin);
@@ -117,19 +119,19 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${isBrutalist ? "bg-[var(--brutalist-bg)]" : "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"}`}>
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+        <div className={`p-8 ${isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-2xl shadow-xl"}`}>
           <div className="flex items-center justify-center mb-8">
-            <div className="bg-slate-900 dark:bg-slate-700 p-3 rounded-xl">
-              <LogIn className="w-8 h-8 text-white" />
+            <div className={isBrutalist ? "brutalist-border bg-[hsl(var(--brutalist-red))] p-3" : "bg-slate-900 dark:bg-slate-700 p-3 rounded-xl"}>
+              <LogIn className={`w-8 h-8 ${isBrutalist ? "text-white" : "text-white"}`} />
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-2">
+          <h1 className={`text-3xl font-bold text-center mb-2 ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
             Invoice Manager
           </h1>
-          <p className="text-center text-slate-600 dark:text-slate-300 mb-8">
+          <p className={`text-center mb-8 ${isBrutalist ? "text-[var(--brutalist-muted-fg)]" : "text-slate-600 dark:text-slate-300"}`}>
             {isLogin ? "Sign in to your account" : "Create your account"}
           </p>
 
@@ -137,7 +139,7 @@ export default function Auth() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className={`block text-sm font-medium mb-2 ${isBrutalist ? "brutalist-text text-[var(--brutalist-fg)]" : "text-slate-700 dark:text-slate-300"}`}
               >
                 Email
               </label>
@@ -148,7 +150,11 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent transition"
+                className={`w-full px-4 py-3 focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                  isBrutalist
+                    ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+                    : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+                }`}
                 placeholder="you@example.com"
               />
             </div>
@@ -156,7 +162,7 @@ export default function Auth() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className={`block text-sm font-medium mb-2 ${isBrutalist ? "brutalist-text text-[var(--brutalist-fg)]" : "text-slate-700 dark:text-slate-300"}`}
               >
                 Password
               </label>
@@ -168,13 +174,17 @@ export default function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:border-transparent transition"
+                className={`w-full px-4 py-3 focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                  isBrutalist
+                    ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] focus:ring-[hsl(var(--brutalist-yellow))]"
+                    : "border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-slate-900 dark:focus:ring-slate-500"
+                }`}
                 placeholder="••••••••"
               />
             </div>
 
             {state?.error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+              <div className={`px-4 py-3 text-sm ${isBrutalist ? "brutalist-border bg-[hsl(var(--brutalist-red))] text-white" : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg"}`}>
                 {state.error}
               </div>
             )}
@@ -182,7 +192,11 @@ export default function Auth() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-slate-900 dark:bg-slate-700 text-white py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full py-3 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                isBrutalist
+                  ? "brutalist-border brutalist-shadow bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text focus:ring-[hsl(var(--brutalist-yellow))]"
+                  : "bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 focus:ring-slate-900 dark:focus:ring-slate-500"
+              }`}
             >
               {isPending ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </button>
@@ -192,14 +206,14 @@ export default function Auth() {
             {isLogin && (
               <button
                 onClick={() => setShowForgotPassword(true)}
-                className="block w-full text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm font-medium transition"
+                className={`block w-full text-sm font-medium transition ${isBrutalist ? "text-[hsl(var(--brutalist-cyan))] hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
               >
                 Forgot password?
               </button>
             )}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="block w-full text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm font-medium transition"
+              className={`block w-full text-sm font-medium transition ${isBrutalist ? "text-[hsl(var(--brutalist-cyan))] hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
             >
               {isLogin
                 ? "Don't have an account? Sign up"

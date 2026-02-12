@@ -129,7 +129,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontSize: "14px",
                   }}
                 >
-                  {formatDate(invoice.issue_date)}
+                  {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
                 <div
                   style={{
@@ -139,7 +139,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontSize: "14px",
                   }}
                 >
-                  Due: {formatDate(invoice.due_date)}
+                  Due: {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             </div>
@@ -341,7 +341,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                         color: textColor,
                       }}
                     >
-                      {formatCurrencyWithCode(item.amount, invoice.currency)}
+                      {formatCurrencyWithCode(item.amount, invoice.currency, invoice.locale)}
                     </div>
                   </div>
                 </div>
@@ -385,7 +385,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       fontSize: "16px",
                     }}
                   >
-                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                   </span>
                 </div>
                 <div style={{ marginBottom: "15px" }}>
@@ -429,7 +429,7 @@ const ColorPopStackedTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       fontWeight: 900,
                     }}
                   >
-                    {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                   </div>
                 </div>
               </div>

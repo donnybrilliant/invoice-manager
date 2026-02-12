@@ -281,7 +281,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   textDecoration: "underline",
                 }}
               >
-                {formatDate(invoice.issue_date)}
+                {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             <div>
@@ -304,7 +304,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   textDecoration: "underline",
                 }}
               >
-                {formatDate(invoice.due_date)}
+                {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
@@ -327,7 +327,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     textDecoration: "underline",
                   }}
                 >
-                  {formatDate(invoice.sent_date)}
+                  {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             )}
@@ -409,7 +409,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Subtotal
               </span>
               <span style={{ color: "#3D2914" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -431,7 +431,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Tax
               </span>
               <span style={{ color: "#3D2914" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -461,7 +461,7 @@ const TypewriterTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   color: "#FDF6E3",
                 }}
               >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>

@@ -246,7 +246,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   Issued
                 </div>
                 <div style={{ fontSize: "15px", color: "#E0E0E0" }}>
-                  {formatDate(invoice.issue_date)}
+                  {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
               <div>
@@ -263,7 +263,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   Due
                 </div>
                 <div style={{ fontSize: "15px", color: "#FF6B6B" }}>
-                  {formatDate(invoice.due_date)}
+                  {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
               {invoice.status === "sent" && invoice.sent_date && (
@@ -280,7 +280,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     Sent Date
                   </div>
                   <div style={{ fontSize: "15px", color: "#60A5FA" }}>
-                    {formatDate(invoice.sent_date)}
+                    {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                   </div>
                 </div>
               )}
@@ -354,7 +354,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Subtotal
               </span>
               <span style={{ fontSize: "14px", color: "#E0E0E0" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -367,7 +367,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <span style={{ fontSize: "13px", color: "#D0D0D0" }}>Tax</span>
               <span style={{ fontSize: "14px", color: "#E0E0E0" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -391,7 +391,7 @@ const DarkModeTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   color: "#00FFB2",
                 }}
               >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>

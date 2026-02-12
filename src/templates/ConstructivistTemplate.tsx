@@ -229,7 +229,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     color: "#F5F0E1",
                   }}
                 >
-                  {formatDate(invoice.issue_date)}
+                  {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
               <div>
@@ -251,7 +251,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     color: "#CC0000",
                   }}
                 >
-                  {formatDate(invoice.due_date)}
+                  {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             </div>
@@ -366,7 +366,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   SUBTOTAL
                 </span>
                 <span style={{ fontWeight: 900 }}>
-                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                 </span>
               </div>
               <div
@@ -387,7 +387,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   TAX
                 </span>
                 <span style={{ fontWeight: 900 }}>
-                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
                 </span>
               </div>
               <div
@@ -419,7 +419,7 @@ const ConstructivistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   <span
                     style={{ fontSize: "30px", fontWeight: 900, color: "#fff" }}
                   >
-                    {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                   </span>
                 </div>
               </div>

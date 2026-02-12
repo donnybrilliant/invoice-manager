@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   FileText,
   Users,
@@ -10,8 +10,11 @@ import {
   ChevronDown,
   ChevronUp,
   AlertCircle,
+  Palette,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useLocale } from "../contexts/LocaleContext";
+import { useTheme } from "../contexts/ThemeContext";
 import InvoiceList from "./InvoiceList";
 import InvoiceForm from "./InvoiceForm";
 import InvoiceView from "./InvoiceView";
@@ -21,6 +24,7 @@ import ClientDetailView from "./ClientDetailView";
 import { Invoice, Client } from "../types";
 import { useInvoices } from "../hooks/useInvoices";
 import { useClients } from "../hooks/useClients";
+import { useBankAccounts } from "../hooks/useBankAccounts";
 import { formatCurrencyAmountOnly } from "../lib/formatting";
 
 interface DashboardProps {
@@ -29,8 +33,11 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   const { user, signOut } = useAuth();
+  const { locale: appLocale } = useLocale();
+  const { isBrutalist, toggleBrutalist, showToggleButton } = useTheme();
   const { data: invoices = [] } = useInvoices();
   const { data: clients = [] } = useClients();
+  const { data: bankAccounts = [] } = useBankAccounts();
   const [activeTab, setActiveTab] = useState<"invoices" | "clients">(
     "invoices"
   );
@@ -42,20 +49,52 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [invoiceFilters, setInvoiceFilters] = useState({
+    searchTerm: "",
+    status: "all",
+    currency: "all",
+    bankAccountId: "all",
+  });
   const hasPushedStateRef = useRef(false);
 
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((invoice) => {
+      const matchesSearch =
+        invoice.invoice_number
+          .toLowerCase()
+          .includes(invoiceFilters.searchTerm.toLowerCase()) ||
+        (invoice.client?.name || "")
+          .toLowerCase()
+          .includes(invoiceFilters.searchTerm.toLowerCase());
+      const matchesStatus =
+        invoiceFilters.status === "all" || invoice.status === invoiceFilters.status;
+      const matchesCurrency =
+        invoiceFilters.currency === "all" ||
+        invoice.currency === invoiceFilters.currency;
+      const matchesBankAccount =
+        invoiceFilters.bankAccountId === "all" ||
+        invoice.bank_account_id === invoiceFilters.bankAccountId;
+      return (
+        !!matchesSearch &&
+        matchesStatus &&
+        matchesCurrency &&
+        matchesBankAccount
+      );
+    });
+  }, [invoices, invoiceFilters]);
+
   // Calculate statistics
-  const totalInvoices = invoices.length;
+  const totalInvoices = filteredInvoices.length;
   const totalClients = clients.length;
   const invoicesByStatus = {
-    draft: invoices.filter((inv) => inv.status === "draft").length,
-    sent: invoices.filter((inv) => inv.status === "sent").length,
-    paid: invoices.filter((inv) => inv.status === "paid").length,
-    overdue: invoices.filter((inv) => inv.status === "overdue").length,
+    draft: filteredInvoices.filter((inv) => inv.status === "draft").length,
+    sent: filteredInvoices.filter((inv) => inv.status === "sent").length,
+    paid: filteredInvoices.filter((inv) => inv.status === "paid").length,
+    overdue: filteredInvoices.filter((inv) => inv.status === "overdue").length,
   };
 
   // Calculate unpaid amount (sent + overdue invoices)
-  const unpaidInvoices = invoices.filter(
+  const unpaidInvoices = filteredInvoices.filter(
     (inv) => inv.status === "sent" || inv.status === "overdue"
   );
 
@@ -69,7 +108,7 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   }, {} as Record<string, number>);
 
   // Group paid invoices by currency
-  const paidInvoices = invoices.filter((inv) => inv.status === "paid");
+  const paidInvoices = filteredInvoices.filter((inv) => inv.status === "paid");
   const paidByCurrency = paidInvoices.reduce((acc, inv) => {
     if (!acc[inv.currency]) {
       acc[inv.currency] = 0;
@@ -142,29 +181,44 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
   }, [viewingInvoice, viewingClient, showInvoiceForm, showClientForm]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <nav className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
+    <div className={`min-h-screen ${isBrutalist ? "bg-[var(--brutalist-bg)]" : "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"}`}>
+      <nav className={isBrutalist ? "brutalist-border border-x-0 border-t-0 bg-[hsl(var(--brutalist-red))]" : "bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="bg-slate-900 dark:bg-slate-700 p-2 rounded-lg">
-                <FileText className="w-6 h-6 text-white" />
+              <div className={isBrutalist ? "brutalist-border bg-[hsl(var(--brutalist-yellow))] p-2" : "bg-slate-900 dark:bg-slate-700 p-2 rounded-lg"}>
+                <FileText className={`w-6 h-6 ${isBrutalist ? "text-[var(--brutalist-fg)]" : "text-white"}`} />
               </div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+              <h1 className={`text-xl font-bold ${isBrutalist ? "brutalist-heading text-white" : "text-slate-900 dark:text-white"}`} style={isBrutalist ? { textShadow: "2px 2px 0 black" } : undefined}>
                 Invoice Manager
               </h1>
             </div>
 
             <div className="hidden md:flex items-center gap-4">
+              {/* Brutalist Theme Toggle Button */}
+              {showToggleButton && (
+                <button
+                  onClick={toggleBrutalist}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm transition ${
+                    isBrutalist
+                      ? "brutalist-border bg-[hsl(var(--brutalist-cyan))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                  }`}
+                  title={isBrutalist ? "Switch to normal theme" : "Try brutalist theme"}
+                >
+                  <Palette className="w-4 h-4" />
+                  <span className="hidden lg:inline">{isBrutalist ? "Normal" : "Brutalist"}</span>
+                </button>
+              )}
               <button
                 onClick={onNavigateToProfile}
-                className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+                className={`text-sm transition cursor-pointer ${isBrutalist ? "text-white hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}
               >
                 {user?.email}
               </button>
               <button
                 onClick={signOut}
-                className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
+                className={`flex items-center gap-2 px-4 py-2 transition ${isBrutalist ? "text-white hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
@@ -173,7 +227,7 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              className={`md:hidden p-2 ${isBrutalist ? "text-white hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}
             >
               {mobileMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -184,20 +238,33 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
           </div>
 
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-slate-200 dark:border-slate-700">
+            <div className={`md:hidden py-4 border-t ${isBrutalist ? "border-white/30" : "border-slate-200 dark:border-slate-700"}`}>
               <div className="flex flex-col gap-2">
+                {/* Mobile Brutalist Theme Toggle */}
+                {showToggleButton && (
+                  <button
+                    onClick={() => {
+                      toggleBrutalist();
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 text-left transition ${isBrutalist ? "text-white hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}
+                  >
+                    <Palette className="w-4 h-4" />
+                    {isBrutalist ? "Normal Theme" : "Brutalist Theme"}
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     onNavigateToProfile();
                     setMobileMenuOpen(false);
                   }}
-                  className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition px-4 py-2 text-left"
+                  className={`text-sm px-4 py-2 text-left transition ${isBrutalist ? "text-white hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}
                 >
                   {user?.email}
                 </button>
                 <button
                   onClick={signOut}
-                  className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
+                  className={`flex items-center gap-2 px-4 py-2 transition ${isBrutalist ? "text-white hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
@@ -211,12 +278,16 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistics Section Toggle */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+          <h2 className={`text-xl font-semibold ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
             Dashboard Statistics
           </h2>
           <button
             onClick={() => setShowStats(!showStats)}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition ${
+              isBrutalist
+                ? "brutalist-border bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+            }`}
           >
             {showStats ? (
               <>
@@ -238,146 +309,281 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
             {/* First Row: Paid and Unpaid Invoices */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {/* Paid Invoices Card */}
-              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+              <div
+                className={`p-6 ${
+                  isBrutalist
+                    ? "brutalist-border brutalist-shadow-sm bg-[var(--brutalist-card)]"
+                    : "bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
+                }`}
+              >
+                <div>
+                  <div className="mb-3">
+                    <p
+                      className={`text-sm flex items-center gap-2 ${
+                        isBrutalist
+                          ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                          : "text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      <TrendingUp className="w-4 h-4" />
                       Paid Invoices
                     </p>
-                    <div className="space-y-1">
-                      {Object.entries(paidByCurrency).length > 0 ? (
-                        Object.entries(paidByCurrency)
-                          .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([currency, amount]) => {
-                            const formattedAmount = formatCurrencyAmountOnly(
-                              amount,
-                              currency
-                            );
-                            return (
-                              <div
-                                key={currency}
-                                className="flex items-center gap-3"
+                  </div>
+                  <div className="space-y-1">
+                    {Object.entries(paidByCurrency).length > 0 ? (
+                      Object.entries(paidByCurrency)
+                        .sort(([a], [b]) => a.localeCompare(b))
+                        .map(([currency, amount]) => {
+                          const formattedAmount = formatCurrencyAmountOnly(
+                            amount,
+                            currency,
+                            appLocale
+                          );
+                          return (
+                            <div key={currency} className="flex items-center gap-3">
+                              <span
+                                className={`text-xl font-bold w-12 text-left ${
+                                  isBrutalist
+                                    ? "brutalist-heading text-[var(--brutalist-fg)]"
+                                    : "text-slate-900 dark:text-white"
+                                }`}
                               >
-                                <span className="text-xl font-bold text-slate-900 dark:text-white w-12 text-left">
-                                  {currency}
-                                </span>
-                                <span className="text-xl font-bold text-slate-900 dark:text-white tabular-nums flex-1 text-right">
-                                  {formattedAmount}
-                                </span>
-                              </div>
-                            );
-                          })
-                      ) : (
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl font-bold text-slate-900 dark:text-white w-12 text-left">
-                            EUR
-                          </span>
-                          <span className="text-xl font-bold text-slate-900 dark:text-white tabular-nums flex-1 text-right">
-                            0,00
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                      {invoicesByStatus.paid} invoice
-                      {invoicesByStatus.paid !== 1 ? "s" : ""}
-                      {totalInvoices > 0
-                        ? ` (${Math.round(
-                            (invoicesByStatus.paid / totalInvoices) * 100
-                          )}% of total)`
-                        : ""}
-                    </p>
+                                {currency}
+                              </span>
+                              <span
+                                className={`text-xl font-bold tabular-nums flex-1 text-right ${
+                                  isBrutalist
+                                    ? "brutalist-heading text-[var(--brutalist-fg)]"
+                                    : "text-slate-900 dark:text-white"
+                                }`}
+                              >
+                                {formattedAmount}
+                              </span>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`text-xl font-bold w-12 text-left ${
+                            isBrutalist
+                              ? "brutalist-heading text-[var(--brutalist-fg)]"
+                              : "text-slate-900 dark:text-white"
+                          }`}
+                        >
+                          EUR
+                        </span>
+                        <span
+                          className={`text-xl font-bold tabular-nums flex-1 text-right ${
+                            isBrutalist
+                              ? "brutalist-heading text-[var(--brutalist-fg)]"
+                              : "text-slate-900 dark:text-white"
+                          }`}
+                        >
+                          0,00
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-emerald-100 dark:bg-emerald-900/20 p-3 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-                  </div>
+                  <p
+                    className={`text-xs mt-2 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                        : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {invoicesByStatus.paid} invoice
+                    {invoicesByStatus.paid !== 1 ? "s" : ""}
+                    {totalInvoices > 0
+                      ? ` (${Math.round(
+                          (invoicesByStatus.paid / totalInvoices) * 100
+                        )}% of total)`
+                      : ""}
+                  </p>
                 </div>
               </div>
 
               {/* Unpaid Invoices Card */}
-              <div className="bg-orange-50 dark:bg-orange-900/10 rounded-xl shadow-sm p-6 border border-orange-200 dark:border-orange-800">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-orange-600 dark:text-orange-400 mb-2 flex items-center gap-2">
+              <div
+                className={`p-6 ${
+                  isBrutalist
+                    ? "brutalist-border brutalist-shadow-sm bg-[hsl(var(--brutalist-red)/0.2)]"
+                    : "bg-orange-50 dark:bg-orange-900/10 rounded-xl shadow-sm border border-orange-200 dark:border-orange-800"
+                }`}
+              >
+                <div>
+                  <div className="mb-3">
+                    <p
+                      className={`text-sm flex items-center gap-2 ${
+                        isBrutalist
+                          ? "brutalist-text text-[var(--brutalist-fg)]"
+                          : "text-orange-600 dark:text-orange-400"
+                      }`}
+                    >
                       <AlertCircle className="w-4 h-4" />
                       Unpaid Invoices
                     </p>
-                    <div className="space-y-1">
-                      {Object.entries(unpaidByCurrency).length > 0 ? (
-                        Object.entries(unpaidByCurrency)
-                          .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([currency, amount]) => {
-                            const formattedAmount = formatCurrencyAmountOnly(
-                              amount,
-                              currency
-                            );
-                            return (
-                              <div
-                                key={currency}
-                                className="flex items-center gap-3"
+                  </div>
+                  <div className="space-y-1">
+                    {Object.entries(unpaidByCurrency).length > 0 ? (
+                      Object.entries(unpaidByCurrency)
+                        .sort(([a], [b]) => a.localeCompare(b))
+                        .map(([currency, amount]) => {
+                          const formattedAmount = formatCurrencyAmountOnly(
+                            amount,
+                            currency,
+                            appLocale
+                          );
+                          return (
+                            <div key={currency} className="flex items-center gap-3">
+                              <span
+                                className={`text-xl font-bold w-12 text-left ${
+                                  isBrutalist
+                                    ? "brutalist-heading text-[var(--brutalist-fg)]"
+                                    : "text-orange-900 dark:text-orange-300"
+                                }`}
                               >
-                                <span className="text-xl font-bold text-orange-900 dark:text-orange-300 w-12 text-left">
-                                  {currency}
-                                </span>
-                                <span className="text-xl font-bold text-orange-900 dark:text-orange-300 tabular-nums flex-1 text-right">
-                                  {formattedAmount}
-                                </span>
-                              </div>
-                            );
-                          })
-                      ) : (
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl font-bold text-orange-900 dark:text-orange-300 w-12 text-left">
-                            EUR
-                          </span>
-                          <span className="text-xl font-bold text-orange-900 dark:text-orange-300 tabular-nums flex-1 text-right">
-                            0,00
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-orange-500 dark:text-orange-400 mt-2">
-                      {unpaidInvoices.length} invoice
-                      {unpaidInvoices.length !== 1 ? "s" : ""} unpaid
-                    </p>
+                                {currency}
+                              </span>
+                              <span
+                                className={`text-xl font-bold tabular-nums flex-1 text-right ${
+                                  isBrutalist
+                                    ? "brutalist-heading text-[var(--brutalist-fg)]"
+                                    : "text-orange-900 dark:text-orange-300"
+                                }`}
+                              >
+                                {formattedAmount}
+                              </span>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`text-xl font-bold w-12 text-left ${
+                            isBrutalist
+                              ? "brutalist-heading text-[var(--brutalist-fg)]"
+                              : "text-orange-900 dark:text-orange-300"
+                          }`}
+                        >
+                          EUR
+                        </span>
+                        <span
+                          className={`text-xl font-bold tabular-nums flex-1 text-right ${
+                            isBrutalist
+                              ? "brutalist-heading text-[var(--brutalist-fg)]"
+                              : "text-orange-900 dark:text-orange-300"
+                          }`}
+                        >
+                          0,00
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-orange-100 dark:bg-orange-900/20 p-3 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                  </div>
+                  <p
+                    className={`text-xs mt-2 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                        : "text-orange-500 dark:text-orange-400"
+                    }`}
+                  >
+                    {unpaidInvoices.length} invoice
+                    {unpaidInvoices.length !== 1 ? "s" : ""} unpaid
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Second Row: Total Invoices and Total Clients */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+              <div
+                className={`p-6 ${
+                  isBrutalist
+                    ? "brutalist-border brutalist-shadow-sm bg-[var(--brutalist-card)]"
+                    : "bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                    <p
+                      className={`text-sm mb-1 ${
+                        isBrutalist
+                          ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                          : "text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
                       Total Invoices
                     </p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <p
+                      className={`text-2xl font-bold ${
+                        isBrutalist
+                          ? "brutalist-heading text-[var(--brutalist-fg)]"
+                          : "text-slate-900 dark:text-white"
+                      }`}
+                    >
                       {totalInvoices}
                     </p>
                   </div>
-                  <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div
+                    className={`p-3 flex items-center justify-center ${
+                      isBrutalist
+                        ? "brutalist-border bg-[hsl(var(--brutalist-cyan))]"
+                        : "bg-blue-100 dark:bg-blue-900/20 rounded-lg"
+                    }`}
+                  >
+                    <FileText
+                      className={`w-6 h-6 ${
+                        isBrutalist
+                          ? "text-[var(--brutalist-fg)]"
+                          : "text-blue-600 dark:text-blue-400"
+                      }`}
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+              <div
+                className={`p-6 ${
+                  isBrutalist
+                    ? "brutalist-border brutalist-shadow-sm bg-[var(--brutalist-card)]"
+                    : "bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                    <p
+                      className={`text-sm mb-1 ${
+                        isBrutalist
+                          ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                          : "text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
                       Total Clients
                     </p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <p
+                      className={`text-2xl font-bold ${
+                        isBrutalist
+                          ? "brutalist-heading text-[var(--brutalist-fg)]"
+                          : "text-slate-900 dark:text-white"
+                      }`}
+                    >
                       {totalClients}
                     </p>
                   </div>
-                  <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <div
+                    className={`p-3 flex items-center justify-center ${
+                      isBrutalist
+                        ? "brutalist-border bg-[hsl(var(--brutalist-green))]"
+                        : "bg-green-100 dark:bg-green-900/20 rounded-lg"
+                    }`}
+                  >
+                    <Users
+                      className={`w-6 h-6 ${
+                        isBrutalist
+                          ? "text-[var(--brutalist-fg)]"
+                          : "text-green-600 dark:text-green-400"
+                      }`}
+                    />
                   </div>
                 </div>
               </div>
@@ -386,35 +592,107 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
             {/* Status Breakdown */}
             {totalInvoices > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">
+                <div
+                  className={`p-4 ${
+                    isBrutalist
+                      ? "brutalist-border bg-[hsl(var(--brutalist-yellow)/0.35)]"
+                      : "bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                  }`}
+                >
+                  <p
+                    className={`text-xs mb-1 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                        : "text-slate-600 dark:text-slate-400"
+                    }`}
+                  >
                     Draft
                   </p>
-                  <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                  <p
+                    className={`text-lg font-semibold ${
+                      isBrutalist
+                        ? "brutalist-heading text-[var(--brutalist-fg)]"
+                        : "text-slate-900 dark:text-white"
+                    }`}
+                  >
                     {invoicesByStatus.draft}
                   </p>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
+                <div
+                  className={`p-4 ${
+                    isBrutalist
+                      ? "brutalist-border bg-[hsl(var(--brutalist-cyan)/0.35)]"
+                      : "bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800"
+                  }`}
+                >
+                  <p
+                    className={`text-xs mb-1 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                        : "text-blue-600 dark:text-blue-400"
+                    }`}
+                  >
                     Sent
                   </p>
-                  <p className="text-lg font-semibold text-blue-900 dark:text-blue-300">
+                  <p
+                    className={`text-lg font-semibold ${
+                      isBrutalist
+                        ? "brutalist-heading text-[var(--brutalist-fg)]"
+                        : "text-blue-900 dark:text-blue-300"
+                    }`}
+                  >
                     {invoicesByStatus.sent}
                   </p>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                  <p className="text-xs text-green-600 dark:text-green-400 mb-1">
+                <div
+                  className={`p-4 ${
+                    isBrutalist
+                      ? "brutalist-border bg-[hsl(var(--brutalist-green)/0.35)]"
+                      : "bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-200 dark:border-green-800"
+                  }`}
+                >
+                  <p
+                    className={`text-xs mb-1 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                        : "text-green-600 dark:text-green-400"
+                    }`}
+                  >
                     Paid
                   </p>
-                  <p className="text-lg font-semibold text-green-900 dark:text-green-300">
+                  <p
+                    className={`text-lg font-semibold ${
+                      isBrutalist
+                        ? "brutalist-heading text-[var(--brutalist-fg)]"
+                        : "text-green-900 dark:text-green-300"
+                    }`}
+                  >
                     {invoicesByStatus.paid}
                   </p>
                 </div>
-                <div className="bg-red-50 dark:bg-red-900/10 rounded-lg p-4 border border-red-200 dark:border-red-800">
-                  <p className="text-xs text-red-600 dark:text-red-400 mb-1">
+                <div
+                  className={`p-4 ${
+                    isBrutalist
+                      ? "brutalist-border bg-[hsl(var(--brutalist-red)/0.25)]"
+                      : "bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800"
+                  }`}
+                >
+                  <p
+                    className={`text-xs mb-1 ${
+                      isBrutalist
+                        ? "brutalist-text text-[var(--brutalist-muted-fg)]"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
                     Overdue
                   </p>
-                  <p className="text-lg font-semibold text-red-900 dark:text-red-300">
+                  <p
+                    className={`text-lg font-semibold ${
+                      isBrutalist
+                        ? "brutalist-heading text-[var(--brutalist-fg)]"
+                        : "text-red-900 dark:text-red-300"
+                    }`}
+                  >
                     {invoicesByStatus.overdue}
                   </p>
                 </div>
@@ -428,22 +706,40 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveTab("invoices")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "invoices"
-                    ? "bg-slate-900 dark:bg-slate-700 text-white"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                className={`flex items-center gap-2 px-4 py-2 font-medium transition ${
+                  isBrutalist
+                    ? `brutalist-border brutalist-text ${
+                        activeTab === "invoices"
+                          ? "bg-[var(--brutalist-fg)] text-[var(--brutalist-bg)]"
+                          : "bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))]"
+                      }`
+                    : `rounded-lg ${
+                        activeTab === "invoices"
+                          ? "bg-slate-900 dark:bg-slate-700 text-white"
+                          : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      }`
                 }`}
+                style={isBrutalist && activeTab === "invoices" ? { boxShadow: "4px 4px 0 hsl(var(--brutalist-red))" } : undefined}
               >
                 <FileText className="w-4 h-4" />
                 Invoices
               </button>
               <button
                 onClick={() => setActiveTab("clients")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
-                  activeTab === "clients"
-                    ? "bg-slate-900 dark:bg-slate-700 text-white"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                className={`flex items-center gap-2 px-4 py-2 font-medium transition ${
+                  isBrutalist
+                    ? `brutalist-border brutalist-text ${
+                        activeTab === "clients"
+                          ? "bg-[var(--brutalist-fg)] text-[var(--brutalist-bg)]"
+                          : "bg-[var(--brutalist-card)] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))]"
+                      }`
+                    : `rounded-lg ${
+                        activeTab === "clients"
+                          ? "bg-slate-900 dark:bg-slate-700 text-white"
+                          : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      }`
                 }`}
+                style={isBrutalist && activeTab === "clients" ? { boxShadow: "4px 4px 0 hsl(var(--brutalist-red))" } : undefined}
               >
                 <Users className="w-4 h-4" />
                 Clients
@@ -458,7 +754,11 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
                   setShowClientForm(true);
                 }
               }}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium shadow-sm"
+              className={`flex items-center justify-center gap-2 px-6 py-3 font-medium transition ${
+                isBrutalist
+                  ? "brutalist-border brutalist-shadow bg-[hsl(var(--brutalist-green))] text-[var(--brutalist-fg)] hover:bg-[hsl(var(--brutalist-yellow))] brutalist-text"
+                  : "bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 shadow-sm"
+              }`}
             >
               <Plus className="w-5 h-5" />
               New {activeTab === "invoices" ? "Invoice" : "Client"}
@@ -469,6 +769,10 @@ export default function Dashboard({ onNavigateToProfile }: DashboardProps) {
         <div>
           {activeTab === "invoices" ? (
             <InvoiceList
+              invoices={invoices}
+              filters={invoiceFilters}
+              onFiltersChange={setInvoiceFilters}
+              bankAccounts={bankAccounts}
               onViewInvoice={setViewingInvoice}
               onEditInvoice={handleEditInvoice}
             />

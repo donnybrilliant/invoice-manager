@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Invoice } from "../types";
 
-export function useInvoices() {
+export function useInvoices(options?: { enabled?: boolean }) {
   const { user } = useAuth();
 
   return useQuery({
@@ -40,7 +40,7 @@ export function useInvoices() {
       if (error) throw error;
       return (data || []) as Invoice[];
     },
-    enabled: !!user,
+    enabled: !!user && (options?.enabled ?? true),
     staleTime: 60 * 1000, // 1 minute
   });
 }
@@ -71,6 +71,9 @@ interface CreateInvoiceData {
   tax_amount: number;
   total: number;
   currency: string;
+  language: string;
+  locale: string;
+  bank_account_id: string;
   notes?: string | null;
   template: string;
   show_account_number?: boolean;
@@ -105,6 +108,9 @@ export function useCreateInvoice() {
           tax_amount: data.tax_amount,
           total: data.total,
           currency: data.currency,
+          language: data.language,
+          locale: data.locale,
+          bank_account_id: data.bank_account_id,
           notes: data.notes || null,
           template: data.template,
           show_account_number: data.show_account_number ?? true,
@@ -163,6 +169,9 @@ interface UpdateInvoiceData {
   tax_amount: number;
   total: number;
   currency: string;
+  language: string;
+  locale: string;
+  bank_account_id: string;
   notes?: string | null;
   template: string;
   show_account_number?: boolean;
@@ -211,6 +220,9 @@ export function useUpdateInvoice() {
           tax_amount: data.tax_amount,
           total: data.total,
           currency: data.currency,
+          language: data.language,
+          locale: data.locale,
+          bank_account_id: data.bank_account_id,
           notes: data.notes || null,
           template: data.template,
           show_account_number: data.show_account_number ?? true,

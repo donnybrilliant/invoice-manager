@@ -346,7 +346,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   marginTop: "8px",
                 }}
               >
-                {formatDate(invoice.issue_date)}
+                {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             <div
@@ -375,7 +375,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   marginTop: "8px",
                 }}
               >
-                {formatDate(invoice.due_date)}
+                {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
           </div>
@@ -490,7 +490,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 900,
                   }}
                 >
-                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                 </span>
               </div>
               <div
@@ -515,7 +515,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     fontWeight: 900,
                   }}
                 >
-                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
                 </span>
               </div>
             </div>
@@ -553,7 +553,7 @@ const CutoutBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     color: "#fff",
                   }}
                 >
-                  {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                 </span>
               </div>
             </div>

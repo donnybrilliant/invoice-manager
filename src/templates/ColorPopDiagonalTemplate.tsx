@@ -171,7 +171,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                       color: colors.white,
                     }}
                   >
-                    {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                   </div>
                 </div>
               </div>
@@ -204,7 +204,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Issued:
               </span>
               <span style={{ fontWeight: 900 }}>
-                {formatDate(invoice.issue_date)}
+                {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </span>
             </div>
             <div
@@ -226,7 +226,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Due:
               </span>
               <span style={{ fontWeight: 900 }}>
-                {formatDate(invoice.due_date)}
+                {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </span>
             </div>
             <div
@@ -426,7 +426,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   Subtotal
                 </span>
                 <span style={{ fontWeight: 800 }}>
-                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                 </span>
               </div>
               <div
@@ -448,7 +448,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   Tax
                 </span>
                 <span style={{ fontWeight: 800 }}>
-                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
                 </span>
               </div>
               <div
@@ -471,7 +471,7 @@ const ColorPopDiagonalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   Total
                 </span>
                 <span style={{ fontSize: "26px", fontWeight: 900 }}>
-                  {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                  {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                 </span>
               </div>
             </div>

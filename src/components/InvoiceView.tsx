@@ -25,6 +25,7 @@ import {
 import { useInvoiceItems } from "../hooks/useInvoiceItems";
 import { useCompanyProfile } from "../hooks/useCompanyProfile";
 import { useToast } from "../contexts/ToastContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { useShareLink, useGenerateShareToken } from "../hooks/useInvoiceShare";
 import { supabase } from "../lib/supabase";
 import { formatDate, formatCurrencyWithCode } from "../lib/formatting";
@@ -51,6 +52,7 @@ export default function InvoiceView({
   const { data: profile = null, isLoading: profileLoading } =
     useCompanyProfile();
   const { showToast } = useToast();
+  const { isBrutalist } = useTheme();
   const [downloading, setDownloading] = useState(false);
   const [downloadingEHF, setDownloadingEHF] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -372,7 +374,8 @@ export default function InvoiceView({
       // Format total using the proper currency formatting function
       const formattedTotal = formatCurrencyWithCode(
         invoice.total,
-        invoice.currency
+        invoice.currency,
+        invoice.locale
       );
 
       const emailHtml = renderEmailTemplate({
@@ -383,6 +386,8 @@ export default function InvoiceView({
         currency: invoice.currency,
         issueDate: invoice.issue_date,
         dueDate: invoice.due_date,
+        locale: invoice.locale,
+        language: invoice.language,
         message: emailMessage || undefined,
         companyEmail: profile?.email || undefined,
         useCustomTemplate: profile?.use_custom_email_template || false,
@@ -518,18 +523,18 @@ export default function InvoiceView({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60] invoice-print-container"
+      className={`fixed inset-0 flex items-center justify-center p-4 z-[60] invoice-print-container ${isBrutalist ? "bg-black/70" : "bg-black bg-opacity-50"}`}
       onClick={handleBackdropClick}
     >
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 my-8 print:bg-white">
+      <div className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 my-8 print:bg-white ${isBrutalist ? "brutalist-border brutalist-shadow-lg bg-[var(--brutalist-card)]" : "bg-white dark:bg-slate-800 rounded-xl shadow-2xl"}`}>
         <div className="flex items-center justify-between mb-6 print:hidden">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h2 className={`text-2xl font-bold ${isBrutalist ? "brutalist-heading text-[var(--brutalist-fg)]" : "text-slate-900 dark:text-white"}`}>
             Invoice Details
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
+              className={`p-2 transition ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-cyan))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
               title="Print"
             >
               <Printer className="w-5 h-5" />
@@ -537,7 +542,7 @@ export default function InvoiceView({
             <button
               onClick={handleDownload}
               disabled={downloading || loading || !client}
-              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`p-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-green))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
               title="Download PDF"
             >
               <Download className="w-5 h-5" />
@@ -545,7 +550,7 @@ export default function InvoiceView({
             <button
               onClick={handleDownloadEHF}
               disabled={downloadingEHF || loading || !client || !profile}
-              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`p-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-yellow))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
               title="Export EHF (Electronic Invoice Format)"
             >
               <FileCode className="w-5 h-5" />
@@ -553,7 +558,7 @@ export default function InvoiceView({
             <button
               onClick={handleShare}
               disabled={loading}
-              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`p-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-cyan))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
               title="Share Invoice"
             >
               <Share2 className="w-5 h-5" />
@@ -561,28 +566,29 @@ export default function InvoiceView({
             <button
               onClick={handleSendEmail}
               disabled={loading || !client || !client.email}
-              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`p-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-cyan))]" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
               title="Send Email"
             >
               <Mail className="w-5 h-5" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition"
+              className={`p-2 transition ${isBrutalist ? "text-[var(--brutalist-fg)] hover:text-[hsl(var(--brutalist-red))]" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"}`}
             >
               <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        <div className="border border-slate-200 dark:border-slate-700 rounded-lg print:border-0 invoice-content-print overflow-x-auto">
+        {/* Invoice content container - NEVER apply brutalist styling here */}
+        <div className={`print:border-0 invoice-content-print overflow-x-auto ${isBrutalist ? "brutalist-border" : "border border-slate-200 dark:border-slate-700 rounded-lg"}`}>
           {renderInvoice()}
         </div>
 
         <div className="mt-6 text-center print:hidden">
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium"
+            className={`px-6 py-3 font-medium transition ${isBrutalist ? "brutalist-border brutalist-shadow bg-[var(--brutalist-fg)] text-[var(--brutalist-bg)] hover:bg-[hsl(var(--brutalist-red))] hover:text-white brutalist-text" : "bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600"}`}
           >
             Close
           </button>
@@ -625,7 +631,11 @@ export default function InvoiceView({
                     <option value={365}>1 year</option>
                   </select>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Current link expires on {formatDate(shareData.expiresAt)}
+                    Current link expires on{" "}
+                    {formatDate(shareData.expiresAt, {
+                      locale: invoice.locale,
+                      language: invoice.language,
+                    })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mb-4">

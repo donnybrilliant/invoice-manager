@@ -114,19 +114,6 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
     overflowWrap: "break-word",
   };
 
-  const tableStyle: React.CSSProperties = {
-    width: "100%",
-    borderCollapse: "collapse",
-    marginBottom: "30px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    borderRadius: "8px",
-    overflow: "hidden",
-  };
-
-  const tableHeaderStyle: React.CSSProperties = {
-    background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-  };
-
   const thStyle: React.CSSProperties = {
     padding: "16px",
     textAlign: "left",
@@ -441,14 +428,14 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             <h3 style={cardTitlePurpleStyle}>Invoice Details</h3>
             <div style={cardContentStyle}>
               <div>
-                <strong>Issue Date: </strong> {formatDate(invoice.issue_date)}
+                <strong>Issue Date: </strong> {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </div>
               <div>
-                <strong>Due Date: </strong> {formatDate(invoice.due_date)}
+                <strong>Due Date: </strong> {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </div>
               {invoice.status === "sent" && invoice.sent_date && (
                 <div>
-                  <strong>Sent Date: </strong> {formatDate(invoice.sent_date)}
+                  <strong>Sent Date: </strong> {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               )}
             </div>
@@ -463,8 +450,10 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
             styles={{
               headerFontSize: thStyle.fontSize || "13px",
               bodyFontSize: tdStyle.fontSize || "14px",
-              headerPadding: thStyle.padding || "16px",
-              bodyPadding: tdStyle.padding || "16px",
+              headerPadding:
+                typeof thStyle.padding === "string" ? thStyle.padding : "16px",
+              bodyPadding:
+                typeof tdStyle.padding === "string" ? tdStyle.padding : "16px",
               headerTextColor: thStyle.color || "white",
               headerBgColor: "#3b82f6",
               bodyTextColor: "#374151",
@@ -473,7 +462,10 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
               rowBorderBottom: "none",
               headerFontWeight: thStyle.fontWeight || 600,
               headerTextTransform: thStyle.textTransform || "uppercase",
-              headerLetterSpacing: thStyle.letterSpacing || "0.5px",
+              headerLetterSpacing:
+                typeof thStyle.letterSpacing === "string"
+                  ? thStyle.letterSpacing
+                  : "0.5px",
               bodyFontWeight: "normal",
               amountFontWeight: 600,
               amountColor: "#1f2937",
@@ -510,7 +502,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <tr>
                   <td style={totalsRowStyle}>Subtotal: </td>
                   <td className="modern-totals-value" style={totalsValueStyle}>
-                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
                   </td>
                 </tr>
                 <tr>
@@ -525,7 +517,7 @@ const ModernTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 <tr style={totalRowStyle}>
                   <td style={totalLabelStyle}>Total Due: </td>
                   <td className="modern-total-value" style={totalValueStyle}>
-                    {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                    {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
                   </td>
                 </tr>
               </tbody>

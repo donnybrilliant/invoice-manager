@@ -1,82 +1,140 @@
 /**
- * Formatting utility functions for dates, currencies, and amounts
+ * Locale-aware formatting utility functions for dates, currencies, and numbers.
  */
 
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = String(date.getFullYear()).slice(-2);
-  return `${day}.${month}.${year}`;
+const LANGUAGE_LOCALE_MAP: Record<string, string> = {
+  en: "en-US",
+  nb: "nb-NO",
+  es: "es-ES",
+};
+
+const CURRENCY_FALLBACK_LOCALE_MAP: Record<string, string> = {
+  EUR: "nb-NO",
+  NOK: "nb-NO",
+  SEK: "sv-SE",
+  DKK: "da-DK",
+  USD: "en-US",
+  GBP: "en-GB",
+};
+
+interface ResolveLocaleOptions {
+  locale?: string | null;
+  language?: string | null;
+  currency?: string | null;
+}
+
+export function resolveLocale(options: ResolveLocaleOptions = {}): string {
+  const { locale, language, currency } = options;
+  if (locale) return locale;
+  if (language && LANGUAGE_LOCALE_MAP[language]) {
+    return LANGUAGE_LOCALE_MAP[language];
+  }
+  if (currency && CURRENCY_FALLBACK_LOCALE_MAP[currency]) {
+    return CURRENCY_FALLBACK_LOCALE_MAP[currency];
+  }
+  return "en-US";
+}
+
+interface FormatNumberOptions {
+  locale?: string | null;
+  language?: string | null;
+  currency?: string | null;
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+}
+
+export function formatNumber(
+  value: number,
+  {
+    locale,
+    language,
+    currency,
+    minimumFractionDigits = 2,
+    maximumFractionDigits = 2,
+  }: FormatNumberOptions = {}
+): string {
+  return new Intl.NumberFormat(resolveLocale({ locale, language, currency }), {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(value);
+}
+
+interface FormatMoneyOptions {
+  currency?: string;
+  locale?: string | null;
+  language?: string | null;
+  currencyDisplay?: "code" | "symbol" | "name";
+}
+
+export function formatMoney(
+  amount: number,
+  {
+    currency = "EUR",
+    locale,
+    language,
+    currencyDisplay = "code",
+  }: FormatMoneyOptions = {}
+): string {
+  const resolvedLocale = resolveLocale({ locale, language, currency });
+
+  if (currencyDisplay === "code") {
+    const numberPart = formatNumber(amount, {
+      locale: resolvedLocale,
+      currency,
+    });
+    return `${currency} ${numberPart}`;
+  }
+
+  return new Intl.NumberFormat(resolvedLocale, {
+    style: "currency",
+    currency,
+    currencyDisplay,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+interface FormatDateOptions {
+  locale?: string | null;
+  language?: string | null;
+  dateStyle?: "short" | "medium" | "long";
+}
+
+export function formatDate(
+  value: string | Date,
+  { locale, language, dateStyle = "short" }: FormatDateOptions = {}
+): string {
+  const date = value instanceof Date ? value : new Date(value);
+  return new Intl.DateTimeFormat(resolveLocale({ locale, language }), {
+    dateStyle,
+  }).format(date);
 }
 
 export function formatCurrencyWithCode(
   amount: number,
-  currency: string = "EUR"
+  currency: string = "EUR",
+  locale?: string | null
 ): string {
-  // Map currencies to their appropriate locales for correct number formatting
-  const currencyLocaleMap: Record<string, string> = {
-    NOK: "nb-NO", // Norwegian: 1 593,75 (space for thousands, comma for decimal)
-    SEK: "sv-SE", // Swedish: 1 593,75
-    DKK: "da-DK", // Danish: 1 593,75
-    EUR: "de-DE", // German locale for EUR: 1.593,75
-    USD: "en-US", // US: 1,593.75
-    GBP: "en-GB", // UK: 1,593.75
-  };
-
-  const locale =
-    currencyLocaleMap[currency] || (currency === "EUR" ? "de-DE" : "en-US");
-
-  // Format the number with appropriate locale (without currency style to get just the number part)
-  const numberPart = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-
-  // Always return format: "CURRENCY_CODE number"
-  // e.g., "EUR 1.593,75", "USD 1,593.75", "NOK 1 593,75"
-  return `${currency} ${numberPart}`;
+  return formatMoney(amount, { currency, locale, currencyDisplay: "code" });
 }
 
-export function formatAmountWithComma(amount: number): string {
-  // Format number with comma as decimal separator (e.g., 49.99 -> 49,99)
-  return amount.toFixed(2).replace(".", ",");
-}
-
-/**
- * Format just the number part of a currency amount (without currency symbol/code)
- * Uses the appropriate locale formatting for the currency
- */
 export function formatCurrencyAmountOnly(
   amount: number,
-  currency: string = "EUR"
+  currency: string = "EUR",
+  locale?: string | null
 ): string {
-  // Map currencies to their appropriate locales for correct number formatting
-  const currencyLocaleMap: Record<string, string> = {
-    NOK: "nb-NO", // Norwegian: 1 593,75 (space for thousands, comma for decimal)
-    SEK: "sv-SE", // Swedish: 1 593,75
-    DKK: "da-DK", // Danish: 1 593,75
-    EUR: "de-DE", // German locale for EUR: 1.593,75
-    USD: "en-US", // US: 1,593.75
-    GBP: "en-GB", // UK: 1,593.75
-  };
-
-  const locale =
-    currencyLocaleMap[currency] || (currency === "EUR" ? "de-DE" : "en-US");
-
-  // Format the number with appropriate locale (without currency style)
-  const formatted = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-
-  return formatted;
+  return formatNumber(amount, { currency, locale });
 }
 
 export function formatCurrencyWithCodeAndSpace(
   amount: number,
-  currency: string = "EUR"
+  currency: string = "EUR",
+  locale?: string | null
 ): string {
-  // formatCurrencyWithCode already includes the space between currency code and amount
-  return formatCurrencyWithCode(amount, currency);
+  return formatCurrencyWithCode(amount, currency, locale);
 }
+
+export function formatAmountWithComma(amount: number): string {
+  return amount.toFixed(2).replace(".", ",");
+}
+

@@ -1,0 +1,50 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "language": "Language",
+    "locale": "Locale",
+    "currency": "Currency",
+    "dashboard": "Dashboard"
+  },
+  "dashboard": {
+    "statsTitle": "Dashboard Statistics",
+    "paidInvoices": "Paid Invoices",
+    "unpaidInvoices": "Unpaid Invoices",
+    "totalInvoices": "Total Invoices",
+    "totalClients": "Total Clients",
+    "showStats": "Show Stats",
+    "hideStats": "Hide Stats",
+    "filters": {
+      "currency": "Currency",
+      "bankAccount": "Bank Account"
+    }
+  },
+  "invoices": {
+    "invoiceLanguage": "Invoice Language",
+    "invoiceLocale": "Invoice Locale",
+    "bankAccount": "Bank Account",
+    "bankAccountRequired": "Select a bank account for this currency",
+    "currencyMismatch": "Invoice currency must match bank account currency"
+  },
+  "clients": {
+    "preferredLanguage": "Preferred Language",
+    "preferredLocale": "Preferred Locale",
+    "preferredCurrency": "Preferred Currency"
+  },
+  "settings": {
+    "uiLanguage": "UI Language",
+    "uiLocale": "UI Locale",
+    "defaultInvoiceLanguage": "Default Invoice Language",
+    "defaultInvoiceLocale": "Default Invoice Locale",
+    "bankAccounts": "Bank Accounts"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalid": "Invalid value"
+  }
+}
+

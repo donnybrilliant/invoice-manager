@@ -1,0 +1,50 @@
+{
+  "common": {
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "delete": "Slett",
+    "edit": "Rediger",
+    "create": "Opprett",
+    "language": "Språk",
+    "locale": "Region",
+    "currency": "Valuta",
+    "dashboard": "Dashboard"
+  },
+  "dashboard": {
+    "statsTitle": "Dashboard-statistikk",
+    "paidInvoices": "Betalte fakturaer",
+    "unpaidInvoices": "Ubetalte fakturaer",
+    "totalInvoices": "Totalt antall fakturaer",
+    "totalClients": "Totalt antall kunder",
+    "showStats": "Vis statistikk",
+    "hideStats": "Skjul statistikk",
+    "filters": {
+      "currency": "Valuta",
+      "bankAccount": "Bankkonto"
+    }
+  },
+  "invoices": {
+    "invoiceLanguage": "Fakturaspråk",
+    "invoiceLocale": "Fakturaregion",
+    "bankAccount": "Bankkonto",
+    "bankAccountRequired": "Velg en bankkonto for denne valutaen",
+    "currencyMismatch": "Fakturavaluta må samsvare med bankkontoens valuta"
+  },
+  "clients": {
+    "preferredLanguage": "Foretrukket språk",
+    "preferredLocale": "Foretrukket region",
+    "preferredCurrency": "Foretrukket valuta"
+  },
+  "settings": {
+    "uiLanguage": "Språk i appen",
+    "uiLocale": "Region i appen",
+    "defaultInvoiceLanguage": "Standard fakturaspråk",
+    "defaultInvoiceLocale": "Standard fakturaregion",
+    "bankAccounts": "Bankkontoer"
+  },
+  "validation": {
+    "required": "Dette feltet er påkrevd",
+    "invalid": "Ugyldig verdi"
+  }
+}
+

@@ -243,7 +243,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{ fontSize: "16px", fontWeight: 900, marginTop: "4px" }}
               >
-                {formatDate(invoice.issue_date)}
+                {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             <div>
@@ -265,7 +265,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   color: "#D32F2F",
                 }}
               >
-                {formatDate(invoice.due_date)}
+                {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
@@ -287,7 +287,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     marginTop: "4px",
                   }}
                 >
-                  {formatDate(invoice.sent_date)}
+                  {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             )}
@@ -403,7 +403,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Subtotal
               </span>
               <span style={{ fontWeight: 900, color: "#fff" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -425,7 +425,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Tax
               </span>
               <span style={{ fontWeight: 900, color: "#fff" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -450,7 +450,7 @@ const NeoBrutalistTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <span
                 style={{ fontSize: "28px", fontWeight: 900, color: "#000" }}
               >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>

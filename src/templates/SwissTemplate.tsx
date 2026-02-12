@@ -223,7 +223,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Issue Date
               </div>
               <div style={{ fontSize: "15px", color: "#000" }}>
-                {formatDate(invoice.issue_date)}
+                {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             <div>
@@ -242,7 +242,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
               <div
                 style={{ fontSize: "15px", color: "#FF0000", fontWeight: 600 }}
               >
-                {formatDate(invoice.due_date)}
+                {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
@@ -260,7 +260,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   Sent Date
                 </div>
                 <div style={{ fontSize: "15px", color: "#000" }}>
-                  {formatDate(invoice.sent_date)}
+                  {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             )}
@@ -312,7 +312,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <span style={{ fontSize: "13px", color: "#666" }}>Subtotal</span>
               <span style={{ fontSize: "14px", color: "#333" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -325,7 +325,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <span style={{ fontSize: "13px", color: "#666" }}>Tax</span>
               <span style={{ fontSize: "14px", color: "#333" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -355,7 +355,7 @@ const SwissTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   color: "#000",
                 }}
               >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>

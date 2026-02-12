@@ -137,7 +137,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     marginBottom: "15px",
                   }}
                 >
-                  {formatDate(invoice.issue_date)}
+                  {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
                 <div
                   style={{
@@ -155,7 +155,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                     color: colors.primary,
                   }}
                 >
-                  {formatDate(invoice.due_date)}
+                  {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             </div>
@@ -327,7 +327,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Subtotal
               </span>
               <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -346,7 +346,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 Tax
               </span>
               <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -384,7 +384,7 @@ const ColorPopMinimalTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   whiteSpace: "nowrap",
                 }}
               >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>

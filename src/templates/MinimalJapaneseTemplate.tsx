@@ -217,7 +217,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 発行日
               </div>
               <div style={{ fontSize: "14px", color: "#2D2A26" }}>
-                {formatDate(invoice.issue_date)}
+                {formatDate(invoice.issue_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             <div>
@@ -233,7 +233,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                 支払期限
               </div>
               <div style={{ fontSize: "14px", color: "#B85C38" }}>
-                {formatDate(invoice.due_date)}
+                {formatDate(invoice.due_date, { locale: invoice.locale, language: invoice.language })}
               </div>
             </div>
             {invoice.status === "sent" && invoice.sent_date && (
@@ -250,7 +250,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   送信日
                 </div>
                 <div style={{ fontSize: "14px", color: "#B85C38" }}>
-                  {formatDate(invoice.sent_date)}
+                  {formatDate(invoice.sent_date, { locale: invoice.locale, language: invoice.language })}
                 </div>
               </div>
             )}
@@ -309,7 +309,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <span style={{ fontSize: "12px", color: "#8A847B" }}>小計</span>
               <span style={{ fontSize: "14px", color: "#2D2A26" }}>
-                {formatCurrencyWithCode(invoice.subtotal, invoice.currency)}
+                {formatCurrencyWithCode(invoice.subtotal, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -322,7 +322,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
             >
               <span style={{ fontSize: "12px", color: "#8A847B" }}>消費税</span>
               <span style={{ fontSize: "14px", color: "#2D2A26" }}>
-                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency)}
+                {formatCurrencyWithCode(invoice.tax_amount, invoice.currency, invoice.locale)}
               </span>
             </div>
             <div
@@ -350,7 +350,7 @@ const MinimalJapaneseTemplateComponent: React.FC<InvoiceTemplateData> = ({
                   color: "#2D2A26",
                 }}
               >
-                {formatCurrencyWithCode(invoice.total, invoice.currency)}
+                {formatCurrencyWithCode(invoice.total, invoice.currency, invoice.locale)}
               </span>
             </div>
           </div>
